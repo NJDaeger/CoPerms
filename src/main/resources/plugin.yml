@@ -1,0 +1,5 @@
+name: CoPerms
+version: 0.1.0
+main: com.coalesce.coperms.CoPerms
+author: ProjectCoalesce
+depend: [CoalesceCore]
