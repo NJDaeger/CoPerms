@@ -1,12 +1,11 @@
 package com.coalesce.coperms.configuration;
 
-import com.coalesce.config.json.JsonConfig;
 import com.coalesce.config.yml.YamlConfig;
 import com.coalesce.plugin.CoPlugin;
 
-public final class Configuration extends YamlConfig {
+public final class CoPermsConfig extends YamlConfig {
 	
-	public Configuration(CoPlugin plugin) {
+	public CoPermsConfig(CoPlugin plugin) {
 		super("config", plugin);
 		
 		

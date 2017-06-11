@@ -1,22 +1,22 @@
 package com.coalesce.coperms;
 
-import com.coalesce.coperms.configuration.Configuration;
-import com.coalesce.coperms.data.Group;
+import com.coalesce.coperms.configuration.CoPermsConfig;
+import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.plugin.CoPlugin;
-import org.bukkit.Bukkit;
 
 public final class CoPerms extends CoPlugin {
 	
 	private GroupModule groupModule;
+	private CoPermsConfig config;
 	
 	@Override
 	public void onPluginEnable() {
 		this.updateCheck("Project-Coalesce", "CoPerms", true);
 		
 		addModules(
-				groupModule = new GroupModule(this));
+				this.groupModule = new GroupModule(this));
 		
-		new Configuration(this);
+		this.config = new CoPermsConfig(this);
 		
 	}
 	
@@ -24,4 +24,21 @@ public final class CoPerms extends CoPlugin {
 	public void onPluginDisable() {
 	
 	}
+	
+	/**
+	 * Gets the groups module.
+	 * @return The groups module.
+	 */
+	public GroupModule getGroupModule() {
+		return groupModule;
+	}
+	
+	/**
+	 * Gets CoPerms' configuration.
+	 * @return CoPerm's configuration.
+	 */
+	public CoPermsConfig getPermsConfig() {
+		return config;
+	}
+	
 }

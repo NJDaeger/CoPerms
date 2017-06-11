@@ -3,7 +3,6 @@ package com.coalesce.coperms.data;
 import com.coalesce.coperms.api.IGroup;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.plugin.CoPlugin;
-import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,18 +36,8 @@ public final class Group implements IGroup {
 	}
 	
 	@Override
-	public void addPlayer(Player player) {
-		players.add(player.getUniqueId());
-	}
-	
-	@Override
 	public void addPlayer(UUID uuid) {
 		players.add(uuid);
-	}
-	
-	@Override
-	public void removePlayer(Player player) {
-		players.remove(player.getUniqueId());
 	}
 	
 	@Override
@@ -74,6 +63,11 @@ public final class Group implements IGroup {
 	@Override
 	public boolean hasPermission(String permission) {
 		return permissions.contains(permission);
+	}
+	
+	@Override
+	public GroupDataFile getDataFile() {
+		return dataFile;
 	}
 	
 	//TODO: This stuff will be added in later on.
