@@ -1,7 +1,6 @@
 package com.coalesce.coperms;
 
 import com.coalesce.coperms.configuration.CoPermsConfig;
-import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.plugin.CoPlugin;
 
 public final class CoPerms extends CoPlugin {
@@ -13,10 +12,10 @@ public final class CoPerms extends CoPlugin {
 	public void onPluginEnable() {
 		this.updateCheck("Project-Coalesce", "CoPerms", true);
 		
+		this.config = new CoPermsConfig(this);
+		
 		addModules(
 				this.groupModule = new GroupModule(this));
-		
-		this.config = new CoPermsConfig(this);
 		
 	}
 	

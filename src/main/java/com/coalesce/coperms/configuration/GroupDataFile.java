@@ -11,6 +11,7 @@ import java.util.List;
 
 public final class GroupDataFile extends YamlConfig {
 	
+	
 	private final CoPerms plugin;
 	private final World world;
 	

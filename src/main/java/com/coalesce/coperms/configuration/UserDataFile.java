@@ -21,12 +21,14 @@ public final class UserDataFile extends JsonConfig {
 		
 		this.plugin = plugin;
 		
+		addEntry("ye", "ye");
+		
 	}
 	
-	public CoUser loadUser(Player player) {
+	/*public CoUser loadUser(Player player) {
 		setEntry("users." + player.getUniqueId().toString() + ".name", player.getName());
 		addEntry("users." + player.getUniqueId().toString() + ".group", plugin.getGroupModule().getDefaultGroup().getName());
 		return new CoUser(player, getSection("users." + player.getUniqueId().toString()));
-	}
+	}*/
 	
 }

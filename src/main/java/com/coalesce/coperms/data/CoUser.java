@@ -26,6 +26,6 @@ public final class CoUser {
 	}
 	
 	public IGroup getGroup() {
-		return plugin.getGroupModule().getGroup(userSection.getName());
+		return null;
 	}
 }

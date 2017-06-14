@@ -2,6 +2,7 @@ package com.coalesce.coperms.data;
 
 import com.coalesce.coperms.api.IGroup;
 import com.coalesce.coperms.configuration.GroupDataFile;
+import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.plugin.CoPlugin;
 
 import java.util.ArrayList;
@@ -12,14 +13,16 @@ public final class Group implements IGroup {
 	
 	private final List<String> permissions;
 	private final GroupDataFile dataFile;
+	private final UserDataFile userData;
 	private final List<UUID> players;
 	private final CoPlugin plugin;
 	private final String name;
 	
-	public Group(String name, GroupDataFile dataFile, CoPlugin plugin) {
+	public Group(String name, GroupDataFile dataFile, UserDataFile userData, CoPlugin plugin) {
 		this.permissions = new ArrayList<>();
 		this.players = new ArrayList<>();
 		this.dataFile = dataFile;
+		this.userData = userData;
 		this.plugin = plugin;
 		this.name = name;
 		
