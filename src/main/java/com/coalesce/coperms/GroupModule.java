@@ -2,32 +2,27 @@ package com.coalesce.coperms;
 
 import com.coalesce.config.IEntry;
 import com.coalesce.config.ISection;
-import com.coalesce.coperms.api.IGroup;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.coperms.data.CoWorld;
-import com.coalesce.coperms.data.Group;
 import com.coalesce.plugin.CoModule;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerJoinEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class GroupModule extends CoModule {
 	
 	private final CoPerms plugin;
 	private final ISection mirrors;
-	private final Collection<World> otherWorlds;
-	//The world, the list of groups
-	private final Map<String, Map<String, IGroup>> groups;
 	private final Map<String, UserDataFile> userDataFiles;
 	private final Map<String, GroupDataFile> groupDataFiles;
-	private final Map<World, List<String>> hierarchy;
-	private final List<CoWorld> resolved;
 	private final List<World> queue;
 	private final List<World> loaded;
+	private final List<CoWorld> worlds;
 	
 	/**
 	 * Create a new module
@@ -39,11 +34,8 @@ public final class GroupModule extends CoModule {
 		this.mirrors = plugin.getPermsConfig().getMirrors();
 		this.groupDataFiles = new HashMap<>();
 		this.userDataFiles = new HashMap<>();
-		this.otherWorlds = new ArrayList<>();
-		this.hierarchy = new HashMap<>();
-		this.resolved = new ArrayList<>();
 		this.loaded = new ArrayList<>();
-		this.groups = new HashMap<>();
+		this.worlds = new ArrayList<>();
 		this.queue = new ArrayList<>();
 		this.plugin = plugin;
 	}
@@ -52,177 +44,17 @@ public final class GroupModule extends CoModule {
 	
 	@Override
 	protected void onEnable() throws Exception {
-		mirrors.getKeys(false).forEach(System.out::println);
-		Bukkit.getWorlds().forEach(w -> loadWorld(w));
-	}
-	
-	public Map<String, UserDataFile> getUserDataFiles() {
-		return userDataFiles;
-	}
-	
-	public Map<String, GroupDataFile> getGroupDataFiles() {
-		return groupDataFiles;
-	}
-	
-	private void loadWorld(World world) {
-		if (loaded.contains(world)) return;
-		if (mirrors.contains(world.getName())) {
-			System.out.println(world.getName() + " 1==================");
-			IEntry e = mirrors.getEntry(world.getName());
-			if (e.getStringList().contains("groups") && e.getStringList().contains("users")) {
-				System.out.println(world.getName() + " 2==================");
-				userDataFiles.put(world.getName(), new UserDataFile(plugin, world));
-				groupDataFiles.put(world.getName(), new GroupDataFile(plugin, world));
-				loaded.add(world);
-				queue.remove(world);
+		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+			for (World world : Bukkit.getWorlds()) {
+				loadData(world);
 			}
-			else {
-				if (e.getStringList().isEmpty()) {
-					System.out.println(world.getName() + " 3==================");
-					if (world.equals(Bukkit.getWorlds().get(0))) {
-						throw new RuntimeException("Default world must have both the groups file and users file specified.");
-					}
-					userDataFiles.put(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-					groupDataFiles.put(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-					loaded.add(world);
-					queue.remove(world);
-					return;
-				}
-				System.out.println(world.getName() + " 4==================");
-				e.getStringList().forEach(key -> {
-					if (key.contains(":")) {
-						System.out.println(world.getName() + " 5==================");
-						String[] s = key.split(":");
-						if (Bukkit.getWorld(s[0]) == null) {
-							throw new RuntimeException("World " + s[0] + " does not exist.");
-						}
-						if (s[1].equalsIgnoreCase("users")) {
-							System.out.println(world.getName() + " 6==================");
-							if (userDataFiles.get(s[0]) == null) {
-								System.out.println(world.getName() + " 7==================");
-								this.queue.add(world);
-								loadWorld(Bukkit.getWorld(s[0]));
-							}
-							else userDataFiles.put(world.getName(), userDataFiles.get(s[0]));
-						}
-						if (s[1].equalsIgnoreCase("groups")) {
-							System.out.println(world.getName() + " 8==================");
-							if (groupDataFiles.get(s[0]) == null) {
-								System.out.println(world.getName() + " 9==================");
-								this.queue.add(world);
-								loadWorld(Bukkit.getWorld(s[0]));
-							}
-							else {
-								System.out.println(world.getName() + " 10==================");
-								groupDataFiles.put(world.getName(), groupDataFiles.get(s[0]));
-							}
-						}
-						else {
-							System.out.println(world.getName() + " 11==================");
-							userDataFiles.put(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-							groupDataFiles.put(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-							loaded.add(world);
-							queue.remove(world);
-							return;
-						}
-					}
-					if (key.equalsIgnoreCase("groups")) {
-						System.out.println(world.getName() + " 12==================");
-						groupDataFiles.put(world.getName(), new GroupDataFile(plugin, world));
-					}
-					if (key.equalsIgnoreCase("users")) {
-						System.out.println(world.getName() + " 13==================");
-						userDataFiles.put(world.getName(), new UserDataFile(plugin, world));
-					}
-					else {
-						System.out.println(world.getName() + " 14==================");
-						userDataFiles.put(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-						groupDataFiles.put(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-						loaded.add(world);
-						queue.remove(world);
-						return;
-					}
-				});
+			for (World w : queue) {
+				loadOtherWorlds(w);
 			}
-		}
-		else if (mirrors.contains("all-other-worlds")) {
-			System.out.println(world.getName() + " 15==================");
-			IEntry e = mirrors.getEntry("all-other-worlds");
-			if (e.getStringList().isEmpty()) {
-				System.out.println(world.getName() + " 16==================");
-				userDataFiles.put(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-				groupDataFiles.put(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-				loaded.add(world);
-				queue.remove(world);
-				return;
+			for (World world : loaded) {
+				worlds.add(new CoWorld(world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName())));
 			}
-			System.out.println(world.getName() + " 17==================");
-			e.getStringList().forEach(key -> {
-				System.out.println(world.getName() + " 18==================");
-				if (key.contains(":")) {
-					System.out.println(world.getName() + " 19==================");
-					String[] s = key.split(":");
-					if (Bukkit.getWorld(s[0]) == null) {
-						throw new RuntimeException("World " + s[0] + " does not exist.");
-					}
-					if (s[1].equalsIgnoreCase("users")) {
-						System.out.println(world.getName() + " 20==================");
-						if (userDataFiles.get(s[0]) == null) {
-							System.out.println(world.getName() + " 21==================");
-							this.queue.add(world);
-							loadWorld(Bukkit.getWorld(s[0]));
-						}
-						else {
-							System.out.println(world.getName() + " 22==================");
-							userDataFiles.put(world.getName(), userDataFiles.get(s[0]));
-						}
-					}
-					if (s[1].equalsIgnoreCase("groups")) {
-						System.out.println(world.getName() + " 23==================");
-						if (groupDataFiles.get(s[0]) == null) {
-							System.out.println(world.getName() + " 24==================");
-							this.queue.add(world);
-							loadWorld(Bukkit.getWorld(s[0]));
-						}
-						else {
-							System.out.println(world.getName() + " 25==================");
-							groupDataFiles.put(world.getName(), groupDataFiles.get(s[0]));
-						}
-					}
-					else {
-						System.out.println(world.getName() + " 26==================");
-						userDataFiles.put(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-						groupDataFiles.put(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-						loaded.add(world);
-						queue.remove(world);
-						return;
-					}
-				}
-				if (key.equalsIgnoreCase("groups")) {
-					System.out.println(world.getName() + " 27==================");
-					groupDataFiles.put(world.getName(), new GroupDataFile(plugin, world));
-				}
-				if (key.equalsIgnoreCase("users")) {
-					System.out.println(world.getName() + " 28==================");
-					userDataFiles.put(world.getName(), new UserDataFile(plugin, world));
-				}
-				else {
-					System.out.println(world.getName() + " 29==================");
-					userDataFiles.put(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-					groupDataFiles.put(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-					loaded.add(world);
-					queue.remove(world);
-					return;
-				}
-			});
-		}
-		else {
-			System.out.println(world.getName() + " 30==================");
-			groupDataFiles.put(world.getName(), new GroupDataFile(plugin, world));
-			userDataFiles.put(world.getName(), new UserDataFile(plugin, world));
-			loaded.add(world);
-			queue.remove(world);
-		}
+		});
 	}
 	
 	@Override
@@ -230,8 +62,102 @@ public final class GroupModule extends CoModule {
 	
 	}
 	
-	@EventHandler
-	public void onJoin(PlayerJoinEvent e) {
+	/**
+	 * Gets a list of CoPerms' worlds.
+	 * @return A list of CoWorlds
+	 */
+	public List<CoWorld> getWorlds() {
+		return worlds;
+	}
+	
+	private void loadData(World world) {
+		
+		//Mirrors must contain the default world
+		if (mirrors.contains(world.getName())) {
+			IEntry e = mirrors.getEntry(world.getName());
+			
+			//if the world in mirrors has both the groups and users string, then load the datafiles.
+			if (e.getStringList().contains("groups") && e.getStringList().contains("users")) {
+				userDataFiles.put(world.getName(), new UserDataFile(plugin, world));
+				groupDataFiles.put(world.getName(), new GroupDataFile(plugin, world));
+				loaded.add(world);
+			}
+			
+			//we need to resolve what else is contained in this datafile
+			else {
+				if (e.getStringList() == null) {
+					if (world.equals(Bukkit.getWorlds().get(0))) {
+						throw new RuntimeException("Default world must have both the groups file and users file specified.");
+					}
+					userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
+					groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
+					loaded.add(world);
+					return;
+				}
+				loadKeys(e.getStringList(), world);
+			}
+		}
+		else queue.add(world);
+	}
+	
+	private void loadOtherWorlds(World world) {
+		//If the mirrors section of the config contains "all-other-worlds" then we will load the keys and generate files for each world.
+		if (mirrors.contains("all-other-worlds")) {
+			loadKeys(mirrors.getEntry("all-other-worlds").getStringList(), world);
+			return;
+		}
+		
+		//All other worlds will get their data from the default world.
+		userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
+		groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
+		loaded.add(world);
+	}
+	
+	private void loadKeys(List<String> keys, World world) {
+		//Lets go through each key in this list.
+		keys.forEach(key -> {
+			
+			//If even one key matches a loaded world name, then the loop stops and both datafiles are used from the found world
+			if (loaded.contains(Bukkit.getWorld(key))) {
+				groupDataFiles.put(world.getName(), groupDataFiles.get(key));
+				userDataFiles.put(world.getName(), userDataFiles.get(key));
+				return;
+			}
+			
+			//If a key equals "groups" then it creates a new groupfile for this world
+			if (key.equalsIgnoreCase("groups")) {
+				groupDataFiles.put(world.getName(), groupDataFiles.put(world.getName(), new GroupDataFile(plugin, world)));
+			}
+			
+			//If a key equals "users" then it creates a new userfile for this world
+			if (key.equalsIgnoreCase("users")) {
+				userDataFiles.put(world.getName(), userDataFiles.put(world.getName(), new UserDataFile(plugin, world)));
+			}
+			
+			//If the key contains a colon, then we know the key means its getting data from elsewhere.
+			if (key.contains(":")) {
+				String[] s = key.split(":");
+				if (Bukkit.getWorld(s[0]) == null) {
+					throw new RuntimeException("World " + s[0] + " does not exist.");
+				}
+				
+				//Gets the user file from the specified world
+				if (s[1].equalsIgnoreCase("users")) {
+					userDataFiles.put(world.getName(), userDataFiles.get(s[0]));
+				}
+				
+				//Gets the group file from the specified world
+				if (s[1].equalsIgnoreCase("groups")) {
+					groupDataFiles.put(world.getName(), groupDataFiles.get(s[0]));
+				}
+				
+			}
+		});
+		
+		//We need to load something, so we load the default worlds data.
+		userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
+		groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
+		loaded.add(world);
 	}
 	
 }
