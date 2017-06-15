@@ -2,30 +2,41 @@ package com.coalesce.coperms.data;
 
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
-import com.coalesce.coperms.api.IGroup;
-import org.bukkit.entity.Player;
+
+import java.util.UUID;
 
 public final class CoUser {
 	
-	private final Player player;
+	private final UUID uuid;
 	private final CoPerms plugin;
 	private final ISection userSection;
 	
-	public CoUser(CoPerms plugin, Player player, ISection userSection) {
+	public CoUser(CoPerms plugin, UUID userID, ISection userSection) {
 		this.userSection = userSection;
 		this.plugin = plugin;
-		this.player = player;
+		this.uuid = userID;
 	}
 	
 	public ISection getUserSection() {
 		return userSection;
 	}
 	
-	public Player getPlayer() {
-		return player;
+	public UUID getUuid() {
+		return uuid;
 	}
 	
-	public IGroup getGroup() {
-		return null;
+	public Group getGroup() {
+		return plugin.getDataHolder().getGroup(userSection.getEntry("group").getString());
 	}
+	
+	public String getGroupName() {
+		return userSection.getEntry("group").getString();
+	}
+	
+	public void setGroup(String name) {
+	
+	}
+	
+	
+	
 }

@@ -9,34 +9,35 @@ import com.coalesce.plugin.CoModule;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public final class GroupModule extends CoModule {
+public final class DataLoader extends CoModule {
 	
-	private final CoPerms plugin;
-	private final ISection mirrors;
-	private final Map<String, UserDataFile> userDataFiles;
 	private final Map<String, GroupDataFile> groupDataFiles;
-	private final List<World> queue;
-	private final List<World> loaded;
-	private final List<CoWorld> worlds;
+	private final Map<String, UserDataFile> userDataFiles;
+	private final Map<String, CoWorld> worlds;
+	private final Set<World> loaded;
+	private final Set<World> queue;
+	private final ISection mirrors;
+	private DataHolder dataHolder;
+	private final CoPerms plugin;
+	private final String def;
 	
 	/**
 	 * Create a new module
 	 *
 	 * @param plugin The plugin that's creating this module
 	 */
-	public GroupModule(CoPerms plugin) {
-		super(plugin, "Group Loader Module");
+	public DataLoader(CoPerms plugin) {
+		super(plugin, "Data Loader");
+		
 		this.mirrors = plugin.getPermsConfig().getMirrors();
+		this.def = Bukkit.getWorlds().get(0).getName();
 		this.groupDataFiles = new HashMap<>();
 		this.userDataFiles = new HashMap<>();
-		this.loaded = new ArrayList<>();
-		this.worlds = new ArrayList<>();
-		this.queue = new ArrayList<>();
+		this.worlds = new HashMap<>();
+		this.loaded = new HashSet<>();
+		this.queue = new HashSet<>();
 		this.plugin = plugin;
 	}
 	
@@ -44,17 +45,17 @@ public final class GroupModule extends CoModule {
 	
 	@Override
 	protected void onEnable() throws Exception {
-		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-			for (World world : Bukkit.getWorlds()) {
-				loadData(world);
-			}
-			for (World w : queue) {
-				loadOtherWorlds(w);
-			}
-			for (World world : loaded) {
-				worlds.add(new CoWorld(world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName())));
-			}
-		});
+		for (World world : Bukkit.getWorlds()) {
+			loadData(world);
+		}
+		for (World world : queue) {
+			loadOtherWorlds(world);
+		}
+		for (World world : loaded) {
+			worlds.put(world.getName(), new CoWorld(plugin, world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName())));
+		}
+		this.dataHolder = new DataHolder(this);
+		new DataListener(dataHolder, plugin);
 	}
 	
 	@Override
@@ -63,13 +64,17 @@ public final class GroupModule extends CoModule {
 	}
 	
 	/**
-	 * Gets a list of CoPerms' worlds.
-	 * @return A list of CoWorlds
+	 * Gets the data holder for the plugin.
+	 * @return The data folder.
 	 */
-	public List<CoWorld> getWorlds() {
-		return worlds;
+	protected DataHolder getDataHolder() {
+		return dataHolder;
 	}
 	
+	/**
+	 * Loads the data from a world that is contained in the mirrors configuration section.
+	 * @param world The world to load the data from.
+	 */
 	private void loadData(World world) {
 		
 		//Mirrors must contain the default world
@@ -89,8 +94,8 @@ public final class GroupModule extends CoModule {
 					if (world.equals(Bukkit.getWorlds().get(0))) {
 						throw new RuntimeException("Default world must have both the groups file and users file specified.");
 					}
-					userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-					groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
+					userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(def));
+					groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(def));
 					loaded.add(world);
 					return;
 				}
@@ -100,6 +105,10 @@ public final class GroupModule extends CoModule {
 		else queue.add(world);
 	}
 	
+	/**
+	 * Loads the "all-other-worlds" key in the mirrors config section.
+	 * @param world A world from the queue list.
+	 */
 	private void loadOtherWorlds(World world) {
 		//If the mirrors section of the config contains "all-other-worlds" then we will load the keys and generate files for each world.
 		if (mirrors.contains("all-other-worlds")) {
@@ -108,8 +117,8 @@ public final class GroupModule extends CoModule {
 		}
 		
 		//All other worlds will get their data from the default world.
-		userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-		groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
+		userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(def));
+		groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(def));
 		loaded.add(world);
 	}
 	
@@ -155,8 +164,8 @@ public final class GroupModule extends CoModule {
 		});
 		
 		//We need to load something, so we load the default worlds data.
-		userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(Bukkit.getWorlds().get(0).getName()));
-		groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(Bukkit.getWorlds().get(0).getName()));
+		userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(def));
+		groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(def));
 		loaded.add(world);
 	}
 	
