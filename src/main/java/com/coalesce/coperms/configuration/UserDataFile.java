@@ -7,10 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public final class UserDataFile extends JsonConfig {
 	
@@ -39,12 +36,10 @@ public final class UserDataFile extends JsonConfig {
 	 *
 	 */
 	public CoUser getUser(UUID uuid) {
-		if (Bukkit.getPlayer(uuid) != null) {
-			for (CoUser user : users) {
-				if (user.getUuid().equals(uuid)) return user;
-			}
+		for (CoUser user : users) {
+			if (user.getUuid().equals(uuid)) return user;
 		}
-		return loadUser(uuid);
+		return null;
 	}
 	
 	
@@ -73,5 +68,6 @@ public final class UserDataFile extends JsonConfig {
 		addEntry("users." + uuid.toString() + ".prefix", "");
 		addEntry("users." + uuid.toString() + ".suffix", "");
 		addEntry("users." + uuid.toString() + ".permissions", Collections.emptyList());
+		users.remove(getUser(uuid));
 	}
 }

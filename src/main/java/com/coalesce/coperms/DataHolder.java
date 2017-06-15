@@ -20,6 +20,11 @@ public final class DataHolder {
 		this.users = new HashMap<>();
 		this.worlds = new HashMap<>();
 		this.groups = new HashSet<>();
+		
+		worlds.putAll(dataloader.getWorlds());
+		worlds.forEach((s, coWorld) -> System.out.println(coWorld.getWorld().getName()));
+		worlds.forEach((name, world) -> groups.addAll(world.getGroups()));
+		groups.forEach(group -> System.out.println(group.getName()));
 	}
 	
 	public CoWorld getWorld(World world) {

@@ -42,7 +42,7 @@ public class DataListener extends CoModule implements Listener {
 	
 	@EventHandler
 	public void onTeleport(PlayerTeleportEvent e) {
-		if (!e.getFrom().getWorld().equals(e.getTo())) {
+		if (!e.getFrom().getWorld().equals(e.getTo()) && e.getFrom() != null) {
 			holder.getWorld(e.getFrom().getWorld()).unloadUser(e.getPlayer().getUniqueId());
 			holder.getWorld(e.getTo().getWorld()).loadUser(e.getPlayer().getUniqueId());
 		}

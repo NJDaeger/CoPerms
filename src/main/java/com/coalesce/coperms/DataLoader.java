@@ -72,6 +72,14 @@ public final class DataLoader extends CoModule {
 	}
 	
 	/**
+	 * Gets the loaded worlds
+	 * @return The loaded worlds
+	 */
+	protected Map<String, CoWorld> getWorlds() {
+		return worlds;
+	}
+	
+	/**
 	 * Loads the data from a world that is contained in the mirrors configuration section.
 	 * @param world The world to load the data from.
 	 */

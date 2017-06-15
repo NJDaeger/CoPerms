@@ -26,6 +26,7 @@ public final class CoWorld {
 		this.users = new HashMap<>();
 		
 		groupdata.getSection("groups").getKeys(false).forEach(key -> groups.add(new Group(key, groupdata, userdata, plugin)));
+		System.out.println(groupdata.getFile().getPath());
 		
 		if (!world.getPlayers().isEmpty()) {
 			for (Player player : world.getPlayers()) {

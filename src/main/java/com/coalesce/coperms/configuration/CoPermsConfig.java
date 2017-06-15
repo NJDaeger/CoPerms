@@ -17,10 +17,8 @@ public final class CoPermsConfig extends YamlConfig {
 		addEntry("log-commands", true);
 		//structure.worlds.WORLDNAME.WORLDS
 		//all other worlds is specifying that all the other worlds not in this section will inherit the users and groups from this world
-		if (getMirrors() == null) {
-			addEntry("mirrors." + Bukkit.getWorlds().get(0).getName(), Arrays.asList("users", "groups")); //Check if this
-			addEntry("mirrors.all-other-worlds", Arrays.asList("users", "groups"));
-		}
+		addEntry("mirrors." + Bukkit.getWorlds().get(0).getName(), Arrays.asList("users", "groups")); //Check if this
+		addEntry("mirrors.all-other-worlds", Arrays.asList("users", "groups"));
 		/*
 		
 		world:

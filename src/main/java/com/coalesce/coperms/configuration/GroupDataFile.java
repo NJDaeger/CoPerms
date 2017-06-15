@@ -39,7 +39,8 @@ public final class GroupDataFile extends YamlConfig {
 	 */
 	public Group getDefaultGroup() {
 		for (String group : getSection("groups").getKeys(false)) {
-			if (getSection("groups." + group).getEntry("ladder").getInt() == 0) {
+			System.out.println(group);
+			if (getSection("groups." + group).getEntry("default").getBoolean()) {
 				return getGroup(group);
 			}
 		}
