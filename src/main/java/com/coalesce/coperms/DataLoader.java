@@ -31,7 +31,7 @@ public final class DataLoader extends CoModule {
 	public DataLoader(CoPerms plugin) {
 		super(plugin, "Data Loader");
 		
-		this.mirrors = plugin.getPermsConfig().getMirrors();
+		this.mirrors = plugin.getPermsConfig().getSection("mirrors");
 		this.def = Bukkit.getWorlds().get(0).getName();
 		this.groupDataFiles = new HashMap<>();
 		this.userDataFiles = new HashMap<>();

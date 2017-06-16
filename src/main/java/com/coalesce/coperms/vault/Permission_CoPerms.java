@@ -33,7 +33,7 @@ public final class Permission_CoPerms extends Permission {
 				Plugin p = e.getPlugin();
 				if (p.getDescription().getName().equalsIgnoreCase("CoPerms")) {
 					permission.coperms = (CoPerms) p;
-					log.info(String.format("[%s][Permission] %s hooked.", "Vault", permission.getName()));
+					System.out.println("[Vault][Permission] CoPerms hooked.");
 				}
 			}
 		}
@@ -42,7 +42,7 @@ public final class Permission_CoPerms extends Permission {
 			if (permission.coperms != null) {
 				if (e.getPlugin().getDescription().getName().equalsIgnoreCase("CoPerms")) {
 					permission.coperms = null;
-					log.info(String.format("[%s][Permission] %s un-hooked.", "Vault", permission.getName()));
+					System.out.println("[Vault][Permission] CoPerms un-hooked.");
 				}
 			}
 		}
@@ -61,61 +61,61 @@ public final class Permission_CoPerms extends Permission {
 	
 	@Override
 	public boolean hasSuperPermsCompat() {
+		return true;
+	}
+	
+	@Override
+	public boolean playerHas(String world, String player, String permission) {
 		return false;
 	}
 	
 	@Override
-	public boolean playerHas(String s, String s1, String s2) {
+	public boolean playerAdd(String world, String player, String permission) {
 		return false;
 	}
 	
 	@Override
-	public boolean playerAdd(String s, String s1, String s2) {
+	public boolean playerRemove(String world, String player, String permission) {
 		return false;
 	}
 	
 	@Override
-	public boolean playerRemove(String s, String s1, String s2) {
+	public boolean groupHas(String world, String group, String permission) {
 		return false;
 	}
 	
 	@Override
-	public boolean groupHas(String s, String s1, String s2) {
+	public boolean groupAdd(String world, String group, String permission) {
 		return false;
 	}
 	
 	@Override
-	public boolean groupAdd(String s, String s1, String s2) {
+	public boolean groupRemove(String world, String group, String permission) {
 		return false;
 	}
 	
 	@Override
-	public boolean groupRemove(String s, String s1, String s2) {
+	public boolean playerInGroup(String world, String player, String group) {
 		return false;
 	}
 	
 	@Override
-	public boolean playerInGroup(String s, String s1, String s2) {
+	public boolean playerAddGroup(String world, String player, String group) {
 		return false;
 	}
 	
 	@Override
-	public boolean playerAddGroup(String s, String s1, String s2) {
+	public boolean playerRemoveGroup(String world, String player, String group) {
 		return false;
 	}
 	
 	@Override
-	public boolean playerRemoveGroup(String s, String s1, String s2) {
-		return false;
-	}
-	
-	@Override
-	public String[] getPlayerGroups(String s, String s1) {
+	public String[] getPlayerGroups(String world, String player) {
 		return new String[0];
 	}
 	
 	@Override
-	public String getPrimaryGroup(String s, String s1) {
+	public String getPrimaryGroup(String world, String player) {
 		return null;
 	}
 	

@@ -93,6 +93,7 @@ public final class CoWorld {
 	 */
 	public CoUser loadUser(UUID uuid) {
 		users.put(uuid, userData.loadUser(uuid));
+		
 		return users.get(uuid);
 	}
 	

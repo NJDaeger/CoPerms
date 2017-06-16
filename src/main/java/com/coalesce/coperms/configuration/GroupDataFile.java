@@ -34,31 +34,10 @@ public final class GroupDataFile extends YamlConfig {
 	}
 	
 	/**
-	 *
-	 * @return
+	 * Gets a list of groups held in this file.
+	 * @return The groups list.
 	 */
-	public Group getDefaultGroup() {
-		for (String group : getSection("groups").getKeys(false)) {
-			System.out.println(group);
-			System.out.println(getSection("groups." + group).getEntry("default").getBoolean());
-			if (getSection("groups." + group).getEntry("default").getBoolean()) {
-				return getGroup(group);
-			}
-		}
-		return null;
-	}
-	
 	public List<Group> getGroups() {
 		return groups;
 	}
-	
-	public Group getGroup(String name) {
-		for (Group group : groups) {
-			if (group.getName().equalsIgnoreCase(name)) {
-				return group;
-			}
-		}
-		return null;
-	}
-	
 }

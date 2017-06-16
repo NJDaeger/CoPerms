@@ -2,7 +2,10 @@ package com.coalesce.coperms.data;
 
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 
+import java.util.Set;
 import java.util.UUID;
 
 public final class CoUser {
@@ -33,8 +36,15 @@ public final class CoUser {
 		return userSection.getEntry("group").getString();
 	}
 	
-	public void setGroup(String name) {
+	public void setGroup(String name, World world) {
 	
+	}
+	
+	public void setGroup() {
+	
+	}
+	
+	public void load(CoWorld world) {
 	}
 	
 	
