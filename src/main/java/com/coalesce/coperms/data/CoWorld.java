@@ -80,7 +80,10 @@ public final class CoWorld {
 	 * @return The default group in this world
 	 */
 	public Group getDefaultGroup() {
-		return groupData.getDefaultGroup();
+		for (Group group : groups) {
+			if (group.isDefaultGroup()) return group;
+		}
+		return null;
 	}
 	
 	/**

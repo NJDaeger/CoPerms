@@ -63,6 +63,10 @@ public final class Group {
 		return dataFile;
 	}
 	
+	public boolean isDefaultGroup() {
+		return dataFile.getBoolean("groups." + name + ".default");
+	}
+	
 	//TODO: This stuff will be added in later on.
 /*
 	@Override

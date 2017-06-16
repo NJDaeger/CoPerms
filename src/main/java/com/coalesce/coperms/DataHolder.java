@@ -92,6 +92,7 @@ public final class DataHolder {
 	 * @param uuid The user to unload
 	 */
 	public void unloadUser(UUID uuid) {
+		worlds.forEach((name, world) -> world.unloadUser(uuid));
 		users.remove(uuid);
 	}
 	

@@ -40,6 +40,7 @@ public final class GroupDataFile extends YamlConfig {
 	public Group getDefaultGroup() {
 		for (String group : getSection("groups").getKeys(false)) {
 			System.out.println(group);
+			System.out.println(getSection("groups." + group).getEntry("default").getBoolean());
 			if (getSection("groups." + group).getEntry("default").getBoolean()) {
 				return getGroup(group);
 			}
