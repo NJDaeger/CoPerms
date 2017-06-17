@@ -71,8 +71,17 @@ public final class CoWorld {
 	 * Gets a map of all the users in this world
 	 * @return The users in ths world
 	 */
-	public Map<UUID, CoUser> getUsers() {
+	public Map<UUID, CoUser> getUserMap() {
 		return users;
+	}
+	
+	/**
+	 * Gets a user in this world.
+	 * @param user The user to get
+	 * @return The user if in this world
+	 */
+	public CoUser getUser(UUID user) {
+		return users.get(user);
 	}
 	
 	/**
@@ -93,8 +102,7 @@ public final class CoWorld {
 	 */
 	public CoUser loadUser(UUID uuid) {
 		users.put(uuid, userData.loadUser(uuid));
-		
-		return users.get(uuid);
+		return users.get(uuid).load(this);
 	}
 	
 	/**
@@ -102,7 +110,11 @@ public final class CoWorld {
 	 * @param uuid The user to unload.
 	 */
 	public void unloadUser(UUID uuid) {
-		users.remove(uuid);
+		users.remove(uuid).unload(this);
 		userData.unloadUser(uuid);
+	}
+	
+	public Group getGroup(UUID user) {
+		return getUser(user).getGroup();
 	}
 }

@@ -50,12 +50,13 @@ public final class UserDataFile extends JsonConfig {
 	 */
 	public CoUser loadUser(UUID uuid) {
 		if (getUser(uuid) != null) return getUser(uuid);
-		setEntry("users." + uuid.toString() + ".username", Bukkit.getPlayer(uuid).getName());
-		addEntry("users." + uuid.toString() + ".group", plugin.getDataHolder().getWorld(world).getDefaultGroup().getName());
-		addEntry("users." + uuid.toString() + ".prefix", "");
-		addEntry("users." + uuid.toString() + ".suffix", "");
-		addEntry("users." + uuid.toString() + ".permissions", Collections.emptyList());
-		return new CoUser(plugin, uuid, getSection("users." + uuid.toString()));
+		String path = "users." + uuid.toString();
+		setEntry(path + ".username", Bukkit.getPlayer(uuid).getName());
+		addEntry(path + ".group", plugin.getDataHolder().getWorld(world).getDefaultGroup().getName());
+		addEntry(path + ".prefix", "");
+		addEntry(path + ".suffix", "");
+		addEntry(path + ".permissions", Collections.emptyList());
+		return new CoUser(plugin, uuid, getSection(path), plugin.getDataHolder().getWorld(Bukkit.getPlayer(uuid).getWorld()), plugin.getDataHolder().getGroup(getString(path + ".group")));
 	}
 	
 	/**
