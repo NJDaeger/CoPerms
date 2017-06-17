@@ -45,15 +45,11 @@ public final class DataLoader extends CoModule {
 	
 	@Override
 	protected void onEnable() throws Exception {
-		for (World world : Bukkit.getWorlds()) {
-			loadData(world);
-		}
-		for (World world : queue) {
-			loadOtherWorlds(world);
-		}
-		for (World world : loaded) {
-			worlds.put(world.getName(), new CoWorld(plugin, world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName())));
-		}
+	    Bukkit.getWorlds().forEach(this::loadData);
+	    queue.forEach(this::loadOtherWorlds);
+	    loaded.forEach(world -> worlds.put(world.getName(), new CoWorld(plugin, world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName()))));
+
+	    
 		this.dataHolder = new DataHolder(this);
 		new DataListener(dataHolder, plugin);
 	}
