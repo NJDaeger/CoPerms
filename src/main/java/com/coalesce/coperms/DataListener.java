@@ -32,25 +32,21 @@ public class DataListener extends CoModule implements Listener {
 	
 	@EventHandler
 	public void onJoin(PlayerJoinEvent e) {
-		holder.loadUser(e.getPlayer().getUniqueId());
+	
 	}
 	
 	@EventHandler
 	public void onLeave(PlayerQuitEvent e) {
-		holder.unloadUser(e.getPlayer().getUniqueId());
+	
 	}
 	
 	@EventHandler
 	public void onTeleport(PlayerTeleportEvent e) {
-		if (!e.getFrom().getWorld().equals(e.getTo()) && e.getFrom() != null) {
-			holder.getWorld(e.getFrom().getWorld()).unloadUser(e.getPlayer().getUniqueId());
-			holder.getWorld(e.getTo().getWorld()).loadUser(e.getPlayer().getUniqueId());
-		}
+	
 	}
 	
 	@EventHandler
 	public void onWorldChange(PlayerChangedWorldEvent e) {
-		holder.getWorld(e.getFrom()).unloadUser(e.getPlayer().getUniqueId());
-		holder.getWorld(e.getPlayer().getWorld()).loadUser(e.getPlayer().getUniqueId());
+	
 	}
 }
