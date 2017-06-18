@@ -8,6 +8,10 @@ import java.util.UUID;
 
 public final class Group {
 	
+	/*
+	group permissions, users, the world the group belongs to and the name (eventually the prefixes and suffixes)
+	 */
+	
 	private final Set<String> permissions;
 	private final Set<UUID> users;
 	private final CoPerms plugin;

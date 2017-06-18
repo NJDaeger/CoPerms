@@ -4,9 +4,10 @@ import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public final class CoWorld {
 	
@@ -16,19 +17,21 @@ public final class CoWorld {
 	
 	private final World world;
 	private final CoPerms plugin;
-	private final Set<Group> groups;
 	private final UserDataFile userData;
 	private final GroupDataFile groupData;
 	private final Map<UUID, CoUser> users;
+	private final Map<String, Group> groups;
 	
-	public CoWorld(CoPerms plugin, World world, UserDataFile userdata, GroupDataFile groupdata) {
+	public CoWorld(CoPerms plugin, World world, UserDataFile userData, GroupDataFile groupData) {
 		this.world = world;
 		this.plugin = plugin;
-		this.userData = userdata;
-		this.groupData = groupdata;
+		this.userData = userData;
+		this.groupData = groupData;
 		this.users = new HashMap<>();
-		this.groups = new HashSet<>();
+		this.groups = new HashMap<>();
 		
-		groupdata.getSection("groups").getKeys(false).forEach(key -> groups.add(new Group(plugin, this, key)));
+		groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key, new Group(plugin, this, key)));
 	}
+	
+	
 }
