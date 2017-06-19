@@ -6,7 +6,6 @@ import com.coalesce.coperms.CoPerms;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public final class CoUser {
 	
@@ -97,7 +96,9 @@ public final class CoUser {
 	public void load(CoWorld world) {
 		this.world = world;
 		this.userSection = world.getGroupDataFile().getSection("users." + uuid.toString());
+		System.out.println(userSection.getEntry("group").getString());
 		this.group = world.getGroup(userSection.getEntry("group").getString());
+		group.addUser(uuid);
 		resolvePermissions();
 	}
 	

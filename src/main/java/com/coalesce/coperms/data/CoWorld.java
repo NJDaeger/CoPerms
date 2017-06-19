@@ -7,9 +7,7 @@ import org.bukkit.World;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.Predicate;
 
 public final class CoWorld {
 	
@@ -108,7 +106,9 @@ public final class CoWorld {
 	 */
 	public Group getDefaultGroup() {
 		for (Group group : groups.values()) {
-		
+			if (group.isDefault()) {
+				return group;
+			}
 		}
 		return null;
 	}
@@ -120,6 +120,7 @@ public final class CoWorld {
 	 *          <p>FOR INTERNAL USE ONLY</p>
 	 */
 	public void loadUser(CoUser user) {
+		System.out.println(user.getUserID().toString());
 		this.userData.loadUser(user.getUserID());
 		this.users.put(user.getUserID(), user);
 		user.load(this);

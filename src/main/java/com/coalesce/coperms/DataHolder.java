@@ -3,10 +3,11 @@ package com.coalesce.coperms;
 import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public final class DataHolder {
 	
@@ -23,7 +24,7 @@ public final class DataHolder {
 		this.plugin = plugin;
 		this.data = dataloader;
 		this.users = new HashMap<>();
-		this.worlds = new HashMap<>();
+		this.worlds = dataloader.getWorlds();
 		this.groups = new HashMap<>();
 		
 	}
@@ -37,7 +38,7 @@ public final class DataHolder {
 	 * <p>Note: The user can be offline
 	 */
 	public CoUser getUser(World world, UUID user) {
-		return null;
+		return getWorld(world).getUser(user);
 	}
 	
 	/**
@@ -49,7 +50,7 @@ public final class DataHolder {
 	 * <p>Note: the user can be offline
 	 */
 	public CoUser getUser(String world, UUID user) {
-		return null;
+		return getWorld(world).getUser(user);
 	}
 	
 	/**
@@ -67,7 +68,7 @@ public final class DataHolder {
 	 * @return The corresponding CoWorld
 	 */
 	public CoWorld getWorld(World world) {
-		return null;
+		return worlds.get(world.getName());
 	}
 	
 	/**
@@ -76,7 +77,7 @@ public final class DataHolder {
 	 * @return The corresponding CoWorld
 	 */
 	public CoWorld getWorld(String name) {
-		return null;
+		return worlds.get(name);
 	}
 	
 	/**
@@ -84,7 +85,7 @@ public final class DataHolder {
 	 * @return The current CoWorlds loaded.
 	 */
 	public Map<String, CoWorld> getWorlds() {
-		return null;
+		return worlds;
 	}
 	
 	/**
@@ -92,7 +93,7 @@ public final class DataHolder {
 	 * @return The current CoUsers loaded.
 	 */
 	public Map<UUID, CoUser> getUsers() {
-		return null;
+		return users;
 	}
 	
 	/**
@@ -102,7 +103,7 @@ public final class DataHolder {
 	 * @return The group if exists
 	 */
 	public Group getGroup(World world, String name) {
-		return null;
+		return getWorld(world).getGroup(name);
 	}
 	
 	/**
@@ -111,7 +112,7 @@ public final class DataHolder {
 	 * @return The group if exists
 	 */
 	public Group getGroup(String name) {
-		return null;
+		return groups.get(name);
 	}
 	
 	/**
@@ -119,7 +120,7 @@ public final class DataHolder {
 	 * @return All the groups loaded.
 	 */
 	public Map<String, Group> getGroups() {
-		return null;
+		return groups;
 	}
 	
 	public CoUser loadUser(World world, UUID userID) {
@@ -141,7 +142,8 @@ public final class DataHolder {
 	}
 	
 	public void unloadUser(UUID userID) {
-	
+		getUser(userID).getWorld().unloadUser(getUser(userID));
+		this.users.remove(userID);
 	}
 	
 }

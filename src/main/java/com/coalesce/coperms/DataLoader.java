@@ -63,7 +63,7 @@ public final class DataLoader extends CoModule {
 	 * Gets the data holder for the plugin.
 	 * @return The data folder.
 	 */
-	protected DataHolder getDataHolder() {
+	DataHolder getDataHolder() {
 		return dataHolder;
 	}
 	
@@ -71,7 +71,7 @@ public final class DataLoader extends CoModule {
 	 * Gets the loaded worlds
 	 * @return The loaded worlds
 	 */
-	protected Map<String, CoWorld> getWorlds() {
+	Map<String, CoWorld> getWorlds() {
 		return worlds;
 	}
 	
