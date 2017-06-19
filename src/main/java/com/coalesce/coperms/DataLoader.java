@@ -50,7 +50,7 @@ public final class DataLoader extends CoModule {
 	    loaded.forEach(world -> worlds.put(world.getName(), new CoWorld(plugin, world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName()))));
 
 	    
-		this.dataHolder = new DataHolder(this);
+		this.dataHolder = new DataHolder(this, plugin);
 		new DataListener(dataHolder, plugin);
 	}
 	

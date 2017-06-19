@@ -26,4 +26,13 @@ public final class Group {
 		this.world = world;
 		this.name = name;
 	}
+	
+	public String getName() {
+		return null;
+	}
+	
+	/*
+	Create all this shit
+	 */
+	
 }

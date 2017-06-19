@@ -13,12 +13,14 @@ public final class DataHolder {
 	/*
 	this needs to hold all the worlds, the users, and the groups
 	 */
+	private final CoPerms plugin;
 	private final DataLoader data;
 	private final Map<UUID, CoUser> users;
 	private final Map<String, Group> groups;
 	private final Map<String, CoWorld> worlds;
 	
-	public DataHolder(DataLoader dataloader) {
+	public DataHolder(DataLoader dataloader, CoPerms plugin) {
+		this.plugin = plugin;
 		this.data = dataloader;
 		this.users = new HashMap<>();
 		this.worlds = new HashMap<>();
@@ -56,7 +58,7 @@ public final class DataHolder {
 	 * @return The user
 	 */
 	public CoUser getUser(UUID uuid) {
-		return null;
+		return users.get(uuid);
 	}
 	
 	/**
@@ -120,5 +122,26 @@ public final class DataHolder {
 		return null;
 	}
 	
+	public CoUser loadUser(World world, UUID userID) {
+		if (getUser(userID) != null) {
+			getWorld(world).unloadUser(getUser(userID));
+			getUser(userID).load(getWorld(world));
+			return getUser(userID);
+		}
+		this.users.put(userID, new CoUser(plugin, userID));
+		getWorld(world).loadUser(getUser(userID));
+		return getUser(userID);
+		/*
+		check if the user exists in the user map, if the user exists then return the user
+		
+		if the user doesnt exist, then get the user's world and load the user into the world
+		
+		reload the user permissions
+		 */
+	}
+	
+	public void unloadUser(UUID userID) {
+	
+	}
 	
 }
