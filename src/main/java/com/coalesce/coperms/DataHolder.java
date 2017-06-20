@@ -64,6 +64,15 @@ public final class DataHolder {
 	}
 	
 	/**
+	 * Gets a user by name
+	 * @param name The name of the user
+	 * @return the user if online
+	 */
+	public CoUser getUser(String name) {
+		return users.get(Bukkit.getPlayer(name).getUniqueId());
+	}
+	
+	/**
 	 * Gets a world via the Bukkit world object
 	 * @param world The world to get
 	 * @return The corresponding CoWorld

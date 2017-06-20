@@ -3,6 +3,7 @@ package com.coalesce.coperms.data;
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.util.HashMap;
@@ -64,6 +65,15 @@ public final class CoWorld {
 	 */
 	public CoUser getUser(UUID uuid) {
 		return users.get(uuid);
+	}
+	
+	/**
+	 * Gets a user via their name
+	 * @param name The name of the user
+	 * @return The user if online
+	 */
+	public CoUser getUser(String name) {
+		return users.get(Bukkit.getPlayer(name).getUniqueId());
 	}
 	
 	/**

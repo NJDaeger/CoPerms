@@ -9,6 +9,7 @@ import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -92,6 +93,43 @@ public final class CoUser {
 	 */
 	public CoWorld getWorld() {
 		return world;
+	}
+	
+	/**
+	 * Checks if the user has a permission or not.
+	 * @param node The node to check
+	 * @return True if the user has the permission, false otherwise.
+	 */
+	public boolean hasPermission(String node) {
+		return permissions.contains(node);
+	}
+	
+	/**
+	 * Adds a permission to the users permissions.
+	 * @param node The permission to add
+	 * @return If the permission was added or not.
+	 */
+	public boolean addPermission(String node) {
+		boolean ret;
+		List<String > perms = getUserSection().getEntry("permissions").getStringList();
+		ret = perms.add(node);
+		userSection.getEntry("permissions").setValue(perms.toArray());
+		resolvePermissions();
+		return ret;
+	}
+	
+	/**
+	 * Removes a permission from the users permissions.
+	 * @param node The permission to add
+	 * @return If the permission was added or not.
+	 */
+	public boolean removePermission(String node) {
+		boolean ret;
+		List<String > perms = getUserSection().getEntry("permissions").getStringList();
+		ret = perms.remove(node);
+		userSection.getEntry("permissions").setValue(perms.toArray());
+		resolvePermissions();
+		return ret;
 	}
 	
 	/**

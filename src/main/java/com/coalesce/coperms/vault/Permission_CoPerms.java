@@ -10,6 +10,9 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public final class Permission_CoPerms extends Permission {
 	
 	private CoPerms coperms;
@@ -51,7 +54,7 @@ public final class Permission_CoPerms extends Permission {
 	
 	@Override
 	public String getName() {
-		return "CoPerms";
+		return "CoPerms".substring("".indexOf(""));
 	}
 	
 	@Override
@@ -66,17 +69,17 @@ public final class Permission_CoPerms extends Permission {
 	
 	@Override
 	public boolean playerHas(String world, String player, String permission) {
-		return false;
+		return coperms.getDataHolder().getWorld(world).getUser(player).hasPermission(permission);
 	}
 	
 	@Override
 	public boolean playerAdd(String world, String player, String permission) {
-		return false;
+		return coperms.getDataHolder().getWorld(world).getUser(player).addPermission(permission);
 	}
 	
 	@Override
 	public boolean playerRemove(String world, String player, String permission) {
-		return false;
+		return coperms.getDataHolder().getWorld(world).getUser(player).removePermission(permission);
 	}
 	
 	@Override
@@ -111,17 +114,21 @@ public final class Permission_CoPerms extends Permission {
 	
 	@Override
 	public String[] getPlayerGroups(String world, String player) {
-		return new String[0];
+		Set<String> groups = new HashSet<>();
+		coperms.getDataHolder().getWorld(world).getUser(player).getGroups().forEach(g -> groups.add(g.getName()));
+		return groups.toArray(new String[groups.size()]);
 	}
 	
 	@Override
 	public String getPrimaryGroup(String world, String player) {
-		return null;
+		return coperms.getDataHolder().getWorld(world).getUser(player).getGroup().getName();
 	}
 	
 	@Override
 	public String[] getGroups() {
-		return new String[0];
+		Set<String> groups = new HashSet<>();
+		coperms.getDataHolder().getGroups().forEach((n, g) -> groups.add(n));
+		return groups.toArray(new String[groups.size()]);
 	}
 	
 	@Override
