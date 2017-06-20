@@ -11,7 +11,7 @@ import java.util.*;
 
 public final class UserDataFile extends JsonConfig {
 	
-	private final CoPerms plugin;
+	private volatile CoPerms plugin;
 	private final World world;
 	
 	public UserDataFile(CoPerms plugin, World world) {
@@ -20,7 +20,7 @@ public final class UserDataFile extends JsonConfig {
 		this.plugin = plugin;
 		this.world = world;
 		
-		setEntry("users.17b65a67-f96e-425c-a184-477f067c53f9.username", "NJDaeger");
+		addEntry("users.17b65a67-f96e-425c-a184-477f067c53f9.username", "NJDaeger");
 		addEntry("users.17b65a67-f96e-425c-a184-477f067c53f9.group", "default");
 		addEntry("users.17b65a67-f96e-425c-a184-477f067c53f9.prefix", "");
 		addEntry("users.17b65a67-f96e-425c-a184-477f067c53f9.suffix", "");
