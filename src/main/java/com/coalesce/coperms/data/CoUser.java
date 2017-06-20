@@ -2,6 +2,11 @@ package com.coalesce.coperms.data;
 
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionAttachment;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -97,7 +102,7 @@ public final class CoUser {
 		this.world = world;
 		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
 		this.group = world.getGroup(userSection.getEntry("group").getString());
-		group.addUser(uuid);
+		this.group.addUser(uuid);
 		resolvePermissions();
 	}
 	
@@ -105,6 +110,21 @@ public final class CoUser {
 	 * Resolves the user permissions
 	 */
 	private void resolvePermissions() {
-	
+		Player player = Bukkit.getPlayer(uuid);
+		
+		player.getEffectivePermissions().clear();
+		permissions.clear();
+		
+		PermissionAttachment perms = player.addAttachment(plugin);
+		
+		this.permissions.addAll(group.getPermissions());
+		this.permissions.addAll(getUserPermissions());
+		
+		permissions.forEach(node -> {
+			System.out.println(node);
+			if (!node.startsWith("-")) {
+				perms.setPermission(node, true);
+			}
+		});
 	}
 }

@@ -3,6 +3,7 @@ package com.coalesce.coperms;
 import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.util.HashMap;
