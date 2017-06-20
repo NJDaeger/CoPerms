@@ -95,10 +95,7 @@ public final class CoUser {
 	 */
 	public void load(CoWorld world) {
 		this.world = world;
-		this.userSection = world.getGroupDataFile().getSection("users." + uuid.toString());
-		System.out.println(userSection.getCurrentPath());
-		userSection.getKeys(false).forEach(System.out::println);
-		System.out.println(userSection.getEntry("group").getString());
+		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
 		this.group = world.getGroup(userSection.getEntry("group").getString());
 		group.addUser(uuid);
 		resolvePermissions();

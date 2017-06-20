@@ -1,15 +1,15 @@
 package com.coalesce.coperms.configuration;
 
-import com.coalesce.config.json.JsonConfig;
+import com.coalesce.config.yml.YamlConfig;
 import com.coalesce.coperms.CoPerms;
-import com.coalesce.coperms.data.CoUser;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.UUID;
 
-public final class UserDataFile extends JsonConfig {
+public final class UserDataFile extends YamlConfig {
 	
 	private volatile CoPerms plugin;
 	private final World world;
