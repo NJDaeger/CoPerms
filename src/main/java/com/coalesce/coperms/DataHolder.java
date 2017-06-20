@@ -6,94 +6,145 @@ import com.coalesce.coperms.data.Group;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public final class DataHolder {
 	
+	/*
+	this needs to hold all the worlds, the users, and the groups
+	 */
+	private final CoPerms plugin;
 	private final DataLoader data;
-	private final Set<Group> groups;
 	private final Map<UUID, CoUser> users;
+	private final Map<String, Group> groups;
 	private final Map<String, CoWorld> worlds;
 	
-	public DataHolder(DataLoader dataloader) {
+	public DataHolder(DataLoader dataloader, CoPerms plugin) {
+		this.plugin = plugin;
 		this.data = dataloader;
 		this.users = new HashMap<>();
-		this.worlds = new HashMap<>();
-		this.groups = new HashSet<>();
+		this.worlds = dataloader.getWorlds();
+		this.groups = new HashMap<>();
 		
-		worlds.putAll(dataloader.getWorlds());
-		worlds.forEach((s, coWorld) -> System.out.println(coWorld.getWorld().getName()));
-		worlds.forEach((name, world) -> groups.addAll(world.getGroups()));
-		groups.forEach(group -> System.out.println(group.getName()));
 	}
 	
-	public CoWorld getWorld(World world) {
-		return worlds.get(world.getName());
+	/**
+	 * Gets a user from a world user file.
+	 * @param world The world to get the user from.
+	 * @param user The user to get.
+	 * @return The user.
+	 *
+	 * <p>Note: The user can be offline
+	 */
+	public CoUser getUser(World world, UUID user) {
+		return getWorld(world).getUser(user);
 	}
 	
-	public Map<String, CoWorld> getWorlds() {
-		return worlds;
+	/**
+	 * Gets a user from a world user file
+	 * @param world The world to get the user from
+	 * @param user The user to get.
+	 * @return The user.
+	 *
+	 * <p>Note: the user can be offline
+	 */
+	public CoUser getUser(String world, UUID user) {
+		return getWorld(world).getUser(user);
 	}
 	
+	/**
+	 * Gets an online user
+	 * @param uuid The user to get
+	 * @return The user
+	 */
 	public CoUser getUser(UUID uuid) {
-		if (Bukkit.getPlayer(uuid) != null) {
-			for (UUID id : users.keySet()) {
-				if (id.equals(uuid)) {
-					return users.get(id);
-				}
-			}
-		}
 		return users.get(uuid);
 	}
 	
 	/**
-	 * Gets all the users on the server.
-	 * @return All the users
+	 * Gets a world via the Bukkit world object
+	 * @param world The world to get
+	 * @return The corresponding CoWorld
+	 */
+	public CoWorld getWorld(World world) {
+		return worlds.get(world.getName());
+	}
+	
+	/**
+	 * Gets a world via its name
+	 * @param name The name of the world to get
+	 * @return The corresponding CoWorld
+	 */
+	public CoWorld getWorld(String name) {
+		return worlds.get(name);
+	}
+	
+	/**
+	 * A map of all the world names and the corresponding CoWorlds
+	 * @return The current CoWorlds loaded.
+	 */
+	public Map<String, CoWorld> getWorlds() {
+		return worlds;
+	}
+	
+	/**
+	 * A map of all the user UUID's and the corresponding CoUsers
+	 * @return The current CoUsers loaded.
 	 */
 	public Map<UUID, CoUser> getUsers() {
 		return users;
 	}
 	
 	/**
-	 * Gets all the groups on the server.
-	 * @return All the groups on this server
+	 * Gets a group from a world.
+	 * @param world The world to get the group from
+	 * @param name The name of the group
+	 * @return The group if exists
 	 */
-	public Set<Group> getGroups() {
+	public Group getGroup(World world, String name) {
+		return getWorld(world).getGroup(name);
+	}
+	
+	/**
+	 * Gets a group via name
+	 * @param name The name of the group
+	 * @return The group if exists
+	 */
+	public Group getGroup(String name) {
+		return groups.get(name);
+	}
+	
+	/**
+	 * Gets a map of all the groups
+	 * @return All the groups loaded.
+	 */
+	public Map<String, Group> getGroups() {
 		return groups;
 	}
 	
-	/**
-	 * Gets a group by name
-	 * @param name The name of the group
-	 * @return The group if found.
-	 */
-	public Group getGroup(String name) {
-		for (Group group : groups) {
-			if (group.getName().equalsIgnoreCase(name)) {
-				return group;
-			}
+	public CoUser loadUser(World world, UUID userID) {
+		if (getUser(userID) != null) {
+			getWorld(world).unloadUser(getUser(userID));
+			getUser(userID).load(getWorld(world));
+			return getUser(userID);
 		}
-		return null;
+		this.users.put(userID, new CoUser(plugin, userID));
+		getWorld(world).loadUser(getUser(userID));
+		return getUser(userID);
+		/*
+		check if the user exists in the user map, if the user exists then return the user
+		
+		if the user doesnt exist, then get the user's world and load the user into the world
+		
+		reload the user permissions
+		 */
 	}
 	
-	/**
-	 * Loads a user into the server.
-	 * @param uuid The user to load.
-	 * @return The user loaded.
-	 */
-	public CoUser loadUser(UUID uuid) {
-		if (getUser(uuid) != null) return getUser(uuid);
-		users.put(uuid, getWorld(Bukkit.getPlayer(uuid).getWorld()).loadUser(uuid));
-		return users.get(uuid);
-	}
-	
-	/**
-	 * Unloads the user from the server.
-	 * @param uuid The user to unload
-	 */
-	public void unloadUser(UUID uuid) {
-		worlds.forEach((name, world) -> world.unloadUser(uuid));
-		users.remove(uuid);
+	public void unloadUser(UUID userID) {
+		getUser(userID).getWorld().unloadUser(getUser(userID));
+		this.users.remove(userID);
 	}
 	
 }

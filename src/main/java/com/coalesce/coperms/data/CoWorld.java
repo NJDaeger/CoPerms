@@ -4,105 +4,138 @@ import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public final class CoWorld {
 	
-	private final World world;
-	private final UserDataFile userData;
-	private final GroupDataFile groupData;
-	private final CoPerms plugin;
-	private final Set<Group> groups;
-	private final Map<UUID, CoUser> users;
+	/*
+	This will store the world, the groups in this world, the user file, the group file, a map of users
+	 */
 	
-	public CoWorld(CoPerms plugin, World world, UserDataFile userdata, GroupDataFile groupdata) {
+	private final World world; //Set
+	private final CoPerms plugin; //Set
+	private final UserDataFile userData; //Set
+	private final GroupDataFile groupData; //Set
+	private final Map<UUID, CoUser> users; //Set
+	private final Map<String, Group> groups; //Set
+	
+	public CoWorld(CoPerms plugin, World world, UserDataFile userData, GroupDataFile groupData) {
 		this.world = world;
-		this.userData = userdata;
-		this.groupData = groupdata;
 		this.plugin = plugin;
-		this.groups = new HashSet<>();
+		this.userData = userData;
+		this.groupData = groupData;
 		this.users = new HashMap<>();
+		this.groups = new HashMap<>();
 		
-		groupdata.getSection("groups").getKeys(false).forEach(key -> groups.add(new Group(key, groupdata, userdata, plugin)));
-		System.out.println(groupdata.getFile().getPath());
-		
-		if (!world.getPlayers().isEmpty()) {
-			for (Player player : world.getPlayers()) {
-			
-			}
-		}
+		groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key, new Group(plugin, this, key)));
 	}
 	
 	/**
 	 * Gets the world represented by this CoWorld
-	 * @return The Bukkit world.
+	 * @return The world
 	 */
 	public World getWorld() {
 		return world;
 	}
 	
 	/**
-	 * Gets the user file for this world.
-	 * @return The world user file.
+	 * Gets the user data file this world uses
+	 * @return The worlds user data file.
 	 */
-	public UserDataFile getUserFile() {
+	public UserDataFile getUserDataFile() {
 		return userData;
 	}
 	
 	/**
-	 * Gets the groups file for this world.
-	 * @return The world groups file.
+	 * Gets the group data file this world uses
+	 * @return The worlds group data file
 	 */
-	public GroupDataFile getGroupFile() {
+	public GroupDataFile getGroupDataFile() {
 		return groupData;
 	}
 	
 	/**
-	 * Gets the groups that belong to this world.
-	 * @return This world's groups.
+	 * Gets a user from this world
+	 * @param uuid The user to find
+	 * @return The user if in this world, null otherwise.
 	 */
-	public Set<Group> getGroups() {
-		return groups;
+	public CoUser getUser(UUID uuid) {
+		return users.get(uuid);
+	}
+	
+	/**
+	 * Checks if the user data file of this world has a user in it.
+	 * @param uuid The user to look for
+	 * @return True if the user has been in this world, false otherwise.
+	 */
+	public boolean hasUser(UUID uuid) {
+		return getUser(uuid) != null || userData.getSection("users").contains(uuid.toString());
 	}
 	
 	/**
 	 * Gets a map of all the users in this world
-	 * @return The users in ths world
+	 * @return The worlds user map
 	 */
 	public Map<UUID, CoUser> getUsers() {
 		return users;
 	}
 	
 	/**
-	 * Gets the default group for this world.
-	 * @return The default group in this world
+	 * Gets a group from this world
+	 * @param name The name of the group to find
+	 * @return The group
+	 */
+	public Group getGroup(String name) {
+		return groups.get(name);
+	}
+	
+	/**
+	 * Gets a map of all the groups in this world
+	 * @return The group map
+	 */
+	public Map<String, Group> getGroups() {
+		return groups;
+	}
+	
+	/**
+	 * Gets the default group of this world
+	 * @return The worlds default group
 	 */
 	public Group getDefaultGroup() {
-		for (Group group : groups) {
-			if (group.isDefaultGroup()) return group;
+		for (Group group : groups.values()) {
+			if (group.isDefault()) {
+				return group;
+			}
 		}
 		return null;
 	}
 	
 	/**
-	 * Loads a user into the world.
-	 * @param uuid The user to load.
-	 * @return The user loaded.
+	 * Loads a user to this world.
+	 * @param user The user to load.
+	 *
+	 *          <p>FOR INTERNAL USE ONLY</p>
 	 */
-	public CoUser loadUser(UUID uuid) {
-		users.put(uuid, userData.loadUser(uuid));
-		
-		return users.get(uuid);
+	public void loadUser(CoUser user) {
+		System.out.println(user.getUserID().toString());
+		this.userData.loadUser(user.getUserID());
+		this.users.put(user.getUserID(), user);
+		user.load(this);
+		//Reload the user permissions here
+		//Set all the correct values
 	}
 	
 	/**
 	 * Unloads a user from this world.
-	 * @param uuid The user to unload.
+	 * @param user The user to unload
+	 *
+	 *          <p>FOR INTERNAL USE ONLY</p>
 	 */
-	public void unloadUser(UUID uuid) {
-		users.remove(uuid);
-		userData.unloadUser(uuid);
+	public void unloadUser(CoUser user) {
+		this.users.remove(user.getUserID());
 	}
+	
 }

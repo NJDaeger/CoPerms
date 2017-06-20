@@ -1,106 +1,102 @@
 package com.coalesce.coperms.data;
 
-import com.coalesce.coperms.configuration.GroupDataFile;
-import com.coalesce.coperms.configuration.UserDataFile;
-import com.coalesce.plugin.CoPlugin;
+import com.coalesce.config.ISection;
+import com.coalesce.coperms.CoPerms;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public final class Group {
 	
-	private final List<String> permissions;
-	private final GroupDataFile dataFile;
-	private final UserDataFile userData;
-	private final List<UUID> players;
-	private final CoPlugin plugin;
+	/*
+	group permissions, users, the world the group belongs to and the name (eventually the prefixes and suffixes)
+	 */
+	
+	private final Set<String> permissions;
+	private final boolean isDefault;
+	private final ISection section;
+	private final Set<UUID> users;
+	private final CoPerms plugin;
+	private final CoWorld world;
 	private final String name;
 	
-	public Group(String name, GroupDataFile dataFile, UserDataFile userData, CoPlugin plugin) {
-		this.permissions = new ArrayList<>();
-		this.players = new ArrayList<>();
-		this.dataFile = dataFile;
-		this.userData = userData;
+	
+	public Group(CoPerms plugin, CoWorld world, String name) {
+		this.section = world.getGroupDataFile().getSection("groups." + name);
+		this.permissions = new HashSet<>(section.getEntry("permissions").getStringList());
+		this.isDefault = section.getEntry("default").getBoolean();
+		this.users = new HashSet<>();
 		this.plugin = plugin;
+		this.world = world;
 		this.name = name;
-		
 	}
 	
+	/**
+	 * Gets the name of this group
+	 * @return The group name
+	 */
 	public String getName() {
 		return name;
 	}
 	
-	public List<UUID> getPlayers() {
-		return players;
+	/**
+	 * Checks if this group is a default group or not
+	 * @return
+	 */
+	public boolean isDefault() {
+		return isDefault;
 	}
 	
-	public void addPlayer(UUID uuid) {
-		players.add(uuid);
-	}
-	
-	public void removePlayer(UUID uuid) {
-		players.remove(uuid);
-	}
-	
-	public List<String> getPermissions() {
+	/**
+	 * Gets the permissions of this group
+	 * @return The group permissions
+	 */
+	public Set<String> getPermissions() {
 		return permissions;
 	}
 	
-	public void addPermission(String permission) {
-		permissions.add(permission);
+	/**
+	 * Adds a user to this group
+	 * @param user The user to add
+	 */
+	public void addUser(UUID user) {
+		users.add(user);
 	}
 	
-	public void removePermission(String permission) {
-		permissions.remove(permission);
+	/**
+	 * Removes a user from this group
+	 * @param user The user to remove
+	 */
+	public void removeUser(UUID user) {
+		users.remove(user);
 	}
 	
-	public boolean hasPermission(String permission) {
-		return permissions.contains(permission);
+	/**
+	 * Checks if this group has a user in it
+	 * @param user The user to look for
+	 * @return True if the user is currently in it, false otherwise
+	 */
+	public boolean hasUser(UUID user) {
+		return users.contains(user);
 	}
 	
-	public GroupDataFile getDataFile() {
-		return dataFile;
+	/**
+	 * Gets a user from this group
+	 * @param user The user to get
+	 * @return The user if online.
+	 */
+	public CoUser getUser(UUID user) {
+		return world.getUser(user);
 	}
 	
-	public boolean isDefaultGroup() {
-		return dataFile.getBoolean("groups." + name + ".default");
+	/**
+	 * Gets the world this group belongs too.
+	 * @return The world of this group.
+	 */
+	public CoWorld getWorld() {
+		return world;
 	}
 	
-	//TODO: This stuff will be added in later on.
-/*
-	@Override
-	public String getPrefix() {
-		return null;
-	}
-	
-	@Override
-	public void setPrefix(String prefix) {
-	
-	}
-	
-	@Override
-	public String getSuffix() {
-		return null;
-	}
-	
-	@Override
-	public void setSuffix() {
-	
-	}
-	
-	@Override
-	public IGroup[] getInheritedGroups() {
-		return new IGroup[0];
-	}
-	
-	@Override
-	public void addInheritedGroup(IGroup group) {
-	
-	}
-	
-	@Override
-	public void removeInheritedGroup() {
-	
-	}*/
 }
