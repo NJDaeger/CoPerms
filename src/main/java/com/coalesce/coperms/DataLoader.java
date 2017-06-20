@@ -13,11 +13,11 @@ import java.util.*;
 
 public final class DataLoader extends CoModule {
 	
-	private final Map<String, GroupDataFile> groupDataFiles;
-	private final Map<String, UserDataFile> userDataFiles;
-	private final Map<String, CoWorld> worlds;
-	private final Set<World> loaded;
-	private final Set<World> queue;
+	private final Map<String, GroupDataFile> groupDataFiles = new HashMap<>();
+	private final Map<String, UserDataFile> userDataFiles = new HashMap<>();
+	private final Map<String, CoWorld> worlds = new HashMap<>();
+	private final Set<World> loaded = new HashSet<>();
+	private final Set<World> queue = new HashSet<>();
 	private final ISection mirrors;
 	private DataHolder dataHolder;
 	private final CoPerms plugin;
@@ -33,11 +33,6 @@ public final class DataLoader extends CoModule {
 		
 		this.mirrors = plugin.getPermsConfig().getSection("mirrors");
 		this.def = Bukkit.getWorlds().get(0).getName();
-		this.groupDataFiles = new HashMap<>();
-		this.userDataFiles = new HashMap<>();
-		this.worlds = new HashMap<>();
-		this.loaded = new HashSet<>();
-		this.queue = new HashSet<>();
 		this.plugin = plugin;
 	}
 	
