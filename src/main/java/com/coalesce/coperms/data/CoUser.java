@@ -24,6 +24,7 @@ public final class CoUser {
 	private final CoPerms plugin;
 	private ISection userSection; //From load method
 	private final Set<Group> groups; //From getGroups
+	private PermissionAttachment perms; //From load method
 	private final Set<String> permissions; //From load method
 	
 	public CoUser(CoPerms plugin, UUID userID) {
@@ -141,6 +142,7 @@ public final class CoUser {
 		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
 		this.group = world.getGroup(userSection.getEntry("group").getString());
 		this.group.addUser(uuid);
+		this.perms= Bukkit.getPlayer(uuid).addAttachment(plugin);
 		resolvePermissions();
 	}
 	
@@ -148,12 +150,9 @@ public final class CoUser {
 	 * Resolves the user permissions
 	 */
 	private void resolvePermissions() {
-		Player player = Bukkit.getPlayer(uuid);
 		
-		player.getEffectivePermissions().clear();
 		permissions.clear();
-		
-		PermissionAttachment perms = player.addAttachment(plugin);
+		perms.getPermissions().clear();
 		
 		this.permissions.addAll(group.getPermissions());
 		this.permissions.addAll(getUserPermissions());

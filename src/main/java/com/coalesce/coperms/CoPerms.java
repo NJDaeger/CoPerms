@@ -4,7 +4,15 @@ import com.coalesce.coperms.configuration.CoPermsConfig;
 import com.coalesce.coperms.vault.Chat_CoPerms;
 import com.coalesce.coperms.vault.Permission_CoPerms;
 import com.coalesce.plugin.CoPlugin;
+import net.milkbowl.vault.Vault;
+import net.milkbowl.vault.chat.Chat;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.ServicePriority;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public final class CoPerms extends CoPlugin {
 	
@@ -21,7 +29,9 @@ public final class CoPerms extends CoPlugin {
 		
 		//Vault setup
 		if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
-			new Chat_CoPerms(this, new Permission_CoPerms(this));
+			Permission_CoPerms perms = new Permission_CoPerms(this);
+			getServer().getServicesManager().register(Permission.class, perms, this, ServicePriority.High);
+			getServer().getServicesManager().register(Chat.class, new Chat_CoPerms(this, perms), this, ServicePriority.High);
 		}
 		else getCoLogger().warn("Some plugins may not work properly without Vault installed.");
 	}
