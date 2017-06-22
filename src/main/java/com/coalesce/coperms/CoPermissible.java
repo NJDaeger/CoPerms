@@ -1,14 +1,10 @@
 package com.coalesce.coperms;
 
 import com.coalesce.coperms.data.CoUser;
-import org.bukkit.Bukkit;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissibleBase;
 import org.bukkit.permissions.Permission;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 
 public class CoPermissible extends PermissibleBase {
 	
@@ -31,23 +27,27 @@ public class CoPermissible extends PermissibleBase {
 	
 	@Override
 	public boolean hasPermission(String permission) {
-		System.out.println(permission);
 		if (user.hasPermission("*")) return true;
+		if (hasWildcardNode(permission)) return true;
 		return user.getPermissions().contains(permission);
 	}
 	
 	@Override
 	public boolean hasPermission(Permission permission) {
 		if (user.hasPermission("*")) return true;
+		if (hasWildcardNode(permission.getName())) return true;
 		return user.getPermissions().contains(permission.getName());
 	}
 	
-	private boolean hasWildcardNode(Set<String> permissions, String permission) {
+	private boolean hasWildcardNode(String permission) {
 		if (permission.contains(".")) {
-			String[] sp = permission.split("\\.");
-			List<String> node = Arrays.asList(sp);
-			
+			if (user.getWildcardPerms().contains(permission)) return true;
+			for (int i = 0; i < StringUtils.countMatches(permission, "."); i++) {
+				if (permission.endsWith(".*")) permission = permission.substring(0, permission.lastIndexOf("."));
+				permission = permission.substring(0, permission.lastIndexOf(".")) + ".*";
+				if (user.getWildcardPerms().contains(permission)) return true;
+			}
 		}
-		return false; //we now know that the permission being checked doesnt have a wildcard permission
+		return false;
 	}
 }
