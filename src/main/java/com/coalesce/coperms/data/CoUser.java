@@ -3,10 +3,7 @@ package com.coalesce.coperms.data;
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
-import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import java.util.HashSet;
 import java.util.List;
@@ -25,10 +22,12 @@ public final class CoUser {
 	private ISection userSection; //From load method
 	private final Set<Group> groups; //From getGroups
 	private PermissionAttachment perms; //From load method
+	private final Set<String> wildcards; //From
 	private final Set<String> permissions; //From load method
 	
 	public CoUser(CoPerms plugin, UUID userID) {
 		this.permissions = new HashSet<>();
+		this.wildcards = new HashSet<>();
 		this.groups = new HashSet<>();
 		this.plugin = plugin;
 		this.uuid = userID;
@@ -147,9 +146,17 @@ public final class CoUser {
 	}
 	
 	/**
+	 * Gets all the wildcard permissions
+	 * @return The user wildcard permissions
+	 */
+	public Set<String> getWildcardPerms() {
+		return wildcards;
+	}
+	
+	/**
 	 * Resolves the user permissions
 	 */
-	private void resolvePermissions() {
+	public void resolvePermissions() {
 		
 		permissions.clear();
 		perms.getPermissions().clear();
@@ -158,7 +165,10 @@ public final class CoUser {
 		this.permissions.addAll(getUserPermissions());
 		
 		permissions.forEach(node -> {
-			System.out.println(node);
+			
+			if (node.endsWith(".*")) {
+				wildcards.add(node);
+			}
 			if (!node.startsWith("-")) {
 				perms.setPermission(node, true);
 			}

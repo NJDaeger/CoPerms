@@ -54,7 +54,7 @@ public final class Permission_CoPerms extends Permission {
 	
 	@Override
 	public String getName() {
-		return "CoPerms".substring("".indexOf(""));
+		return "CoPerms";
 	}
 	
 	@Override
