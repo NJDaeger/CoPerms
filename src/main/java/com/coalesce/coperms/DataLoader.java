@@ -2,6 +2,7 @@ package com.coalesce.coperms;
 
 import com.coalesce.config.IEntry;
 import com.coalesce.config.ISection;
+import com.coalesce.coperms.commands.UserCommands;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.coperms.data.CoWorld;
@@ -47,11 +48,21 @@ public final class DataLoader extends CoModule {
 	    
 		this.dataHolder = new DataHolder(this, plugin);
 		new DataListener(dataHolder, plugin);
+		new UserCommands(plugin, dataHolder);
+		
+		if (!Bukkit.getOnlinePlayers().isEmpty()) {
+			Bukkit.getOnlinePlayers().forEach(p -> {
+				dataHolder.loadUser(p.getWorld(), p.getUniqueId());
+				new Inject(p);
+			});
+		}
 	}
 	
 	@Override
 	protected void onDisable() throws Exception {
-	
+		if (!Bukkit.getOnlinePlayers().isEmpty()) {
+			Bukkit.getOnlinePlayers().forEach(p -> dataHolder.unloadUser(p.getUniqueId()));
+		}
 	}
 	
 	/**

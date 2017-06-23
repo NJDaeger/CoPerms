@@ -8,6 +8,7 @@ import org.bukkit.World;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public final class GroupDataFile extends YamlConfig {
@@ -26,7 +27,7 @@ public final class GroupDataFile extends YamlConfig {
 		if (!contains("groups", false)) {
 			addEntry("groups.default.default", true);
 			addEntry("groups.default.permissions", Arrays.asList("ttb.generate", "ttb.undo", "ttb.redo"));
-			addEntry("groups.default.inherits", "");
+			addEntry("groups.default.inherits", Collections.emptyList());
 			addEntry("groups.default.info.canBuild", true);
 			addEntry("groups.default.info.prefix", "");
 			addEntry("groups.default.info.suffix", "");

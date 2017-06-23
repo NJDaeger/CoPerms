@@ -19,12 +19,6 @@ public final class UserDataFile extends YamlConfig {
 		
 		this.plugin = plugin;
 		this.world = world;
-		
-		addEntry("users.17b65a67-f96e-425c-a184-477f067c53f9.username", "NJDaeger");
-		addEntry("users.17b65a67-f96e-425c-a184-477f067c53f9.group", "default");
-		addEntry("users.17b65a67-f96e-425c-a184-477f067c53f9.prefix", "");
-		addEntry("users.17b65a67-f96e-425c-a184-477f067c53f9.suffix", "");
-		addEntry("users.17b65a67-f96e-425c-a184-477f067c53f9.permissions", Collections.singletonList("*"));
 	}
 	
 	/**

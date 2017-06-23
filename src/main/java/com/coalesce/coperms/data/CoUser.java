@@ -3,12 +3,10 @@ package com.coalesce.coperms.data;
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
-import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,16 +15,20 @@ public final class CoUser {
 	/*
 	This will store the users group, current world, user ID, the user section, all the permissions the user has.
 	 */
+	private String name; //From load method
 	private Group group; //From load method
 	private CoWorld world; //From load method
 	private final UUID uuid;
 	private final CoPerms plugin;
 	private ISection userSection; //From load method
 	private final Set<Group> groups; //From getGroups
+	private PermissionAttachment perms; //From load method
+	private final Set<String> wildcards; //From
 	private final Set<String> permissions; //From load method
 	
 	public CoUser(CoPerms plugin, UUID userID) {
 		this.permissions = new HashSet<>();
+		this.wildcards = new HashSet<>();
 		this.groups = new HashSet<>();
 		this.plugin = plugin;
 		this.uuid = userID;
@@ -41,6 +43,14 @@ public final class CoUser {
 	}
 	
 	/**
+	 * Gets the name of the user
+	 * @return The name of the user.
+	 */
+	public String getName() {
+		return name;
+	}
+	
+	/**
 	 * Gets all the groups the user is in from every world
 	 * @return All the user groups
 	 */
@@ -52,6 +62,20 @@ public final class CoUser {
 			}
 		}
 		return groups;
+	}
+	
+	/**
+	 * Sets the group of a user
+	 * @param world The world to set the group of the user in
+	 * @param name The name of the group
+	 * @return Whether the user was added or not.
+	 */
+	public boolean setGroup(CoWorld world, String name) {
+		group.removeUser(uuid);
+		this.group = world.getGroup(name);
+		this.group.addUser(uuid);
+		resolvePermissions();
+		return group.getName().equalsIgnoreCase(name);
 	}
 	
 	/**
@@ -95,6 +119,43 @@ public final class CoUser {
 	}
 	
 	/**
+	 * Checks if the user has a permission or not.
+	 * @param node The node to check
+	 * @return True if the user has the permission, false otherwise.
+	 */
+	public boolean hasPermission(String node) {
+		return permissions.contains(node);
+	}
+	
+	/**
+	 * Adds a permission to the users permissions.
+	 * @param node The permission to add
+	 * @return If the permission was added or not.
+	 */
+	public boolean addPermission(String node) {
+		boolean ret;
+		List<String > perms = getUserSection().getEntry("permissions").getStringList();
+		ret = perms.add(node);
+		userSection.getEntry("permissions").setValue(perms.toArray());
+		resolvePermissions();
+		return ret;
+	}
+	
+	/**
+	 * Removes a permission from the users permissions.
+	 * @param node The permission to add
+	 * @return If the permission was added or not.
+	 */
+	public boolean removePermission(String node) {
+		boolean ret;
+		List<String > perms = getUserSection().getEntry("permissions").getStringList();
+		ret = perms.remove(node);
+		userSection.getEntry("permissions").setValue(perms.toArray());
+		resolvePermissions();
+		return ret;
+	}
+	
+	/**
 	 * Loads a user into a world
 	 * @param world The world to load the user into
 	 */
@@ -102,26 +163,39 @@ public final class CoUser {
 		this.world = world;
 		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
 		this.group = world.getGroup(userSection.getEntry("group").getString());
+		if (group == null) {
+			group = world.getDefaultGroup();
+		}
+		this.name = userSection.getEntry("username").getString();
 		this.group.addUser(uuid);
+		this.perms= Bukkit.getPlayer(uuid).addAttachment(plugin);
 		resolvePermissions();
+	}
+	
+	/**
+	 * Gets all the wildcard permissions
+	 * @return The user wildcard permissions
+	 */
+	public Set<String> getWildcardPerms() {
+		return wildcards;
 	}
 	
 	/**
 	 * Resolves the user permissions
 	 */
-	private void resolvePermissions() {
-		Player player = Bukkit.getPlayer(uuid);
+	public void resolvePermissions() {
 		
-		player.getEffectivePermissions().clear();
 		permissions.clear();
-		
-		PermissionAttachment perms = player.addAttachment(plugin);
+		perms.getPermissions().clear();
 		
 		this.permissions.addAll(group.getPermissions());
 		this.permissions.addAll(getUserPermissions());
 		
 		permissions.forEach(node -> {
-			System.out.println(node);
+			
+			if (node.endsWith(".*")) {
+				wildcards.add(node);
+			}
 			if (!node.startsWith("-")) {
 				perms.setPermission(node, true);
 			}

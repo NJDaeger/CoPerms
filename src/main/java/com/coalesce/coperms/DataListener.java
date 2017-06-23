@@ -2,13 +2,14 @@ package com.coalesce.coperms;
 
 import com.coalesce.plugin.CoModule;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
-public class DataListener extends CoModule implements Listener {
+import java.util.UUID;
+
+public class DataListener extends CoModule{
 
 	private final CoPerms plugin;
 	private final DataHolder holder;
@@ -33,6 +34,7 @@ public class DataListener extends CoModule implements Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent e) {
 		holder.loadUser(e.getPlayer().getWorld(), e.getPlayer().getUniqueId());
+		new Inject(e.getPlayer());
 	}
 	
 	@EventHandler
