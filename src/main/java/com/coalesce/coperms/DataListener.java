@@ -45,12 +45,14 @@ public class DataListener extends CoModule{
 	@EventHandler
 	public void onTeleport(PlayerTeleportEvent e) {
 		if (e.getFrom().getWorld() != e.getTo().getWorld()) {
-			holder.loadUser(e.getTo().getWorld(), e.getPlayer().getUniqueId());
+			holder.getWorld(e.getFrom().getWorld()).unloadUser(holder.getUser(e.getPlayer().getUniqueId()));
+			holder.getWorld(e.getTo().getWorld()).loadUser(holder.getUser(e.getPlayer().getUniqueId()));
 		}
 	}
 	
 	@EventHandler
 	public void onWorldChange(PlayerChangedWorldEvent e) {
-		holder.loadUser(e.getPlayer().getWorld(), e.getPlayer().getUniqueId());
+		holder.getWorld(e.getFrom()).unloadUser(holder.getUser(e.getPlayer().getUniqueId()));
+		holder.getWorld(e.getPlayer().getWorld()).loadUser(holder.getUser(e.getPlayer().getUniqueId()));
 	}
 }

@@ -70,12 +70,12 @@ public final class CoUser {
 	 * @param name The name of the group
 	 * @return Whether the user was added or not.
 	 */
-	public boolean setGroup(CoWorld world, String name) {
-		group.removeUser(uuid);
+	public void setGroup(CoWorld world, String name) {
+		if (group != null) group.removeUser(uuid);
+		userSection.getEntry("group").setValue(name);
 		this.group = world.getGroup(name);
 		this.group.addUser(uuid);
 		resolvePermissions();
-		return group.getName().equalsIgnoreCase(name);
 	}
 	
 	/**
@@ -160,16 +160,29 @@ public final class CoUser {
 	 * @param world The world to load the user into
 	 */
 	public void load(CoWorld world) {
-		this.world = world;
-		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
-		this.group = world.getGroup(userSection.getEntry("group").getString());
-		if (group == null) {
-			group = world.getDefaultGroup();
-		}
-		this.name = userSection.getEntry("username").getString();
-		this.group.addUser(uuid);
-		this.perms= Bukkit.getPlayer(uuid).addAttachment(plugin);
+		
+		this.world = world; //Provided
+		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString()); //From world user file
+		this.group = world.getGroup(userSection.getEntry("group").getString()); //From user section
+		this.name = userSection.getEntry("username").getString(); //From user section
+		
+		//If the group provided in the user section doesnt exist then we need to get the default group
+		if (group == null) setGroup(world, world.getDefaultGroup().getName());
+		if (perms == null) perms = Bukkit.getPlayer(uuid).addAttachment(plugin);
+		
+		this.group.addUser(uuid); //Group exists, we just need to add the user to it.
 		resolvePermissions();
+	}
+	
+	public void unload(CoWorld world) {
+		this.group.removeUser(uuid);
+		this.group = null;
+		this.permissions.clear();
+		this.wildcards.clear();
+		//When a user unloads from a world we need to remove it from its group
+		//We also need to remove its world
+		//We also need to remove its permissions
+		//We also need to remove its wildcard permissions
 	}
 	
 	/**

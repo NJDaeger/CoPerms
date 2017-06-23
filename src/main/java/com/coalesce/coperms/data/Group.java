@@ -66,16 +66,16 @@ public final class Group {
 	 * Adds a user to this group
 	 * @param user The user to add
 	 */
-	public void addUser(UUID user) {
-		users.add(user);
+	public boolean addUser(UUID user) {
+		return users.add(user);
 	}
 	
 	/**
 	 * Removes a user from this group
 	 * @param user The user to remove
 	 */
-	public void removeUser(UUID user) {
-		users.remove(user);
+	public boolean removeUser(UUID user) {
+		return users.remove(user);
 	}
 	
 	/**
