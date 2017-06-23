@@ -27,6 +27,7 @@ public class CoPermissible extends PermissibleBase {
 	
 	@Override
 	public boolean hasPermission(String permission) {
+		if (isOp()) return true;
 		if (user.hasPermission("*")) return true;
 		if (hasWildcardNode(permission)) return true;
 		return user.getPermissions().contains(permission);
@@ -34,6 +35,7 @@ public class CoPermissible extends PermissibleBase {
 	
 	@Override
 	public boolean hasPermission(Permission permission) {
+		if (isOp()) return true;
 		if (user.hasPermission("*")) return true;
 		if (hasWildcardNode(permission.getName())) return true;
 		return user.getPermissions().contains(permission.getName());

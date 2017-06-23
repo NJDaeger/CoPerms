@@ -3,6 +3,7 @@ package com.coalesce.coperms;
 import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
+import com.coalesce.coperms.data.SuperGroup;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -16,17 +17,19 @@ public final class DataHolder {
 	this needs to hold all the worlds, the users, and the groups
 	 */
 	private final CoPerms plugin;
-	private final DataLoader data;
 	private final Map<UUID, CoUser> users;
 	private final Map<String, Group> groups;
 	private final Map<String, CoWorld> worlds;
+	private final Map<String, SuperGroup> supers;
 	
 	public DataHolder(DataLoader dataloader, CoPerms plugin) {
 		this.plugin = plugin;
-		this.data = dataloader;
 		this.users = new HashMap<>();
+		this.supers = new HashMap<>();
 		this.worlds = dataloader.getWorlds();
 		this.groups = new HashMap<>();
+		worlds.forEach((name, world) -> world.getGroups().forEach(groups::putIfAbsent));
+		plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName(), g));
 		
 	}
 	
@@ -69,6 +72,7 @@ public final class DataHolder {
 	 * @return the user if online
 	 */
 	public CoUser getUser(String name) {
+		if (Bukkit.getPlayer(name) == null) return null;
 		return users.get(Bukkit.getPlayer(name).getUniqueId());
 	}
 	
@@ -122,6 +126,7 @@ public final class DataHolder {
 	 * @return The group if exists
 	 */
 	public Group getGroup(String name) {
+		if (!groups.containsKey(name)) return null;
 		return groups.get(name);
 	}
 	
@@ -131,6 +136,15 @@ public final class DataHolder {
 	 */
 	public Map<String, Group> getGroups() {
 		return groups;
+	}
+	
+	public SuperGroup getSuperGroup(String name) {
+		if (!supers.containsKey(name)) return null;
+		return supers.get(name);
+	}
+	
+	public Map<String, SuperGroup> getSuperGroups() {
+		return supers;
 	}
 	
 	public CoUser loadUser(World world, UUID userID) {

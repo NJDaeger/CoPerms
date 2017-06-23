@@ -2,8 +2,11 @@ package com.coalesce.coperms.data;
 
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
+import com.coalesce.coperms.exceptions.GroupInheritMissing;
+import com.coalesce.coperms.exceptions.SuperGroupMissing;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -14,6 +17,7 @@ public final class Group {
 	group permissions, users, the world the group belongs to and the name (eventually the prefixes and suffixes)
 	 */
 	
+	private final List<String> inheritance;
 	private final Set<String> permissions;
 	private final boolean isDefault;
 	private final ISection section;
@@ -26,6 +30,7 @@ public final class Group {
 	public Group(CoPerms plugin, CoWorld world, String name) {
 		this.section = world.getGroupDataFile().getSection("groups." + name);
 		this.permissions = new HashSet<>(section.getEntry("permissions").getStringList());
+		this.inheritance = section.getEntry("inherits").getStringList();
 		this.isDefault = section.getEntry("default").getBoolean();
 		this.users = new HashSet<>();
 		this.plugin = plugin;
@@ -97,6 +102,21 @@ public final class Group {
 	 */
 	public CoWorld getWorld() {
 		return world;
+	}
+	
+	void loadInheritanceTree() {
+		inheritance.forEach(key -> {
+			if (key.startsWith("s:")) {
+				if (plugin.getDataHolder().getSuperGroup(key.split("s:")[1]) == null) {
+					throw new SuperGroupMissing();
+				}
+				permissions.addAll(plugin.getDataHolder().getSuperGroup(key.split("s:")[1]).getPermissions());
+			}
+			if (!world.getGroups().containsKey(key)) {
+				throw new GroupInheritMissing();
+			}
+			permissions.addAll(world.getGroup(key).getPermissions());
+		});
 	}
 	
 }

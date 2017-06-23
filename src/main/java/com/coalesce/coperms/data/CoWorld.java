@@ -31,7 +31,9 @@ public final class CoWorld {
 		this.users = new HashMap<>();
 		this.groups = new HashMap<>();
 		
+		
 		groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key, new Group(plugin, this, key)));
+		groups.values().forEach(Group::loadInheritanceTree);
 	}
 	
 	/**
@@ -130,11 +132,10 @@ public final class CoWorld {
 	 *          <p>FOR INTERNAL USE ONLY</p>
 	 */
 	public void loadUser(CoUser user) {
-		System.out.println(user.getUserID().toString());
 		this.userData.loadUser(user.getUserID());
 		this.users.put(user.getUserID(), user);
 		user.load(this);
-		//Reload the user permissions here
+		//Reload the user permissions here- does this in the load method in CoUser#load
 		//Set all the correct values
 	}
 	

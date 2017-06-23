@@ -1,31 +1,32 @@
 package com.coalesce.coperms;
 
 import com.coalesce.coperms.configuration.CoPermsConfig;
+import com.coalesce.coperms.configuration.SuperDataFile;
 import com.coalesce.coperms.vault.Chat_CoPerms;
 import com.coalesce.coperms.vault.Permission_CoPerms;
 import com.coalesce.plugin.CoPlugin;
-import net.milkbowl.vault.Vault;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.ServicePriority;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public final class CoPerms extends CoPlugin {
 	
 	private DataLoader dataLoader;
 	private CoPermsConfig config;
+	private SuperDataFile supers;
 	
 	@Override
 	public void onPluginEnable() {
+		this.setPluginColor(ChatColor.BLUE);
 		this.updateCheck("Project-Coalesce", "CoPerms", true);
 		
 		this.config = new CoPermsConfig(this);
+		this.supers = new SuperDataFile(this);
 		
-		addModules(this.dataLoader = new DataLoader(this));
+		addModules(
+				this.dataLoader = new DataLoader(this));
 		
 		//Vault setup
 		if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
@@ -55,6 +56,14 @@ public final class CoPerms extends CoPlugin {
 	 */
 	public DataHolder getDataHolder() {
 		return dataLoader.getDataHolder();
+	}
+	
+	/**
+	 * Returns the super data file.
+	 * @return The super data file.
+	 */
+	public SuperDataFile getSuperDataFile() {
+		return supers;
 	}
 	
 }

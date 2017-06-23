@@ -15,6 +15,7 @@ public final class CoUser {
 	/*
 	This will store the users group, current world, user ID, the user section, all the permissions the user has.
 	 */
+	private String name; //From load method
 	private Group group; //From load method
 	private CoWorld world; //From load method
 	private final UUID uuid;
@@ -42,6 +43,14 @@ public final class CoUser {
 	}
 	
 	/**
+	 * Gets the name of the user
+	 * @return The name of the user.
+	 */
+	public String getName() {
+		return name;
+	}
+	
+	/**
 	 * Gets all the groups the user is in from every world
 	 * @return All the user groups
 	 */
@@ -53,6 +62,20 @@ public final class CoUser {
 			}
 		}
 		return groups;
+	}
+	
+	/**
+	 * Sets the group of a user
+	 * @param world The world to set the group of the user in
+	 * @param name The name of the group
+	 * @return Whether the user was added or not.
+	 */
+	public boolean setGroup(CoWorld world, String name) {
+		group.removeUser(uuid);
+		this.group = world.getGroup(name);
+		this.group.addUser(uuid);
+		resolvePermissions();
+		return group.getName().equalsIgnoreCase(name);
 	}
 	
 	/**
@@ -140,6 +163,10 @@ public final class CoUser {
 		this.world = world;
 		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
 		this.group = world.getGroup(userSection.getEntry("group").getString());
+		if (group == null) {
+			group = world.getDefaultGroup();
+		}
+		this.name = userSection.getEntry("username").getString();
 		this.group.addUser(uuid);
 		this.perms= Bukkit.getPlayer(uuid).addAttachment(plugin);
 		resolvePermissions();

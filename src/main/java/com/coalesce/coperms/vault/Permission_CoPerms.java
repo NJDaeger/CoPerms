@@ -99,7 +99,7 @@ public final class Permission_CoPerms extends Permission {
 	
 	@Override
 	public boolean playerInGroup(String world, String player, String group) {
-		return false;
+		return coperms.getDataHolder().getWorld(world).getUser(player).getGroup().getName().equalsIgnoreCase(group);
 	}
 	
 	@Override
