@@ -34,6 +34,9 @@ public final class CoWorld {
 		
 		groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key, new Group(plugin, this, key)));
 		groups.values().forEach(Group::loadInheritanceTree);
+		for (Group group : groups.values()) {
+			group.getPermissions().forEach(p -> System.out.println(group.getName() + p));
+		}
 	}
 	
 	/**
@@ -147,7 +150,7 @@ public final class CoWorld {
 	 */
 	public void unloadUser(CoUser user) {
 		if (!users.containsKey(user.getUserID())) return;
-		user.unload(this);
+		user.unload();
 		this.users.remove(user.getUserID());
 	}
 	

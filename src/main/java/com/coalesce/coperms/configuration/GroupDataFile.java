@@ -25,12 +25,12 @@ public final class GroupDataFile extends YamlConfig {
 		this.world = world;
 		
 		if (!contains("groups", false)) {
-			addEntry("groups.default.default", true);
 			addEntry("groups.default.permissions", Arrays.asList("ttb.generate", "ttb.undo", "ttb.redo"));
 			addEntry("groups.default.inherits", Collections.emptyList());
 			addEntry("groups.default.info.canBuild", true);
 			addEntry("groups.default.info.prefix", "");
 			addEntry("groups.default.info.suffix", "");
+			addEntry("groups.default.info.rankid", 0);
 		}
 	}
 	

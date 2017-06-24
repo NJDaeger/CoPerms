@@ -84,11 +84,11 @@ public final class UserCommands {
 			
 			//Group exists, lets add the player to it.
 			context.pluginMessage("" +
-					BLUE + user.getName() +
+					DARK_AQUA + user.getName() +
 					RESET + GRAY + " was added to group " +
-					BLUE + context.argAt(1) +
+					DARK_AQUA + context.argAt(1) +
 					RESET + GRAY + " in world " +
-					BLUE + context.argAt(2));
+					DARK_AQUA + context.argAt(2));
 			user.setGroup(holder.getWorld(context.argAt(2)), context.argAt(1));
 			return;
 		}
@@ -99,6 +99,12 @@ public final class UserCommands {
 			return;
 		}
 		user.setGroup(user.getWorld(), context.argAt(1));
+		context.pluginMessage("" +
+				DARK_AQUA + user.getName() +
+				RESET + GRAY + " was added to group " +
+				DARK_AQUA + context.argAt(1) +
+				RESET + GRAY + " in world " +
+				DARK_AQUA + user.getWorld().getWorld().getName());
 	}
 	
 	private void setRankTab(TabContext context) {

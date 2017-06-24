@@ -19,7 +19,6 @@ public final class CoPerms extends CoPlugin {
 	
 	@Override
 	public void onPluginEnable() {
-		this.setPluginColor(ChatColor.BLUE);
 		this.updateCheck("Project-Coalesce", "CoPerms", true);
 		
 		this.config = new CoPermsConfig(this);

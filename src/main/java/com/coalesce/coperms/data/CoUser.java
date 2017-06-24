@@ -2,8 +2,6 @@ package com.coalesce.coperms.data;
 
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
-import org.bukkit.Bukkit;
-import org.bukkit.permissions.PermissionAttachment;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,13 +20,15 @@ public final class CoUser {
 	private final CoPerms plugin;
 	private ISection userSection; //From load method
 	private final Set<Group> groups; //From getGroups
-	private PermissionAttachment perms; //From load method
-	private final Set<String> wildcards; //From
-	private final Set<String> permissions; //From load method
+	//private PermissionAttachment perms; //From load method
+	private final Set<String> wildcards; //From resolve method
+	private final Set<String> negations; //From resolve method
+	private final Set<String> permissions; //From resolve method
 	
 	public CoUser(CoPerms plugin, UUID userID) {
 		this.permissions = new HashSet<>();
 		this.wildcards = new HashSet<>();
+		this.negations = new HashSet<>();
 		this.groups = new HashSet<>();
 		this.plugin = plugin;
 		this.uuid = userID;
@@ -164,33 +164,40 @@ public final class CoUser {
 		this.world = world; //Provided
 		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString()); //From world user file
 		this.group = world.getGroup(userSection.getEntry("group").getString()); //From user section
-		this.name = userSection.getEntry("username").getString(); //From user section
-		
-		//If the group provided in the user section doesnt exist then we need to get the default group
 		if (group == null) setGroup(world, world.getDefaultGroup().getName());
-		if (perms == null) perms = Bukkit.getPlayer(uuid).addAttachment(plugin);
-		
+		this.name = userSection.getEntry("username").getString(); //From user section
+		//if (perms == null) perms = Bukkit.getPlayer(uuid).addAttachment(plugin);
 		this.group.addUser(uuid); //Group exists, we just need to add the user to it.
 		resolvePermissions();
 	}
 	
-	public void unload(CoWorld world) {
+	/**
+	 * Unloads a user from any world.
+	 */
+	public void unload() {
 		this.group.removeUser(uuid);
-		this.group = null;
 		this.permissions.clear();
 		this.wildcards.clear();
-		//When a user unloads from a world we need to remove it from its group
-		//We also need to remove its world
-		//We also need to remove its permissions
-		//We also need to remove its wildcard permissions
+		this.negations.clear();
+		this.userSection = null;
+		this.world = null;
+		this.group = null;
 	}
 	
 	/**
 	 * Gets all the wildcard permissions
 	 * @return The user wildcard permissions
 	 */
-	public Set<String> getWildcardPerms() {
+	public Set<String> getWildcardNodes() {
 		return wildcards;
+	}
+	
+	/**
+	 * Gets all the negated nodes. (including negated wildcards)
+	 * @return The user negated nodes.
+	 */
+	public Set<String> getNegationNodes() {
+		return negations;
 	}
 	
 	/**
@@ -199,18 +206,17 @@ public final class CoUser {
 	public void resolvePermissions() {
 		
 		permissions.clear();
-		perms.getPermissions().clear();
-		
+		//perms.getPermissions().clear();
+		group.getPermissions().forEach(System.out::println);
 		this.permissions.addAll(group.getPermissions());
 		this.permissions.addAll(getUserPermissions());
 		
 		permissions.forEach(node -> {
-			
 			if (node.endsWith(".*")) {
 				wildcards.add(node);
 			}
-			if (!node.startsWith("-")) {
-				perms.setPermission(node, true);
+			if (node.startsWith("-")) {
+				negations.add(node);
 			}
 		});
 	}
