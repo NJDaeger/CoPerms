@@ -14,15 +14,11 @@ import java.util.List;
 public final class GroupDataFile extends YamlConfig {
 	
 	private final List<Group> groups;
-	private final CoPerms plugin;
-	private final World world;
 	
 	public GroupDataFile(CoPerms plugin, World world) {
 		super("worlds" + File.separator + world.getName() + File.separator + "groups", plugin);
 		
 		this.groups = new ArrayList<>();
-		this.plugin = plugin;
-		this.world = world;
 		
 		if (!contains("groups", false)) {
 			addEntry("groups.default.permissions", Arrays.asList("ttb.generate", "ttb.undo", "ttb.redo"));

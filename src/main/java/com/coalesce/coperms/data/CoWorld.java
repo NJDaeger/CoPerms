@@ -16,16 +16,14 @@ public final class CoWorld {
 	This will store the world, the groups in this world, the user file, the group file, a map of users
 	 */
 	
-	private final World world; //Set
-	private final CoPerms plugin; //Set
-	private final UserDataFile userData; //Set
-	private final GroupDataFile groupData; //Set
-	private final Map<UUID, CoUser> users; //Set
-	private final Map<String, Group> groups; //Set
+	private final World world;
+	private final UserDataFile userData;
+	private final GroupDataFile groupData;
+	private final Map<UUID, CoUser> users;
+	private final Map<String, Group> groups;
 	
 	public CoWorld(CoPerms plugin, World world, UserDataFile userData, GroupDataFile groupData) {
 		this.world = world;
-		this.plugin = plugin;
 		this.userData = userData;
 		this.groupData = groupData;
 		this.users = new HashMap<>();
@@ -34,9 +32,6 @@ public final class CoWorld {
 		
 		groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key, new Group(plugin, this, key)));
 		groups.values().forEach(Group::loadInheritanceTree);
-		for (Group group : groups.values()) {
-			group.getPermissions().forEach(p -> System.out.println(group.getName() + p));
-		}
 	}
 	
 	/**
@@ -138,8 +133,6 @@ public final class CoWorld {
 		this.userData.loadUser(user.getUserID());
 		this.users.put(user.getUserID(), user);
 		user.load(this);
-		//Reload the user permissions here- does this in the load method in CoUser#load
-		//Set all the correct values
 	}
 	
 	/**
@@ -153,5 +146,4 @@ public final class CoWorld {
 		user.unload();
 		this.users.remove(user.getUserID());
 	}
-	
 }

@@ -8,7 +8,6 @@ import com.coalesce.plugin.CoPlugin;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.ServicePriority;
 
 public final class CoPerms extends CoPlugin {
@@ -20,20 +19,17 @@ public final class CoPerms extends CoPlugin {
 	@Override
 	public void onPluginEnable() {
 		this.updateCheck("Project-Coalesce", "CoPerms", true);
-		
 		this.config = new CoPermsConfig(this);
 		this.supers = new SuperDataFile(this);
 		
-		addModules(
-				this.dataLoader = new DataLoader(this));
+		addModules(this.dataLoader = new DataLoader(this));
 		
-		//Vault setup
 		if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
 			Permission_CoPerms perms = new Permission_CoPerms(this);
 			getServer().getServicesManager().register(Permission.class, perms, this, ServicePriority.High);
 			getServer().getServicesManager().register(Chat.class, new Chat_CoPerms(this, perms), this, ServicePriority.High);
 		}
-		else getCoLogger().warn("Some plugins may not work properly without Vault installed.");
+		else getCoLogger().warn("Vault is not hooked into CoPerms... Loading anyway...");
 	}
 	
 	@Override

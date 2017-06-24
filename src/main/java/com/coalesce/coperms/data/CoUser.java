@@ -9,21 +9,19 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class CoUser {
-	
-	/*
-	This will store the users group, current world, user ID, the user section, all the permissions the user has.
-	 */
-	private String name; //From load method
-	private Group group; //From load method
-	private CoWorld world; //From load method
+
+	private String name;
+	private Group group;
+	private String prefix;
+	private String suffix;
+	private CoWorld world;
 	private final UUID uuid;
 	private final CoPerms plugin;
-	private ISection userSection; //From load method
-	private final Set<Group> groups; //From getGroups
-	//private PermissionAttachment perms; //From load method
-	private final Set<String> wildcards; //From resolve method
-	private final Set<String> negations; //From resolve method
-	private final Set<String> permissions; //From resolve method
+	private ISection userSection;
+	private final Set<Group> groups;
+	private final Set<String> wildcards;
+	private final Set<String> negations;
+	private final Set<String> permissions;
 	
 	public CoUser(CoPerms plugin, UUID userID) {
 		this.permissions = new HashSet<>();
@@ -48,6 +46,57 @@ public final class CoUser {
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	/**
+	 * Gets the user prefix
+	 * @return The user prefix
+	 */
+	public String getPrefix() {
+		return prefix;
+	}
+	
+	/**
+	 * Sets the user prefix
+	 * @param prefix The user prefix
+	 */
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+	
+	/**
+	 * Gets the user suffix
+	 * @return The user suffix
+	 */
+	public String getSuffix() {
+		return suffix;
+	}
+	
+	/**
+	 * Sets the user suffix
+	 * @param suffix The user suffix
+	 */
+	public void setSuffix(String suffix) {
+		this.suffix = suffix;
+	}
+	
+	/**
+	 * Adds info to the user section
+	 * @param node The node to add
+	 * @param value The value to set the node
+	 */
+	public void addInfo(String node, Object value) {
+		userSection.getConfig().setEntry(userSection.getCurrentPath() + "." + node, value);
+	}
+	
+	/**
+	 * Gets a node from the user section
+	 * @param node The node path to get
+	 * @return The value of the node, null if it doesn't exist.
+	 */
+	public Object getInfo(String node) {
+		if (userSection.getEntry(node) == null) return null;
+		return userSection.getEntry(node).getValue();
 	}
 	
 	/**
@@ -160,14 +209,12 @@ public final class CoUser {
 	 * @param world The world to load the user into
 	 */
 	public void load(CoWorld world) {
-		
-		this.world = world; //Provided
-		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString()); //From world user file
-		this.group = world.getGroup(userSection.getEntry("group").getString()); //From user section
+		this.world = world;
+		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
+		this.group = world.getGroup(userSection.getEntry("group").getString());
 		if (group == null) setGroup(world, world.getDefaultGroup().getName());
-		this.name = userSection.getEntry("username").getString(); //From user section
-		//if (perms == null) perms = Bukkit.getPlayer(uuid).addAttachment(plugin);
-		this.group.addUser(uuid); //Group exists, we just need to add the user to it.
+		this.name = userSection.getEntry("username").getString();
+		this.group.addUser(uuid);
 		resolvePermissions();
 	}
 	
@@ -204,13 +251,9 @@ public final class CoUser {
 	 * Resolves the user permissions
 	 */
 	public void resolvePermissions() {
-		
 		permissions.clear();
-		//perms.getPermissions().clear();
-		group.getPermissions().forEach(System.out::println);
 		this.permissions.addAll(group.getPermissions());
 		this.permissions.addAll(getUserPermissions());
-		
 		permissions.forEach(node -> {
 			if (node.endsWith(".*")) {
 				wildcards.add(node);

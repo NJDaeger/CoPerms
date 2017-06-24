@@ -13,9 +13,6 @@ import java.util.UUID;
 
 public final class DataHolder {
 	
-	/*
-	this needs to hold all the worlds, the users, and the groups
-	 */
 	private final CoPerms plugin;
 	private final Map<UUID, CoUser> users;
 	private final Map<String, Group> groups;
@@ -138,15 +135,30 @@ public final class DataHolder {
 		return groups;
 	}
 	
+	/**
+	 * Gets a SuperGroup if exists
+	 * @param name The name of the SuperGroup
+	 * @return The SuperGroup
+	 */
 	public SuperGroup getSuperGroup(String name) {
 		if (!supers.containsKey(name)) return null;
 		return supers.get(name);
 	}
 	
+	/**
+	 * Gets a list of all the SuperGroups
+	 * @return The server SuperGroups
+	 */
 	public Map<String, SuperGroup> getSuperGroups() {
 		return supers;
 	}
 	
+	/**
+	 * Loads a user into a world
+	 * @param world The world to load the user into
+	 * @param userID The user to load
+	 * @return The loaded user
+	 */
 	public CoUser loadUser(World world, UUID userID) {
 		if (getUser(userID) != null) {
 			getWorld(world).unloadUser(getUser(userID));
@@ -156,15 +168,12 @@ public final class DataHolder {
 		this.users.put(userID, new CoUser(plugin, userID));
 		getWorld(world).loadUser(getUser(userID));
 		return getUser(userID);
-		/*
-		check if the user exists in the user map, if the user exists then return the user
-		
-		if the user doesnt exist, then get the user's world and load the user into the world
-		
-		reload the user permissions
-		 */
 	}
 	
+	/**
+	 * Unloads a user from the server
+	 * @param userID The user to unload
+	 */
 	public void unloadUser(UUID userID) {
 		getUser(userID).getWorld().unloadUser(getUser(userID));
 		this.users.remove(userID);

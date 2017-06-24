@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public final class UserDataFile extends YamlConfig {
 	
-	private volatile CoPerms plugin;
+	private final CoPerms plugin;
 	private final World world;
 	
 	public UserDataFile(CoPerms plugin, World world) {

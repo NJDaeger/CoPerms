@@ -12,10 +12,6 @@ import java.util.UUID;
 
 public final class Group {
 	
-	/*
-	group permissions, users, the world the group belongs to and the name (eventually the prefixes and suffixes)
-	 */
-	
 	private final List<String> inheritance;
 	private final Set<String> permissions;
 	private final boolean isDefault;
@@ -25,12 +21,18 @@ public final class Group {
 	private final CoWorld world;
 	private final String name;
 	private final int rankID;
+	private boolean canBuild;
+	private String prefix;
+	private String suffix;
 	
 	
 	public Group(CoPerms plugin, CoWorld world, String name) {
 		this.section = world.getGroupDataFile().getSection("groups." + name);
 		this.permissions = new HashSet<>(section.getEntry("permissions").getStringList());
 		this.inheritance = section.getEntry("inherits").getStringList();
+		this.canBuild = section.getEntry("info.canBuild").getBoolean();
+		this.prefix = section.getEntry("info.prefix").getString();
+		this.suffix = section.getEntry("info.suffix").getString();
 		this.rankID = section.getEntry("info.rankid").getInt();
 		this.isDefault = rankID == 0;
 		this.users = new HashSet<>();
@@ -45,6 +47,65 @@ public final class Group {
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	/**
+	 * Gets the group prefix
+	 * @return The group prefix
+	 */
+	public String getPrefix() {
+		return prefix;
+	}
+	
+	/**
+	 * Sets the group prefix
+	 * @param prefix The new group prefix
+	 */
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+	
+	/**
+	 * Gets the group suffix
+	 * @return The group suffix
+	 */
+	public String getSuffix() {
+		return suffix;
+	}
+	
+	/**
+	 * Sets the group suffix
+	 * @param suffix The new suffix
+	 */
+	public void setSuffix(String suffix) {
+		this.suffix = suffix;
+	}
+	
+	/**
+	 * Adds info to the user section
+	 * @param node The node to add
+	 * @param value The value to set the node
+	 */
+	public void addInfo(String node, Object value) {
+		section.getConfig().setEntry(section.getCurrentPath() + "." + node, value);
+	}
+	
+	/**
+	 * Gets a node from the user section
+	 * @param node The node path to get
+	 * @return The value of the node, null if it doesn't exist.
+	 */
+	public Object getInfo(String node) {
+		if (section.getEntry(node) == null) return null;
+		return section.getEntry(node).getValue();
+	}
+	
+	/**
+	 * Checks if the group has permissions to build
+	 * @return True if the group can build
+	 */
+	public boolean canBuild() {
+		return canBuild;
 	}
 	
 	/**

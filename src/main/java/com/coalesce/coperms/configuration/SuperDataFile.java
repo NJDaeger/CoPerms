@@ -19,11 +19,7 @@ public final class SuperDataFile extends YamlConfig {
 		if (!contains("super", false)) {
 			addEntry("super.default.permissions", Collections.singletonList("*"));
 		}
-		
-		getSection("super").getKeys(false).forEach(key -> {
-			superGroups.add(new SuperGroup(key, getSection("super." + key)));
-		});
-		
+		getSection("super").getKeys(false).forEach(key -> superGroups.add(new SuperGroup(key, getSection("super." + key))));
 	}
 	
 	public Set<SuperGroup> getSuperGroups() {
