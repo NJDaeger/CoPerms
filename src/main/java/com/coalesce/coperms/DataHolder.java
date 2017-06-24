@@ -25,6 +25,7 @@ public final class DataHolder {
 		this.supers = new HashMap<>();
 		this.worlds = dataloader.getWorlds();
 		this.groups = new HashMap<>();
+		
 		worlds.forEach((name, world) -> world.getGroups().forEach(groups::putIfAbsent));
 		plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName(), g));
 		

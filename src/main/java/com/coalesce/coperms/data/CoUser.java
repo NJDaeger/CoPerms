@@ -86,7 +86,7 @@ public final class CoUser {
 	 * @param value The value to set the node
 	 */
 	public void addInfo(String node, Object value) {
-		userSection.getConfig().setEntry(userSection.getCurrentPath() + "." + node, value);
+		userSection.getConfig().setEntry(userSection.getCurrentPath() + ".info." + node, value);
 	}
 	
 	/**
@@ -95,8 +95,8 @@ public final class CoUser {
 	 * @return The value of the node, null if it doesn't exist.
 	 */
 	public Object getInfo(String node) {
-		if (userSection.getEntry(node) == null) return null;
-		return userSection.getEntry(node).getValue();
+		if (userSection.getSection("info").getEntry(node) == null) return null;
+		return userSection.getSection("info").getEntry(node).getValue();
 	}
 	
 	/**
