@@ -18,18 +18,28 @@ public final class CoUser {
 	private final UUID uuid;
 	private final CoPerms plugin;
 	private ISection userSection;
+	private final boolean isOnline;
 	private final Set<Group> groups;
 	private final Set<String> wildcards;
 	private final Set<String> negations;
 	private final Set<String> permissions;
 	
-	public CoUser(CoPerms plugin, UUID userID) {
+	public CoUser(CoPerms plugin, UUID userID, boolean isOnline) {
 		this.permissions = new HashSet<>();
 		this.wildcards = new HashSet<>();
 		this.negations = new HashSet<>();
 		this.groups = new HashSet<>();
+		this.isOnline = isOnline;
 		this.plugin = plugin;
 		this.uuid = userID;
+	}
+	
+	/**
+	 * Checks if this CoUser is an online user.
+	 * @return True if online, false otherwise.
+	 */
+	public boolean isOnline() {
+		return isOnline;
 	}
 	
 	/**
@@ -119,12 +129,17 @@ public final class CoUser {
 	 * @param name The name of the group
 	 * @return Whether the user was added or not.
 	 */
-	public void setGroup(CoWorld world, String name) {
-		if (group != null) group.removeUser(uuid);
+	public boolean setGroup(CoWorld world, String name) {
+		boolean ret = true;
+		if (group != null) {
+			ret = !group.getName().equalsIgnoreCase(name);
+			group.removeUser(uuid);
+		}
 		userSection.getEntry("group").setValue(name);
 		this.group = world.getGroup(name);
 		this.group.addUser(uuid);
 		resolvePermissions();
+		return ret;
 	}
 	
 	/**

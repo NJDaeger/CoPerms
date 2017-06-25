@@ -5,10 +5,9 @@ import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public final class CoWorld {
 	
@@ -17,6 +16,7 @@ public final class CoWorld {
 	 */
 	
 	private final World world;
+	private final CoPerms plugin;
 	private final UserDataFile userData;
 	private final GroupDataFile groupData;
 	private final Map<UUID, CoUser> users;
@@ -24,13 +24,14 @@ public final class CoWorld {
 	
 	public CoWorld(CoPerms plugin, World world, UserDataFile userData, GroupDataFile groupData) {
 		this.world = world;
+		this.plugin = plugin;
 		this.userData = userData;
 		this.groupData = groupData;
 		this.users = new HashMap<>();
 		this.groups = new HashMap<>();
 		
 		
-		groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key, new Group(plugin, this, key)));
+		groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key.toLowerCase(), new Group(plugin, this, key)));
 		groups.values().forEach(Group::loadInheritanceTree);
 	}
 	
@@ -64,16 +65,32 @@ public final class CoWorld {
 	 * @return The user if in this world, null otherwise.
 	 */
 	public CoUser getUser(UUID uuid) {
-		return users.get(uuid);
+		if (plugin.getDataHolder().getUser(uuid) != null) {
+			return users.get(uuid);
+		}
+		if (hasUser(uuid)) {
+			CoUser user = new CoUser(plugin, uuid, false);
+			user.load(this);
+			return user;
+		}
+		return null;
 	}
 	
 	/**
 	 * Gets a user via their name
 	 * @param name The name of the user
-	 * @return The user if online
+	 * @return The user online or not
 	 */
 	public CoUser getUser(String name) {
-		return users.get(Bukkit.getPlayer(name).getUniqueId());
+		if (plugin.getDataHolder().getUser(name) != null) {
+			return users.get(Bukkit.getPlayer(name).getUniqueId());
+		}
+		else if (hasUser(name)) {
+			CoUser user = new CoUser(plugin, resolveID(name), false);
+			user.load(this);
+			return user;
+		}
+		return null;
 	}
 	
 	/**
@@ -86,10 +103,39 @@ public final class CoWorld {
 	}
 	
 	/**
+	 * Checks if the user data file of this world has a user in it.
+	 * @param name The user to look for
+	 * @return True if the user has been in this world, false otherwise.
+	 */
+	public boolean hasUser(String name) {
+		for (UUID id : getAllUsers()) {
+			if (userData.getSection("users").getEntry(id.toString() + ".username").getString().equalsIgnoreCase(name)) return true;
+		}
+		return false;
+	}
+	
+	private UUID resolveID(String name) {
+		for (UUID id : getAllUsers()) {
+			if (userData.getSection("users").getEntry(id.toString() + ".username").getString().equalsIgnoreCase(name)) return id;
+		}
+		return null;
+	}
+	
+	/**
 	 * Gets a map of all the users in this world
 	 * @return The worlds user map
 	 */
 	public Map<UUID, CoUser> getUsers() {
+		return users;
+	}
+	
+	/**
+	 * Gets all the users that exist in the userdata file
+	 * @return All the users. Online or offline
+	 */
+	public Set<UUID> getAllUsers() {
+		Set<UUID> users = new HashSet<>();
+		userData.getSection("users").getKeys(false).forEach(k -> users.add(UUID.fromString(k)));
 		return users;
 	}
 	
@@ -99,7 +145,7 @@ public final class CoWorld {
 	 * @return The group
 	 */
 	public Group getGroup(String name) {
-		return groups.get(name);
+		return groups.get(name.toLowerCase());
 	}
 	
 	/**

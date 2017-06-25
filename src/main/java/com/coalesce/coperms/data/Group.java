@@ -174,22 +174,48 @@ public final class Group {
 		return world;
 	}
 	
+	/**
+	 * Checks whether this group has a permission or not
+	 * @param permission The permission to look for
+	 * @return True if the group has the permission, false otherwise
+	 */
+	public boolean hasPermission(String permission) {
+		return permissions.contains(permission);
+	}
+	
+	/**
+	 * Adds a permission to the group
+	 * @param permission The permission to add
+	 * @return True if it was successfully added.
+	 */
 	public boolean addPermission(String permission) {
 		boolean ret;
 		ret = permissions.add(permission);
 		section.getEntry("permissions").setValue(permissions.toArray());
+		loadInheritanceTree();
 		reloadUsers();
 		return ret;
 	}
 	
+	/**
+	 * Removes a permission from the group
+	 * @param permission The permission to remove
+	 * @return True if the permission was successfully removed.
+	 */
 	public boolean removePermission(String permission) {
 		boolean ret;
 		ret = permissions.remove(permission);
 		section.getEntry("permissions").setValue(permissions.toArray());
+		loadInheritanceTree();
 		reloadUsers();
 		return ret;
 	}
 	
+	/**
+	 * Adds an inherited group to a group
+	 * @param group The group to add to the inheritance tree
+	 * @return True if successfully added
+	 */
 	public boolean addInheritance(String group) {
 		boolean ret;
 		ret = inheritance.add(group);
@@ -199,6 +225,11 @@ public final class Group {
 		return ret;
 	}
 	
+	/**
+	 * Removes an inherited group from a group
+	 * @param group The group to remove from the inheritance tree
+	 * @return True if successfully removed
+	 */
 	public boolean removeInheritance(String group) {
 		boolean ret;
 		ret = inheritance.remove(group);
@@ -208,6 +239,10 @@ public final class Group {
 		return ret;
 	}
 	
+	/**
+	 * Gets the inheritance list of the group
+	 * @return The list of inherited groups
+	 */
 	public List<String> getInheritancetree() {
 		return inheritance;
 	}
@@ -220,7 +255,7 @@ public final class Group {
 				}
 				permissions.addAll(plugin.getDataHolder().getSuperGroup(key.split("s:")[1]).getPermissions());
 			}
-			if (!world.getGroups().containsKey(key)) {
+			if (world.getGroup(key) == null) {
 				throw new GroupInheritMissing();
 			}
 			world.getGroup(key).loadInheritanceTree();

@@ -28,7 +28,14 @@ public final class DataHolder {
 		
 		worlds.forEach((name, world) -> world.getGroups().forEach(groups::putIfAbsent));
 		plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName(), g));
-		
+	}
+	
+	/**
+	 * Gets the default world of the server
+	 * @return The servers default world
+	 */
+	public CoWorld getDefaultWorld() {
+		return getWorld(Bukkit.getWorlds().get(0));
 	}
 	
 	/**
@@ -40,6 +47,18 @@ public final class DataHolder {
 	 * <p>Note: The user can be offline
 	 */
 	public CoUser getUser(World world, UUID user) {
+		return getWorld(world).getUser(user);
+	}
+	
+	/**
+	 * Gets a user from a world user file.
+	 * @param world The world to get the user from.
+	 * @param user The user to get.
+	 * @return The user.
+	 *
+	 * <p>Note: The user can be offline
+	 */
+	public CoUser getUser(World world, String user) {
 		return getWorld(world).getUser(user);
 	}
 	
@@ -56,18 +75,31 @@ public final class DataHolder {
 	}
 	
 	/**
+	 * Gets a user from a world user file.
+	 * @param world The world to get the user from.
+	 * @param user The user to get.
+	 * @return The user.
+	 *
+	 * <p>Note: The user can be offline
+	 */
+	public CoUser getUser(String world, String user) {
+		return getWorld(world).getUser(user);
+	}
+	
+	/**
 	 * Gets an online user
 	 * @param uuid The user to get
 	 * @return The user
 	 */
 	public CoUser getUser(UUID uuid) {
+		if (!users.containsKey(uuid)) return null;
 		return users.get(uuid);
 	}
 	
 	/**
-	 * Gets a user by name
+	 * Gets an online user by name
 	 * @param name The name of the user
-	 * @return the user if online
+	 * @return the user
 	 */
 	public CoUser getUser(String name) {
 		if (Bukkit.getPlayer(name) == null) return null;
@@ -160,13 +192,15 @@ public final class DataHolder {
 	 * @param userID The user to load
 	 * @return The loaded user
 	 */
+	
+	//This should only ever load a user that is online.
 	public CoUser loadUser(World world, UUID userID) {
 		if (getUser(userID) != null) {
 			getWorld(world).unloadUser(getUser(userID));
 			getUser(userID).load(getWorld(world));
 			return getUser(userID);
 		}
-		this.users.put(userID, new CoUser(plugin, userID));
+		this.users.put(userID, new CoUser(plugin, userID, true));
 		getWorld(world).loadUser(getUser(userID));
 		return getUser(userID);
 	}
@@ -175,6 +209,8 @@ public final class DataHolder {
 	 * Unloads a user from the server
 	 * @param userID The user to unload
 	 */
+	
+	//This should only ever unload a user that is online
 	public void unloadUser(UUID userID) {
 		getUser(userID).getWorld().unloadUser(getUser(userID));
 		this.users.remove(userID);

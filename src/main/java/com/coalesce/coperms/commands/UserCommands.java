@@ -7,6 +7,7 @@ import com.coalesce.command.tabcomplete.TabContext;
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataHolder;
 import com.coalesce.coperms.data.CoUser;
+import com.coalesce.coperms.data.CoWorld;
 import org.bukkit.Bukkit;
 
 import static org.bukkit.ChatColor.*;
@@ -27,7 +28,7 @@ public final class UserCommands {
 		CoCommand promote = new CommandBuilder(plugin, "promote")
 				.executor(this::promote)
 				.completer(this::promoteTab)
-				.aliases("copro", "promo")
+				.aliases("promo")
 				.description("Promotes someone to the next rank.")
 				.usage("/promote <user> [world]")
 				.minArgs(1)
@@ -35,7 +36,7 @@ public final class UserCommands {
 				.permission("coperms.promote")
 				.build();
 		
-		CoCommand setrank = new CommandBuilder(plugin, "setrank")
+		CoCommand setRank = new CommandBuilder(plugin, "setrank")
 				.executor(this::setRank)
 				.completer(this::setRankTab)
 				.aliases("setr", "setgroup")
@@ -46,7 +47,18 @@ public final class UserCommands {
 				.permission("coperms.setrank")
 				.build();
 		
-		plugin.addCommand(promote, setrank);
+		CoCommand demote = new CommandBuilder(plugin, "demote")
+				.executor(this::demote)
+				.completer(this::demoteTab)
+				.aliases("demo")
+				.description("Demotes someone to the previous rank.")
+				.usage("/demote <user> [world]")
+				.minArgs(1)
+				.maxArgs(2)
+				.permission("coperms.demote")
+				.build();
+		
+		plugin.addCommand(promote, setRank);
 	}
 	
 	private void promote(CommandContext context) {
@@ -57,53 +69,89 @@ public final class UserCommands {
 	
 	}
 	
-	private void setRank(CommandContext context) {
-		
-		//Checks if the user exists
+	private void demote(CommandContext context) {
 		if (holder.getUser(context.argAt(0)) == null) {
-			context.pluginMessage(RED + "The player specified does not exist.");
+		
+		}
+	}
+	
+	private void demoteTab(TabContext context) {
+	}
+	
+	private void setRank(CommandContext context) {
+		CoUser user;
+		if (holder.getUser(context.argAt(0)) == null) {
+			if (context.getArgs().size() == 3) {
+				CoWorld world = holder.getWorld(context.argAt(2));
+				if (world == null) {
+					context.pluginMessage(RED + "The world specified does not exist.");
+					return;
+				}
+				user = holder.getUser(world.getWorld(), context.argAt(0));
+				if (user == null) {
+					context.pluginMessage(RED + "The user specified does not exist in the world specified");
+					return;
+				}
+				if (world.getGroup(context.argAt(1)) == null) {
+					context.pluginMessage(RED + "Group does not exist in the world specified.");
+					return;
+				}
+				user.setGroup(world, context.argAt(1));
+				context.pluginMessage(
+						DARK_AQUA + user.getName() +
+						GRAY + " was added to group " +
+						DARK_AQUA + context.argAt(1) +
+						GRAY + " in world " +
+						DARK_AQUA + context.argAt(2));
+				return;
+			}
+			user = holder.getDefaultWorld().getUser(context.argAt(0));
+			if (user == null) {
+				context.pluginMessage(RED + "The user specified does not exist in the world specified");
+				return;
+			}
+			if (holder.getDefaultWorld().getGroup(context.argAt(1)) == null) {
+				context.pluginMessage(RED + "Group does not exist in the world specified.");
+				return;
+			}
+			user.setGroup(holder.getDefaultWorld(), context.argAt(1));
+			context.pluginMessage(
+					DARK_AQUA + user.getName() +
+					GRAY + " was added to group " +
+					DARK_AQUA + context.argAt(1) +
+					GRAY + " in world " +
+					DARK_AQUA + holder.getDefaultWorld().getWorld().getName());
 			return;
 		}
-		
-		//We know the user exists, lets get the user
-		CoUser user = holder.getUser(context.argAt(0));
-		
-		//World was supplied in the command.
+		user = holder.getUser(context.argAt(0));
 		if (context.getArgs().size() == 3) {
-			
 			if (holder.getWorld(context.argAt(2)) == null) {
 				context.pluginMessage(RED + "The world specified does not exist.");
 				return;
 			}
-			
-			//Checking for the group in the specified world
 			if (holder.getWorld(context.argAt(2)).getGroup(context.argAt(1)) == null) {
 				context.pluginMessage(RED + "Group does not exist in the world specified.");
 				return;
 			}
-			
-			//Group exists, lets add the player to it.
-			context.pluginMessage("" +
+			context.pluginMessage(
 					DARK_AQUA + user.getName() +
-					RESET + GRAY + " was added to group " +
+					GRAY + " was added to group " +
 					DARK_AQUA + context.argAt(1) +
-					RESET + GRAY + " in world " +
+					GRAY + " in world " +
 					DARK_AQUA + context.argAt(2));
 			user.setGroup(holder.getWorld(context.argAt(2)), context.argAt(1));
 			return;
 		}
-		
-		//World not supplied in the command
-		if (user.getWorld().getGroup(context.argAt(1)) == null) { //Checks if the group was a valid group
-			context.pluginMessage(RED + "Group does not exist in the users world.");
+		if (user.getWorld().getGroup(context.argAt(1)) == null) {
+			context.pluginMessage(RED + "Group does not exist in the users current world.");
 			return;
 		}
 		user.setGroup(user.getWorld(), context.argAt(1));
-		context.pluginMessage("" +
+		context.pluginMessage(
 				DARK_AQUA + user.getName() +
 				RESET + GRAY + " was added to group " +
 				DARK_AQUA + context.argAt(1) +
-				RESET + GRAY + " in world " +
+				RESET + GRAY + " in " +
 				DARK_AQUA + user.getWorld().getWorld().getName());
 	}
 	

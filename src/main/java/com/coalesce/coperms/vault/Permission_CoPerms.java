@@ -84,17 +84,17 @@ public final class Permission_CoPerms extends Permission {
 	
 	@Override
 	public boolean groupHas(String world, String group, String permission) {
-		return false;
+		return coperms.getDataHolder().getWorld(world).getGroup(group).hasPermission(permission);
 	}
 	
 	@Override
 	public boolean groupAdd(String world, String group, String permission) {
-		return false;
+		return coperms.getDataHolder().getWorld(world).getGroup(group).addPermission(permission);
 	}
 	
 	@Override
 	public boolean groupRemove(String world, String group, String permission) {
-		return false;
+		return coperms.getDataHolder().getWorld(world).getGroup(group).removePermission(permission);
 	}
 	
 	@Override
@@ -104,12 +104,12 @@ public final class Permission_CoPerms extends Permission {
 	
 	@Override
 	public boolean playerAddGroup(String world, String player, String group) {
-		return false;
+		return coperms.getDataHolder().getWorld(world).getUser(player).setGroup(coperms.getDataHolder().getWorld(world), group);
 	}
 	
 	@Override
 	public boolean playerRemoveGroup(String world, String player, String group) {
-		return false;
+		return coperms.getDataHolder().getWorld(world).getUser(player).setGroup(coperms.getDataHolder().getWorld(world), group);
 	}
 	
 	@Override
