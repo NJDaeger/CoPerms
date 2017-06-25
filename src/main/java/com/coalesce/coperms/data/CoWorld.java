@@ -5,15 +5,10 @@ import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
 public final class CoWorld {
-	
-	/*
-	This will store the world, the groups in this world, the user file, the group file, a map of users
-	 */
 	
 	private final World world;
 	private final CoPerms plugin;
@@ -21,6 +16,7 @@ public final class CoWorld {
 	private final GroupDataFile groupData;
 	private final Map<UUID, CoUser> users;
 	private final Map<String, Group> groups;
+	private final Map<Integer, String> rankID;
 	
 	public CoWorld(CoPerms plugin, World world, UserDataFile userData, GroupDataFile groupData) {
 		this.world = world;
@@ -29,10 +25,12 @@ public final class CoWorld {
 		this.groupData = groupData;
 		this.users = new HashMap<>();
 		this.groups = new HashMap<>();
+		this.rankID = new HashMap<>();
 		
 		
 		groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key.toLowerCase(), new Group(plugin, this, key)));
 		groups.values().forEach(Group::loadInheritanceTree);
+		groups.values().forEach(g -> rankID.put(g.getRankID(), g.getName()));
 	}
 	
 	/**
@@ -41,6 +39,14 @@ public final class CoWorld {
 	 */
 	public World getWorld() {
 		return world;
+	}
+	
+	/**
+	 * Gets the name of the world
+	 * @return The name of the world
+	 */
+	public String getName() {
+		return getWorld().getName();
 	}
 	
 	/**
@@ -146,6 +152,16 @@ public final class CoWorld {
 	 */
 	public Group getGroup(String name) {
 		return groups.get(name.toLowerCase());
+	}
+	
+	/**
+	 * Gets a rank via ID
+	 * @param id The id of the rank
+	 * @return The rank if it exists
+	 */
+	public Group getGroup(int id) {
+		if (rankID.get(id) == null) return null;
+		return getGroup(rankID.get(id));
 	}
 	
 	/**
