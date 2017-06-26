@@ -9,21 +9,16 @@ import com.coalesce.coperms.DataHolder;
 import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
-import org.bukkit.Bukkit;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import static org.bukkit.ChatColor.*;
 
 public final class UserCommands {
 	
-	private final CoPerms plugin;
 	private final DataHolder holder;
 	
 	public UserCommands(CoPerms plugin, DataHolder holder) {
-		this.plugin = plugin;
 		this.holder = holder;
 		
 		CoCommand promote = new CommandBuilder(plugin, "promote")
@@ -34,7 +29,7 @@ public final class UserCommands {
 				.usage("/promote <user> [world]")
 				.minArgs(1)
 				.maxArgs(2)
-				.permission("coperms.promote")
+				.permission("coperms.ranks.promote")
 				.build();
 		
 		CoCommand setRank = new CommandBuilder(plugin, "setrank")
@@ -45,7 +40,7 @@ public final class UserCommands {
 				.usage("/setrank <user> <rank> [world]") //Make a list in the UserDataFile for each user that is similar to the group data file that specifies ranks per world
 				.minArgs(2)
 				.maxArgs(3)
-				.permission("coperms.setrank")
+				.permission("coperms.ranks.setrank")
 				.build();
 		
 		CoCommand demote = new CommandBuilder(plugin, "demote")
@@ -56,10 +51,29 @@ public final class UserCommands {
 				.usage("/demote <user> [world]")
 				.minArgs(1)
 				.maxArgs(2)
-				.permission("coperms.demote")
+				.permission("coperms.ranks.demote")
 				.build();
 		
-		plugin.addCommand(promote, setRank, demote);
+		CoCommand setPrefix = new CommandBuilder(plugin, "setprefix")
+				.executor(this::setPrefix)
+				.completer(this::setPrefixTab)
+				.aliases("prefix")
+				.description("Adds or removes a prefix from a user")
+				.usage("/prefix <user> [prefix]")
+				.minArgs(1)
+				.permission("coperms.variables.prefix")
+				.build();
+		
+		CoCommand setSuffix = new CommandBuilder(plugin, "setsuffix")
+				.executor(this::setSuffix)
+				.completer(this::setSuffixTab)
+				.description("Adds or removes a suffix from a user")
+				.usage("/suffix <user> [prefix]")
+				.minArgs(1)
+				.permission("coperms.variables.suffix")
+				.build();
+		
+		plugin.addCommand(promote, setRank, demote, setPrefix, setSuffix);
 	}
 	
 	//
@@ -93,10 +107,8 @@ public final class UserCommands {
 	}
 	
 	private void promoteTab(TabContext context) {
-		List<String> names = new ArrayList<>();
 		Set<String> worlds = holder.getWorlds().keySet();
-		Bukkit.getOnlinePlayers().forEach(u -> names.add(u.getName()));
-		context.completionAt(0, names.toArray(new String[names.size()]));
+		context.playerCompletion(0);
 		context.completionAt(1, worlds.toArray(new String[worlds.size()]));
 	}
 	
@@ -131,6 +143,9 @@ public final class UserCommands {
 	}
 	
 	private void demoteTab(TabContext context) {
+		Set<String> worlds = holder.getWorlds().keySet();
+		context.playerCompletion(0);
+		context.completionAt(1, worlds.toArray(new String[worlds.size()]));
 	}
 	
 	//
@@ -164,13 +179,67 @@ public final class UserCommands {
 	}
 	
 	private void setRankTab(TabContext context) {
-		List<String> names = new ArrayList<>();
 		Set<String> groups = holder.getGroups().keySet();
 		Set<String> worlds = holder.getWorlds().keySet();
-		Bukkit.getOnlinePlayers().forEach(u -> names.add(u.getName()));
-		context.completionAt(0, names.toArray(new String[names.size()]));
+		context.playerCompletion(0);
 		context.completionAt(1, groups.toArray(new String[groups.size()]));
 		context.completionAt(2, worlds.toArray(new String[worlds.size()]));
+	}
+	
+	//
+	//
+	//
+	//
+	
+	private void setPrefix(CommandContext context) {
+		CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
+		if (user == null) {
+			context.pluginMessage(RED + "The user specified does not exist in the world specified");
+			return;
+		}
+		if (!context.getSender().hasPermission("coperms.variables.prefix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) {
+			context.pluginMessage(RED + "You do not have permission for this command! Required Permission: " + GRAY + "coperms.variables.prefix.other");
+			return;
+		}
+		if (context.getArgs().size() < 2) {
+			user.setPrefix(null);
+			context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + user.getName() + GRAY + " has been disabled.");
+			return;
+		}
+		user.setPrefix(context.joinArgs(1) + " ");
+		context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + context.joinArgs(1));
+	}
+	
+	private void setPrefixTab(TabContext context) {
+		context.playerCompletion(0);
+	}
+	
+	//
+	//
+	//
+	//
+	
+	private void setSuffix(CommandContext context) {
+		CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
+		if (user == null) {
+			context.pluginMessage(RED + "The user specified does not exist in the world specified");
+			return;
+		}
+		if (!context.getSender().hasPermission("coperms.variables.suffix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) {
+			context.pluginMessage(RED + "You do not have permission for this command! Required Permission: " + GRAY + "coperms.variables.suffix.other");
+			return;
+		}
+		if (context.getArgs().size() < 2) {
+			user.setSuffix(null);
+			context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + user.getName() + GRAY + " has been disabled.");
+			return;
+		}
+		user.setSuffix(" " + context.joinArgs(1));
+		context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + context.joinArgs(1));
+	}
+	
+	private void setSuffixTab(TabContext context) {
+		context.playerCompletion(0);
 	}
 	
 }
