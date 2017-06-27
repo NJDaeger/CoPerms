@@ -71,6 +71,7 @@ public final class CoUser {
 	 * @param prefix The user prefix
 	 */
 	public void setPrefix(String prefix) {
+		addInfo("prefix", prefix);
 		this.prefix = prefix;
 	}
 	
@@ -87,6 +88,7 @@ public final class CoUser {
 	 * @param suffix The user suffix
 	 */
 	public void setSuffix(String suffix) {
+		addInfo("suffix", suffix);
 		this.suffix = suffix;
 	}
 	
@@ -230,6 +232,8 @@ public final class CoUser {
 		if (group == null) setGroup(world, world.getDefaultGroup().getName());
 		this.name = userSection.getEntry("username").getString();
 		this.group.addUser(uuid);
+		this.prefix = (String)getInfo("prefix");
+		this.suffix = (String)getInfo("suffix");
 		resolvePermissions();
 	}
 	
@@ -242,6 +246,8 @@ public final class CoUser {
 		this.wildcards.clear();
 		this.negations.clear();
 		this.userSection = null;
+		this.suffix = null;
+		this.prefix = null;
 		this.world = null;
 		this.group = null;
 	}

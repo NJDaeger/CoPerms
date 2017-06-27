@@ -31,6 +31,8 @@ public final class CoWorld {
 		groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key.toLowerCase(), new Group(plugin, this, key)));
 		groups.values().forEach(Group::loadInheritanceTree);
 		groups.values().forEach(g -> rankID.put(g.getRankID(), g.getName()));
+		
+		System.out.println(userData.getFile().getPath());
 	}
 	
 	/**

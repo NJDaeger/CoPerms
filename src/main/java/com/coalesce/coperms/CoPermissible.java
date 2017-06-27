@@ -56,8 +56,7 @@ public class CoPermissible extends PermissibleBase {
 	}
 	
 	private boolean hasNegatedNode(String permission) {
-		if (user.getNegationNodes().contains("-" + permission)) {
-			if (user.getPermissions().contains(permission.substring(1))) return false;
+		if (user.getNegationNodes().contains("-" + permission) && !user.getPermissions().contains(permission)) {
 			if (permission.endsWith(".*") && user.getWildcardNodes().contains(permission)) {
 				for (int i = 0; i < StringUtils.countMatches(permission, "."); i++) {
 					if (permission.endsWith(".*")) permission = permission.substring(0, permission.lastIndexOf("."));

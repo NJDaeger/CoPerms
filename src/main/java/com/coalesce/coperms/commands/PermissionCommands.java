@@ -3,6 +3,7 @@ package com.coalesce.coperms.commands;
 import com.coalesce.command.CoCommand;
 import com.coalesce.command.CommandBuilder;
 import com.coalesce.command.CommandContext;
+import com.coalesce.command.tabcomplete.TabContext;
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataHolder;
 import com.coalesce.coperms.data.CoUser;
@@ -55,6 +56,7 @@ public final class PermissionCommands {
 		
 		CoCommand getuperms = new CommandBuilder(plugin, "getuperms")
 				.executor(this::getUserPermissions)
+				.completer(this::getUPermsTab)
 				.aliases("userperms")
 				.description("Shows a list of user permissions")
 				.usage("/getuperms <user>")
@@ -65,6 +67,7 @@ public final class PermissionCommands {
 		
 		CoCommand getgperms = new CommandBuilder(plugin, "getgperms")
 				.executor(this::getGroupPermissions)
+				.completer(this::getGPermsTab)
 				.aliases("groupperms")
 				.description("Shows a list of group permissions")
 				.usage("/getgperms <group>")
@@ -73,23 +76,50 @@ public final class PermissionCommands {
 				.permission("coperms.permission.group.see")
 				.build();
 		
+		plugin.addCommand(getuperms, getgperms, adduperm, addgperm, remuperm, remgperm);
+		
 	}
+	
+	//
+	//
+	//
+	//
 	
 	private void addUserPermission(CommandContext context) {
 	
 	}
 	
+	//
+	//
+	//
+	//
+	
 	private void removeUserPermission(CommandContext context) {
 	
 	}
+	
+	//
+	//
+	//
+	//
 	
 	private void addGroupPermission(CommandContext context) {
 	
 	}
 	
+	//
+	//
+	//
+	//
+	
 	private void removeGroupPermission(CommandContext context) {
 	
 	}
+	
+	//
+	//
+	//
+	//
 	
 	private void getUserPermissions(CommandContext context) {
 		CoUser user = holder.getUser(context.argAt(0)) == null ? holder.getUser(holder.getDefaultWorld().getName(), context.argAt(0)) : holder.getUser(context.argAt(0));
@@ -100,14 +130,62 @@ public final class PermissionCommands {
 		StringBuilder builder = new StringBuilder();
 		String[] message = user.getPermissions().toArray(new String[user.getPermissions().size()]);
 		for (int i = 0; i < message.length; i++) {
-			builder.append(message[i]).append(" ");
+			if (message[i].startsWith("-") && message[i].endsWith(".*")) {
+				builder.append("" + GRAY + ITALIC + UNDERLINE + message[i]).append(RESET + ", ");
+				continue;
+			}
+			if (message[i].startsWith("-")) {
+				builder.append("" + GRAY +ITALIC + message[i]).append(RESET + ", ");
+				continue;
+			}
+			if (message[i].endsWith(".*")) {
+				builder.append("" + GRAY + UNDERLINE + message[i]).append(RESET + ", ");
+				continue;
+			}
+			builder.append(message[i]).append(RESET + ", ");
 		}
 		String msg = builder.toString().trim();
 		context.pluginMessage(GRAY + "All permissions for user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + msg);
 	}
 	
+	private void getUPermsTab(TabContext context) {
+		context.playerCompletion(0);
+	}
+	
+	//
+	//
+	//
+	//
+	
 	private void getGroupPermissions(CommandContext context) {
-		Group group;
+		Group group = holder.getGroup(context.argAt(0).toLowerCase());
+		if (group == null) {
+			context.pluginMessage(RED + "The group specified does not exist");
+			return;
+		}
+		StringBuilder builder = new StringBuilder();
+		String[] message = group.getPermissions().toArray(new String[group.getPermissions().size()]);
+		for (int i = 0; i < message.length; i++) {
+			if (message[i].startsWith("-") && message[i].endsWith(".*")) {
+				builder.append("" + GRAY + ITALIC + UNDERLINE + message[i]).append(RESET + ", ");
+				continue;
+			}
+			if (message[i].startsWith("-")) {
+				builder.append("" + GRAY +ITALIC + message[i]).append(RESET + ", ");
+				continue;
+			}
+			if (message[i].endsWith(".*")) {
+				builder.append("" + GRAY + UNDERLINE + message[i]).append(RESET + ", ");
+				continue;
+			}
+			builder.append(message[i]).append(RESET + ", ");
+		}
+		String msg = builder.toString().trim();
+		context.pluginMessage(GRAY + "All permissions for group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + msg);
+	}
+	
+	private void getGPermsTab(TabContext context) {
+		context.completionAt(0, holder.getGroups().keySet().toArray(new String[holder.getGroups().size()]));
 	}
 	
 }
