@@ -21,6 +21,7 @@ public final class CoPerms extends CoPlugin {
 		this.updateCheck("Project-Coalesce", "CoPerms", true);
 		this.config = new CoPermsConfig(this);
 		this.supers = new SuperDataFile(this);
+		new Metrics(this);
 		
 		addModules(this.dataLoader = new DataLoader(this));
 		

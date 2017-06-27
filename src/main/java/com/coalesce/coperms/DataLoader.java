@@ -50,8 +50,6 @@ public final class DataLoader extends CoModule {
 	    Bukkit.getWorlds().forEach(this::loadData);
 	    queue.forEach(this::loadOtherWorlds);
 	    loaded.forEach(world -> {
-			System.out.println(userDataFiles.get(world.getName()).getFile().getAbsolutePath());
-			System.out.println(groupDataFiles.get(world.getName()).getFile().getAbsolutePath());
 			worlds.put(world.getName(), new CoWorld(plugin, world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName())));
 		});
 
@@ -156,13 +154,11 @@ public final class DataLoader extends CoModule {
 			
 			//If a key equals "groups" then it creates a new groupfile for this world
 			if (key.equalsIgnoreCase("groups")) {
-				//groupDataFiles.put(world.getName(), groupDataFiles.put(world.getName(), new GroupDataFile(plugin, world)));
 				groupDataFiles.put(world.getName(),new GroupDataFile(plugin, world));
 			}
 			
 			//If a key equals "users" then it creates a new userfile for this world
 			if (key.equalsIgnoreCase("users")) {
-				//userDataFiles.put(world.getName(), userDataFiles.put(world.getName(), new UserDataFile(plugin, world)));
 				userDataFiles.put(world.getName(), new UserDataFile(plugin, world));
 			}
 			

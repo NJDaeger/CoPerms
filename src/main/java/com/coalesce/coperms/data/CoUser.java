@@ -3,10 +3,7 @@ package com.coalesce.coperms.data;
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public final class CoUser {
 
@@ -165,7 +162,7 @@ public final class CoUser {
 	 * @return All the user permissions in this world
 	 */
 	public Set<String> getUserPermissions() {
-		return new HashSet<>(userSection.getEntry("permissions").getStringList());
+		return new HashSet<String>(userSection.getEntry("permissions").getStringList());
 	}
 	
 	/**
@@ -199,8 +196,11 @@ public final class CoUser {
 	 * @return If the permission was added or not.
 	 */
 	public boolean addPermission(String node) {
+		System.out.println(userSection.getEntry("permissions").getValue());
+		getPermissions().forEach(System.out::println);
+		getUserPermissions().forEach(System.out::println);
 		boolean ret;
-		List<String > perms = getUserSection().getEntry("permissions").getStringList();
+		Set<String> perms = getUserPermissions();
 		ret = perms.add(node);
 		userSection.getEntry("permissions").setValue(perms.toArray());
 		resolvePermissions();
@@ -214,7 +214,7 @@ public final class CoUser {
 	 */
 	public boolean removePermission(String node) {
 		boolean ret;
-		List<String > perms = getUserSection().getEntry("permissions").getStringList();
+		Set<String> perms = getPermissions();
 		ret = perms.remove(node);
 		userSection.getEntry("permissions").setValue(perms.toArray());
 		resolvePermissions();
