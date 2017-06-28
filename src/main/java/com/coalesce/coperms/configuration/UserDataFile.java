@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public final class UserDataFile extends YamlConfig {
 	
-	private volatile CoPerms plugin;
+	private final CoPerms plugin;
 	private final World world;
 	
 	public UserDataFile(CoPerms plugin, World world) {
@@ -30,8 +30,8 @@ public final class UserDataFile extends YamlConfig {
 		String path = "users." + uuid.toString();
 		setEntry(path + ".username", Bukkit.getPlayer(uuid).getName());
 		addEntry(path + ".group", plugin.getDataHolder().getWorld(world).getDefaultGroup().getName());
-		addEntry(path + ".prefix", "");
-		addEntry(path + ".suffix", "");
+		addEntry(path + ".info.prefix", "");
+		addEntry(path + ".info.suffix", "");
 		addEntry(path + ".permissions", Collections.emptyList());
 	}
 }

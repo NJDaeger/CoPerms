@@ -2,6 +2,7 @@ package com.coalesce.coperms.data;
 
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
+import com.coalesce.coperms.DataLoader;
 import com.coalesce.coperms.exceptions.GroupInheritMissing;
 import com.coalesce.coperms.exceptions.SuperGroupMissing;
 
@@ -9,30 +10,35 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public final class Group {
 	
-	/*
-	group permissions, users, the world the group belongs to and the name (eventually the prefixes and suffixes)
-	 */
-	
 	private final List<String> inheritance;
 	private final Set<String> permissions;
+	private final DataLoader loader;
 	private final boolean isDefault;
 	private final ISection section;
 	private final Set<UUID> users;
 	private final CoPerms plugin;
 	private final CoWorld world;
 	private final String name;
+	private final int rankID;
+	private boolean canBuild;
+	private String prefix;
+	private String suffix;
 	
 	
-	public Group(CoPerms plugin, CoWorld world, String name) {
+	public Group(CoPerms plugin, CoWorld world, String name, DataLoader loader) {
 		this.section = world.getGroupDataFile().getSection("groups." + name);
 		this.permissions = new HashSet<>(section.getEntry("permissions").getStringList());
 		this.inheritance = section.getEntry("inherits").getStringList();
-		this.isDefault = section.getEntry("default").getBoolean();
+		this.canBuild = section.getEntry("info.canBuild").getBoolean();
+		this.prefix = section.getEntry("info.prefix").getString();
+		this.suffix = section.getEntry("info.suffix").getString();
+		this.rankID = section.getEntry("info.rankid").getInt();
+		this.isDefault = rankID == 0;
 		this.users = new HashSet<>();
+		this.loader = loader;
 		this.plugin = plugin;
 		this.world = world;
 		this.name = name;
@@ -47,8 +53,77 @@ public final class Group {
 	}
 	
 	/**
+	 * Gets the group prefix
+	 * @return The group prefix
+	 */
+	public String getPrefix() {
+		return prefix;
+	}
+	
+	/**
+	 * Sets the group prefix
+	 * @param prefix The new group prefix
+	 */
+	public void setPrefix(String prefix) {
+		addInfo("prefix", prefix);
+		this.prefix = prefix;
+	}
+	
+	/**
+	 * Gets the group suffix
+	 * @return The group suffix
+	 */
+	public String getSuffix() {
+		return suffix;
+	}
+	
+	/**
+	 * Sets the group suffix
+	 * @param suffix The new suffix
+	 */
+	public void setSuffix(String suffix) {
+		addInfo("suffix", suffix);
+		this.suffix = suffix;
+	}
+	
+	/**
+	 * Adds info to the user section
+	 * @param node The node to add
+	 * @param value The value to set the node
+	 */
+	public void addInfo(String node, Object value) {
+		section.getConfig().setEntry(section.getCurrentPath() + ".info." + node, value);
+	}
+	
+	/**
+	 * Gets a node from the user section
+	 * @param node The node path to get
+	 * @return The value of the node, null if it doesn't exist.
+	 */
+	public Object getInfo(String node) {
+		if (section.getSection("info").getEntry(node) == null) return null;
+		return section.getSection("info").getEntry(node).getValue();
+	}
+	
+	/**
+	 * Checks if the group has permissions to build
+	 * @return True if the group can build
+	 */
+	public boolean canBuild() {
+		return canBuild;
+	}
+	
+	/**
+	 * Gets the rank ID number. This is used to determine the rank tree
+	 * @return The id of this rank
+	 */
+	public int getRankID() {
+		return rankID;
+	}
+	
+	/**
 	 * Checks if this group is a default group or not
-	 * @return
+	 * @return If this group is default or not.
 	 */
 	public boolean isDefault() {
 		return isDefault;
@@ -66,16 +141,16 @@ public final class Group {
 	 * Adds a user to this group
 	 * @param user The user to add
 	 */
-	public void addUser(UUID user) {
-		users.add(user);
+	public boolean addUser(UUID user) {
+		return users.add(user);
 	}
 	
 	/**
 	 * Removes a user from this group
 	 * @param user The user to remove
 	 */
-	public void removeUser(UUID user) {
-		users.remove(user);
+	public boolean removeUser(UUID user) {
+		return users.remove(user);
 	}
 	
 	/**
@@ -104,19 +179,100 @@ public final class Group {
 		return world;
 	}
 	
+	/**
+	 * Checks whether this group has a permission or not
+	 * @param permission The permission to look for
+	 * @return True if the group has the permission, false otherwise
+	 */
+	public boolean hasPermission(String permission) {
+		return permissions.contains(permission);
+	}
+	
+	/**
+	 * Adds a permission to the group
+	 * @param permission The permission to add
+	 * @return True if it was successfully added.
+	 */
+	public boolean addPermission(String permission) {
+		boolean ret;
+		ret = permissions.add(permission);
+		section.getEntry("permissions").setValue(permissions.toArray());
+		loadInheritanceTree();
+		reloadUsers();
+		return ret;
+	}
+	
+	/**
+	 * Removes a permission from the group
+	 * @param permission The permission to remove
+	 * @return True if the permission was successfully removed.
+	 */
+	public boolean removePermission(String permission) {
+		boolean ret;
+		ret = permissions.remove(permission);
+		section.getEntry("permissions").setValue(permissions.toArray());
+		loadInheritanceTree();
+		reloadUsers();
+		return ret;
+	}
+	
+	/**
+	 * Adds an inherited group to a group
+	 * @param group The group to add to the inheritance tree
+	 * @return True if successfully added
+	 */
+	public boolean addInheritance(String group) {
+		boolean ret;
+		ret = inheritance.add(group);
+		section.getEntry("inherits").setValue(inheritance.toArray());
+		loadInheritanceTree();
+		reloadUsers();
+		return ret;
+	}
+	
+	/**
+	 * Removes an inherited group from a group
+	 * @param group The group to remove from the inheritance tree
+	 * @return True if successfully removed
+	 */
+	public boolean removeInheritance(String group) {
+		boolean ret;
+		ret = inheritance.remove(group);
+		section.getEntry("inherits").setValue(inheritance.toArray());
+		loadInheritanceTree();
+		reloadUsers();
+		return ret;
+	}
+	
+	/**
+	 * Gets the inheritance list of the group
+	 * @return The list of inherited groups
+	 */
+	public List<String> getInheritancetree() {
+		return inheritance;
+	}
+	
 	void loadInheritanceTree() {
 		inheritance.forEach(key -> {
 			if (key.startsWith("s:")) {
-				if (plugin.getDataHolder().getSuperGroup(key.split("s:")[1]) == null) {
+				if (loader.getSuperGroup(key.split("s:")[1]) == null) {
 					throw new SuperGroupMissing();
 				}
-				permissions.addAll(plugin.getDataHolder().getSuperGroup(key.split("s:")[1]).getPermissions());
+				permissions.addAll(loader.getSuperGroup(key.split("s:")[1]).getPermissions());
 			}
-			if (!world.getGroups().containsKey(key)) {
-				throw new GroupInheritMissing();
+			else {
+				if (world.getGroup(key) == null) {
+					throw new GroupInheritMissing(key);
+				}
+				world.getGroup(key).loadInheritanceTree();
+				permissions.addAll(world.getGroup(key).getPermissions());
 			}
-			permissions.addAll(world.getGroup(key).getPermissions());
+			
 		});
+	}
+	
+	private void reloadUsers() {
+		users.forEach(u -> getUser(u).resolvePermissions());
 	}
 	
 }

@@ -29,6 +29,7 @@ public class CoPermissible extends PermissibleBase {
 	public boolean hasPermission(String permission) {
 		if (isOp()) return true;
 		if (user.hasPermission("*")) return true;
+		if (hasNegatedNode(permission)) return false;
 		if (hasWildcardNode(permission)) return true;
 		return user.getPermissions().contains(permission);
 	}
@@ -37,18 +38,34 @@ public class CoPermissible extends PermissibleBase {
 	public boolean hasPermission(Permission permission) {
 		if (isOp()) return true;
 		if (user.hasPermission("*")) return true;
+		if (hasNegatedNode(permission.getName())) return false;
 		if (hasWildcardNode(permission.getName())) return true;
 		return user.getPermissions().contains(permission.getName());
 	}
 	
 	private boolean hasWildcardNode(String permission) {
 		if (permission.contains(".")) {
-			if (user.getWildcardPerms().contains(permission)) return true;
+			if (user.getWildcardNodes().contains(permission)) return true;
 			for (int i = 0; i < StringUtils.countMatches(permission, "."); i++) {
 				if (permission.endsWith(".*")) permission = permission.substring(0, permission.lastIndexOf("."));
 				permission = permission.substring(0, permission.lastIndexOf(".")) + ".*";
-				if (user.getWildcardPerms().contains(permission)) return true;
+				if (user.getWildcardNodes().contains(permission)) return true;
 			}
+		}
+		return false;
+	}
+	
+	private boolean hasNegatedNode(String permission) {
+		if (user.getNegationNodes().contains("-" + permission) && !user.getPermissions().contains(permission)) {
+			if (permission.endsWith(".*") && user.getWildcardNodes().contains(permission)) {
+				for (int i = 0; i < StringUtils.countMatches(permission, "."); i++) {
+					if (permission.endsWith(".*")) permission = permission.substring(0, permission.lastIndexOf("."));
+					permission = permission.substring(0, permission.lastIndexOf(".")) + ".*";
+					if (user.getNegationNodes().contains(permission)) return true;
+				}
+				return false;
+			}
+			return true;
 		}
 		return false;
 	}

@@ -1,6 +1,5 @@
 package com.coalesce.coperms.configuration;
 
-import com.coalesce.config.ISection;
 import com.coalesce.config.yml.YamlConfig;
 import com.coalesce.coperms.CoPerms;
 import org.bukkit.Bukkit;

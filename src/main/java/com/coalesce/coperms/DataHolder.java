@@ -13,9 +13,6 @@ import java.util.UUID;
 
 public final class DataHolder {
 	
-	/*
-	this needs to hold all the worlds, the users, and the groups
-	 */
 	private final CoPerms plugin;
 	private final Map<UUID, CoUser> users;
 	private final Map<String, Group> groups;
@@ -25,12 +22,19 @@ public final class DataHolder {
 	public DataHolder(DataLoader dataloader, CoPerms plugin) {
 		this.plugin = plugin;
 		this.users = new HashMap<>();
-		this.supers = new HashMap<>();
+		this.supers = dataloader.getSuperGroups();
 		this.worlds = dataloader.getWorlds();
 		this.groups = new HashMap<>();
-		worlds.forEach((name, world) -> world.getGroups().forEach(groups::putIfAbsent));
-		plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName(), g));
 		
+		worlds.forEach((name, world) -> world.getGroups().forEach(groups::putIfAbsent));
+	}
+	
+	/**
+	 * Gets the default world of the server
+	 * @return The servers default world
+	 */
+	public CoWorld getDefaultWorld() {
+		return getWorld(Bukkit.getWorlds().get(0));
 	}
 	
 	/**
@@ -42,6 +46,18 @@ public final class DataHolder {
 	 * <p>Note: The user can be offline
 	 */
 	public CoUser getUser(World world, UUID user) {
+		return getWorld(world).getUser(user);
+	}
+	
+	/**
+	 * Gets a user from a world user file.
+	 * @param world The world to get the user from.
+	 * @param user The user to get.
+	 * @return The user.
+	 *
+	 * <p>Note: The user can be offline
+	 */
+	public CoUser getUser(World world, String user) {
 		return getWorld(world).getUser(user);
 	}
 	
@@ -58,18 +74,31 @@ public final class DataHolder {
 	}
 	
 	/**
+	 * Gets a user from a world user file.
+	 * @param world The world to get the user from.
+	 * @param user The user to get.
+	 * @return The user.
+	 *
+	 * <p>Note: The user can be offline
+	 */
+	public CoUser getUser(String world, String user) {
+		return getWorld(world).getUser(user);
+	}
+	
+	/**
 	 * Gets an online user
 	 * @param uuid The user to get
 	 * @return The user
 	 */
 	public CoUser getUser(UUID uuid) {
+		if (!users.containsKey(uuid)) return null;
 		return users.get(uuid);
 	}
 	
 	/**
-	 * Gets a user by name
+	 * Gets an online user by name
 	 * @param name The name of the user
-	 * @return the user if online
+	 * @return the user
 	 */
 	public CoUser getUser(String name) {
 		if (Bukkit.getPlayer(name) == null) return null;
@@ -138,33 +167,49 @@ public final class DataHolder {
 		return groups;
 	}
 	
+	/**
+	 * Gets a SuperGroup if exists
+	 * @param name The name of the SuperGroup
+	 * @return The SuperGroup
+	 */
 	public SuperGroup getSuperGroup(String name) {
 		if (!supers.containsKey(name)) return null;
-		return supers.get(name);
+		return supers.get(name.toLowerCase());
 	}
 	
+	/**
+	 * Gets a list of all the SuperGroups
+	 * @return The server SuperGroups
+	 */
 	public Map<String, SuperGroup> getSuperGroups() {
 		return supers;
 	}
 	
+	/**
+	 * Loads a user into a world
+	 * @param world The world to load the user into
+	 * @param userID The user to load
+	 * @return The loaded user
+	 */
+	
+	//This should only ever load a user that is online.
 	public CoUser loadUser(World world, UUID userID) {
 		if (getUser(userID) != null) {
 			getWorld(world).unloadUser(getUser(userID));
 			getUser(userID).load(getWorld(world));
 			return getUser(userID);
 		}
-		this.users.put(userID, new CoUser(plugin, userID));
+		this.users.put(userID, new CoUser(plugin, userID, true));
 		getWorld(world).loadUser(getUser(userID));
 		return getUser(userID);
-		/*
-		check if the user exists in the user map, if the user exists then return the user
-		
-		if the user doesnt exist, then get the user's world and load the user into the world
-		
-		reload the user permissions
-		 */
 	}
 	
+	/**
+	 * Unloads a user from the server
+	 * @param userID The user to unload
+	 */
+	
+	//This should only ever unload a user that is online
 	public void unloadUser(UUID userID) {
 		getUser(userID).getWorld().unloadUser(getUser(userID));
 		this.users.remove(userID);

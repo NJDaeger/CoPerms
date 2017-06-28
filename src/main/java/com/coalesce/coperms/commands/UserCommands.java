@@ -7,35 +7,32 @@ import com.coalesce.command.tabcomplete.TabContext;
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataHolder;
 import com.coalesce.coperms.data.CoUser;
-import org.bukkit.Bukkit;
+import com.coalesce.coperms.data.CoWorld;
+import com.coalesce.coperms.data.Group;
+
+import java.util.Set;
 
 import static org.bukkit.ChatColor.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 public final class UserCommands {
 	
-	private final CoPerms plugin;
 	private final DataHolder holder;
 	
 	public UserCommands(CoPerms plugin, DataHolder holder) {
-		this.plugin = plugin;
 		this.holder = holder;
 		
 		CoCommand promote = new CommandBuilder(plugin, "promote")
 				.executor(this::promote)
 				.completer(this::promoteTab)
-				.aliases("copro", "promo")
+				.aliases("promo")
 				.description("Promotes someone to the next rank.")
 				.usage("/promote <user> [world]")
 				.minArgs(1)
 				.maxArgs(2)
-				.permission("coperms.promote")
+				.permission("coperms.ranks.promote")
 				.build();
 		
-		CoCommand setrank = new CommandBuilder(plugin, "setrank")
+		CoCommand setRank = new CommandBuilder(plugin, "setrank")
 				.executor(this::setRank)
 				.completer(this::setRankTab)
 				.aliases("setr", "setgroup")
@@ -43,72 +40,274 @@ public final class UserCommands {
 				.usage("/setrank <user> <rank> [world]") //Make a list in the UserDataFile for each user that is similar to the group data file that specifies ranks per world
 				.minArgs(2)
 				.maxArgs(3)
-				.permission("coperms.setrank")
+				.permission("coperms.ranks.setrank")
 				.build();
 		
-		plugin.addCommand(promote, setrank);
+		CoCommand demote = new CommandBuilder(plugin, "demote")
+				.executor(this::demote)
+				.completer(this::demoteTab)
+				.aliases("demo")
+				.description("Demotes someone to the previous rank.")
+				.usage("/demote <user> [world]")
+				.minArgs(1)
+				.maxArgs(2)
+				.permission("coperms.ranks.demote")
+				.build();
+		
+		CoCommand setPrefix = new CommandBuilder(plugin, "setprefix")
+				.executor(this::setPrefix)
+				.completer(this::setPrefixTab)
+				.aliases("prefix")
+				.description("Adds or removes a prefix from a user")
+				.usage("/prefix <user> [prefix]")
+				.minArgs(1)
+				.permission("coperms.variables.user.prefix")
+				.build();
+		
+		CoCommand setSuffix = new CommandBuilder(plugin, "setsuffix")
+				.executor(this::setSuffix)
+				.completer(this::setSuffixTab)
+				.description("Adds or removes a suffix from a user")
+				.usage("/suffix <user> [prefix]")
+				.minArgs(1)
+				.permission("coperms.variables.user.suffix")
+				.build();
+		
+		CoCommand setGPrefix = new CommandBuilder(plugin, "setgprefix")
+				.executor(this::setGroupPrefix)
+				.completer(this::groupVarChange)
+				.description("Sets the prefix of a group.")
+				.usage("/setgprefix <group> <world> [prefix]")
+				.aliases("setgpre")
+				.minArgs(2)
+				.permission("coperms.variables.group.prefix")
+				.build();
+		
+		CoCommand setGSuffix = new CommandBuilder(plugin, "setgsuffix")
+				.executor(this::setGroupSuffix)
+				.completer(this::groupVarChange)
+				.description("Sets the suffix of a group.")
+				.usage("/setgsuffix <group> <world> [suffix]")
+				.aliases("setgsuf")
+				.minArgs(2)
+				.permission("coperms.variables.group.suffix")
+				.build();
+		
+		plugin.addCommand(promote, setRank, demote, setPrefix, setSuffix, setGPrefix, setGSuffix);
 	}
 	
-	private void promote(CommandContext context) {
+	//
+	//
+	//
+	//
 	
+	private void promote(CommandContext context) {
+		CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
+		CoUser user = holder.getUser((context.getArgs().size() == 1 ? holder.getDefaultWorld().getName() : context.argAt(1)), context.argAt(0));
+		if (world == null) {
+			context.pluginMessage(RED + "The world specified does not exist.");
+			return;
+		}
+		if (user == null) {
+			context.pluginMessage(RED + "The user specified does not exist in the world specified");
+			return;
+		}
+		Group group = world.getGroup(user.getGroup().getRankID() + 1);
+		if (group == null) {
+			context.pluginMessage(RED + "The group specified does not exist in the world specified");
+			return;
+		}
+		user.setGroup(world, group.getName());
+		context.pluginMessage(
+				DARK_AQUA + user.getName() +
+				GRAY + " was promoted to " +
+				DARK_AQUA + group.getName() +
+				GRAY + " in world " +
+				DARK_AQUA + world.getName());
 	}
 	
 	private void promoteTab(TabContext context) {
-	
+		Set<String> worlds = holder.getWorlds().keySet();
+		context.playerCompletion(0);
+		context.completionAt(1, worlds.toArray(new String[worlds.size()]));
 	}
 	
+	//
+	//
+	//
+	//
+	
+	private void demote(CommandContext context) {
+		CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
+		CoUser user = holder.getUser((context.getArgs().size() == 1 ? holder.getDefaultWorld().getName() : context.argAt(1)), context.argAt(0));
+		if (world == null) {
+			context.pluginMessage(RED + "The world specified does not exist.");
+			return;
+		}
+		if (user == null) {
+			context.pluginMessage(RED + "The user specified does not exist in the world specified");
+			return;
+		}
+		Group group = world.getGroup(user.getGroup().getRankID() - 1);
+		if (group == null) {
+			context.pluginMessage(RED + "The group specified does not exist in the world specified");
+			return;
+		}
+		user.setGroup(world, group.getName());
+		context.pluginMessage(
+				DARK_AQUA + user.getName() +
+				GRAY + " was demoted to " +
+				DARK_AQUA + group.getName() +
+				GRAY + " in world " +
+				DARK_AQUA + world.getName());
+	}
+	
+	private void demoteTab(TabContext context) {
+		Set<String> worlds = holder.getWorlds().keySet();
+		context.playerCompletion(0);
+		context.completionAt(1, worlds.toArray(new String[worlds.size()]));
+	}
+	
+	//
+	//
+	//
+	//
+	
 	private void setRank(CommandContext context) {
-		
-		//Checks if the user exists
-		if (holder.getUser(context.argAt(0)) == null) {
-			context.pluginMessage(RED + "The player specified does not exist.");
+		CoWorld world = holder.getWorld(context.argAt(2)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(2));
+		CoUser user = holder.getUser((context.getArgs().size() < 3 ? holder.getDefaultWorld().getName() : context.argAt(2)), context.argAt(0));
+		if (world == null) {
+			context.pluginMessage(RED + "The world specified does not exist.");
 			return;
 		}
-		
-		//We know the user exists, lets get the user
-		CoUser user = holder.getUser(context.argAt(0));
-		
-		//World was supplied in the command.
-		if (context.getArgs().size() == 3) {
-			
-			if (holder.getWorld(context.argAt(2)) == null) {
-				context.pluginMessage(RED + "The world specified does not exist.");
-				return;
-			}
-			
-			//Checking for the group in the specified world
-			if (holder.getWorld(context.argAt(2)).getGroup(context.argAt(1)) == null) {
-				context.pluginMessage(RED + "Group does not exist in the world specified.");
-				return;
-			}
-			
-			//Group exists, lets add the player to it.
-			context.pluginMessage("" +
-					BLUE + user.getName() +
-					RESET + GRAY + " was added to group " +
-					BLUE + context.argAt(1) +
-					RESET + GRAY + " in world " +
-					BLUE + context.argAt(2));
-			user.setGroup(holder.getWorld(context.argAt(2)), context.argAt(1));
+		Group group = world.getGroup(context.argAt(1));
+		if (user == null) {
+			context.pluginMessage(RED + "The user specified does not exist in the world specified");
 			return;
 		}
-		
-		//World not supplied in the command
-		if (user.getWorld().getGroup(context.argAt(1)) == null) { //Checks if the group was a valid group
-			context.pluginMessage(RED + "Group does not exist in the users world.");
+		if (group == null) {
+			context.pluginMessage(RED + "The group specified does not exist in the world specified");
 			return;
 		}
-		user.setGroup(user.getWorld(), context.argAt(1));
+		user.setGroup(world, group.getName());
+		context.pluginMessage(
+				DARK_AQUA + user.getName() +
+				GRAY + " was added to group " +
+				DARK_AQUA + group.getName() +
+				GRAY + " in " +
+				DARK_AQUA + world.getName());
 	}
 	
 	private void setRankTab(TabContext context) {
-		List<String> names = new ArrayList<>();
 		Set<String> groups = holder.getGroups().keySet();
 		Set<String> worlds = holder.getWorlds().keySet();
-		Bukkit.getOnlinePlayers().forEach(p -> names.add(p.getName()));
-		context.completionAt(0, names.toArray(new String[names.size()]));
+		context.playerCompletion(0);
 		context.completionAt(1, groups.toArray(new String[groups.size()]));
 		context.completionAt(2, worlds.toArray(new String[worlds.size()]));
 	}
 	
+	//
+	//
+	//
+	//
+	
+	private void setPrefix(CommandContext context) {
+		CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
+		if (user == null) {
+			context.pluginMessage(RED + "The user specified does not exist in the world specified");
+			return;
+		}
+		if (!context.getSender().hasPermission("coperms.variables.prefix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) {
+			context.pluginMessage(RED + "You do not have permission for this command! Required Permission: " + GRAY + "coperms.variables.prefix.other");
+			return;
+		}
+		if (context.getArgs().size() < 2) {
+			user.setPrefix(null);
+			context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + user.getName() + GRAY + " has been disabled.");
+			return;
+		}
+		user.setPrefix(context.joinArgs(1) + " ");
+		context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + user.getPrefix());
+	}
+	
+	private void setPrefixTab(TabContext context) {
+		context.playerCompletion(0);
+	}
+	
+	//
+	//
+	//
+	//
+	
+	private void setSuffix(CommandContext context) {
+		CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
+		if (user == null) {
+			context.pluginMessage(RED + "The user specified does not exist in the world specified");
+			return;
+		}
+		if (!context.getSender().hasPermission("coperms.variables.suffix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) {
+			context.pluginMessage(RED + "You do not have permission for this command! Required Permission: " + GRAY + "coperms.variables.suffix.other");
+			return;
+		}
+		if (context.getArgs().size() < 2) {
+			user.setSuffix(null);
+			context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + user.getName() + GRAY + " has been disabled.");
+			return;
+		}
+		user.setSuffix(" " + context.joinArgs(1));
+		context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + user.getSuffix());
+	}
+	
+	private void setSuffixTab(TabContext context) {
+		context.playerCompletion(0);
+	}
+	
+	//
+	//
+	//
+	//
+	
+	private void setGroupPrefix(CommandContext context) {
+		CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
+		Group group = world.getGroup(context.argAt(0));
+		if (group == null) {
+			context.pluginMessage(RED + "The group specified does not exist in the world specified");
+			return;
+		}
+		if (context.getArgs().size() < 3) {
+			group.setPrefix(null);
+			context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + group.getName() + GRAY + " has been disabled.");
+			return;
+		}
+		group.setPrefix(context.joinArgs(2) + " ");
+		context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + group.getName() + GRAY + " has been changed to " + DARK_AQUA + group.getPrefix());
+	}
+	
+	private void groupVarChange(TabContext context) {
+		Set<String> worlds = holder.getWorlds().keySet();
+		Set<String> groups = holder.getGroups().keySet();
+		context.completionAt(0, groups.toArray(new String[groups.size()]));
+		context.completionAt(1, worlds.toArray(new String[worlds.size()]));
+	}
+	
+	//
+	//
+	//
+	//
+	
+	private void setGroupSuffix(CommandContext context) {
+		CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
+		Group group = world.getGroup(context.argAt(0));
+		if (group == null) {
+			context.pluginMessage(RED + "The group specified does not exist in the world specified");
+			return;
+		}
+		if (context.getArgs().size() < 3) {
+			group.setSuffix(null);
+			context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + group.getName() + GRAY + " has been disabled.");
+			return;
+		}
+		group.setSuffix(" " + context.joinArgs(2));
+		context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + group.getName() + GRAY + " has been changed to" + DARK_AQUA + group.getSuffix());
+	}
 }

@@ -1,6 +1,7 @@
 package com.coalesce.coperms.vault;
 
 import com.coalesce.coperms.CoPerms;
+import com.coalesce.coperms.data.CoWorld;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
@@ -68,121 +69,143 @@ public final class Chat_CoPerms extends Chat {
 	
 	@Override
 	public String getPlayerPrefix(String world, String player) {
-		return null;
+		return coperms.getDataHolder().getWorld(world).getUser(player).getPrefix();
 	}
 	
 	@Override
 	public void setPlayerPrefix(String world, String player, String prefix) {
-	
+		coperms.getDataHolder().getWorld(world).getUser(player).setPrefix(prefix);
 	}
 	
 	@Override
 	public String getPlayerSuffix(String world, String player) {
-		return null;
+		return coperms.getDataHolder().getWorld(world).getUser(player).getSuffix();
 	}
 	
 	@Override
 	public void setPlayerSuffix(String world, String player, String suffix) {
-	
+		coperms.getDataHolder().getWorld(world).getUser(player).setSuffix(suffix);
 	}
 	
 	@Override
 	public String getGroupPrefix(String world, String group) {
-		return null;
+		return coperms.getDataHolder().getWorld(world).getGroup(group).getPrefix();
 	}
 	
 	@Override
 	public void setGroupPrefix(String world, String group, String prefix) {
-	
+		coperms.getDataHolder().getWorld(world).getGroup(group).setPrefix(prefix);
 	}
 	
 	@Override
 	public String getGroupSuffix(String world, String group) {
-		return null;
+		return coperms.getDataHolder().getWorld(world).getGroup(group).getSuffix();
 	}
 	
 	@Override
 	public void setGroupSuffix(String world, String group, String suffix) {
-	
+		coperms.getDataHolder().getWorld(world).getGroup(group).setSuffix(suffix);
 	}
+	
+	//
+	//
+	//
+	private Object getPlayerInfo(String world, String player, String node) {
+		return coperms.getDataHolder().getWorld(world).getUser(player).getInfo(node);
+	}
+	
+	private void setPlayerInfo(String world, String player, String node, Object val) {
+		coperms.getDataHolder().getWorld(world).getUser(player).addInfo(node, val);
+	}
+	
+	private Object getGroupInfo(String world, String group, String node) {
+		return coperms.getDataHolder().getWorld(world).getGroup(group).getInfo(node);
+	}
+	
+	private void setGroupInfo(String world, String group, String node, Object val) {
+		coperms.getDataHolder().getWorld(world).getGroup(group).addInfo(node, val);
+	}
+	//
+	//
+	//
 	
 	@Override
 	public int getPlayerInfoInteger(String world, String player, String node, int defVal) {
-		return 0;
+		return getPlayerInfo(world, player, node) == null ? defVal : (int)getPlayerInfo(world, player, node);
 	}
 	
 	@Override
-	public void setPlayerInfoInteger(String world, String player, String node, int val) {
-	
+	public void setPlayerInfoInteger(String world, String player, String node, int value) {
+		setPlayerInfo(world, player, node, value);
 	}
 	
 	@Override
 	public int getGroupInfoInteger(String world, String group, String node, int defVal) {
-		return 0;
+		return getGroupInfo(world, group, node) == null ? defVal : (int)getGroupInfo(world, group, node);
 	}
 	
 	@Override
 	public void setGroupInfoInteger(String world, String group, String node, int value) {
-	
+		setGroupInfo(world, group, node, value);
 	}
 	
 	@Override
 	public double getPlayerInfoDouble(String world, String player, String node, double defVal) {
-		return 0;
+		return getPlayerInfo(world, player, node) == null ? defVal : (double)getPlayerInfo(world, player, node);
 	}
 	
 	@Override
 	public void setPlayerInfoDouble(String world, String player, String node, double value) {
-	
+		setPlayerInfo(world, player, node, value);
 	}
 	
 	@Override
 	public double getGroupInfoDouble(String world, String group, String node, double defVal) {
-		return 0;
+		return getGroupInfo(world, group, node) == null ? defVal : (double)getGroupInfo(world, group, node);
 	}
 	
 	@Override
 	public void setGroupInfoDouble(String world, String group, String node, double value) {
-	
+		setGroupInfo(world, group, node, value);
 	}
 	
 	@Override
 	public boolean getPlayerInfoBoolean(String world, String player, String node, boolean defVal) {
-		return false;
+		return getPlayerInfo(world, player, node) == null ? defVal : (boolean)getPlayerInfo(world, player, node);
 	}
 	
 	@Override
 	public void setPlayerInfoBoolean(String world, String player, String node, boolean value) {
-	
+		setPlayerInfo(world, player, node, value);
 	}
 	
 	@Override
 	public boolean getGroupInfoBoolean(String world, String group, String node, boolean defVal) {
-		return false;
+		return getGroupInfo(world, group, node) == null ? defVal : (boolean)getGroupInfo(world, group, node);
 	}
 	
 	@Override
 	public void setGroupInfoBoolean(String world, String group, String node, boolean value) {
-	
+		setGroupInfo(world, group, node, value);
 	}
 	
 	@Override
 	public String getPlayerInfoString(String world, String player, String node, String defVal) {
-		return null;
+		return getPlayerInfo(world, player, node) == null ? defVal : (String)getPlayerInfo(world, player, node);
 	}
 	
 	@Override
 	public void setPlayerInfoString(String world, String player, String node, String value) {
-	
+		setPlayerInfo(world, player, node, value);
 	}
 	
 	@Override
 	public String getGroupInfoString(String world, String group, String node, String defVal) {
-		return null;
+		return getGroupInfo(world, group, node) == null ? defVal : (String)getGroupInfo(world, group, node);
 	}
 	
 	@Override
 	public void setGroupInfoString(String world, String group, String node, String value) {
-	
+		setGroupInfo(world, group, node, value);
 	}
 }

@@ -2,10 +2,12 @@ package com.coalesce.coperms;
 
 import com.coalesce.config.IEntry;
 import com.coalesce.config.ISection;
+import com.coalesce.coperms.commands.PermissionCommands;
 import com.coalesce.coperms.commands.UserCommands;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.coperms.data.CoWorld;
+import com.coalesce.coperms.data.SuperGroup;
 import com.coalesce.plugin.CoModule;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -14,11 +16,12 @@ import java.util.*;
 
 public final class DataLoader extends CoModule {
 	
-	private final Map<String, GroupDataFile> groupDataFiles = new HashMap<>();
-	private final Map<String, UserDataFile> userDataFiles = new HashMap<>();
-	private final Map<String, CoWorld> worlds = new HashMap<>();
-	private final Set<World> loaded = new HashSet<>();
-	private final Set<World> queue = new HashSet<>();
+	private final Map<String, GroupDataFile> groupDataFiles;
+	private final Map<String, UserDataFile> userDataFiles;
+	private final Map<String, SuperGroup> supers;
+	private final Map<String, CoWorld> worlds;
+	private final Set<World> loaded;
+	private final Set<World> queue;
 	private final ISection mirrors;
 	private DataHolder dataHolder;
 	private final CoPerms plugin;
@@ -34,6 +37,12 @@ public final class DataLoader extends CoModule {
 		
 		this.mirrors = plugin.getPermsConfig().getSection("mirrors");
 		this.def = Bukkit.getWorlds().get(0).getName();
+		this.groupDataFiles = new HashMap<>();
+		this.userDataFiles = new HashMap<>();
+		this.supers = new HashMap<>();
+		this.worlds = new HashMap<>();
+		this.loaded = new HashSet<>();
+		this.queue = new HashSet<>();
 		this.plugin = plugin;
 	}
 	
@@ -41,14 +50,15 @@ public final class DataLoader extends CoModule {
 	
 	@Override
 	protected void onEnable() throws Exception {
+		plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName().toLowerCase(), g));
 	    Bukkit.getWorlds().forEach(this::loadData);
 	    queue.forEach(this::loadOtherWorlds);
-	    loaded.forEach(world -> worlds.put(world.getName(), new CoWorld(plugin, world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName()))));
-
-	    
+		loaded.forEach(world -> worlds.put(world.getName(), new CoWorld(plugin, world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName()), this)));
+		
 		this.dataHolder = new DataHolder(this, plugin);
 		new DataListener(dataHolder, plugin);
 		new UserCommands(plugin, dataHolder);
+		new PermissionCommands(plugin, dataHolder);
 		
 		if (!Bukkit.getOnlinePlayers().isEmpty()) {
 			Bukkit.getOnlinePlayers().forEach(p -> {
@@ -79,6 +89,24 @@ public final class DataLoader extends CoModule {
 	 */
 	Map<String, CoWorld> getWorlds() {
 		return worlds;
+	}
+	
+	/**
+	 * Gets a SuperGroup if exists
+	 * @param name The name of the SuperGroup
+	 * @return The SuperGroup
+	 */
+	public SuperGroup getSuperGroup(String name) {
+		if (!supers.containsKey(name)) return null;
+		return supers.get(name.toLowerCase());
+	}
+	
+	/**
+	 * Gets a list of all the SuperGroups
+	 * @return The server SuperGroups
+	 */
+	public Map<String, SuperGroup> getSuperGroups() {
+		return supers;
 	}
 	
 	/**
@@ -145,12 +173,12 @@ public final class DataLoader extends CoModule {
 			
 			//If a key equals "groups" then it creates a new groupfile for this world
 			if (key.equalsIgnoreCase("groups")) {
-				groupDataFiles.put(world.getName(), groupDataFiles.put(world.getName(), new GroupDataFile(plugin, world)));
+				groupDataFiles.put(world.getName(),new GroupDataFile(plugin, world));
 			}
 			
 			//If a key equals "users" then it creates a new userfile for this world
 			if (key.equalsIgnoreCase("users")) {
-				userDataFiles.put(world.getName(), userDataFiles.put(world.getName(), new UserDataFile(plugin, world)));
+				userDataFiles.put(world.getName(), new UserDataFile(plugin, world));
 			}
 			
 			//If the key contains a colon, then we know the key means its getting data from elsewhere.

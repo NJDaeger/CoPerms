@@ -6,7 +6,11 @@ import org.bukkit.entity.Player;
 import java.lang.reflect.Field;
 
 public final class Inject {
-
+	
+	/**
+	 * Injects a custom permissible into the user object
+	 * @param player The player to inject the new permissible into
+	 */
 	public Inject(Player player) {
 		
 		Field field;

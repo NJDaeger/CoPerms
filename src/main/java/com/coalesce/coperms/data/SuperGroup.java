@@ -15,10 +15,18 @@ public final class SuperGroup {
 		this.name = name;
 	}
 	
+	/**
+	 * Gets the name of the SuperGroup
+	 * @return The super group name.
+	 */
 	public String getName() {
 		return name;
 	}
 	
+	/**
+	 * Gets the list of permissions in this super group
+	 * @return The super group permissions
+	 */
 	public Set<String> getPermissions() {
 		return permissions;
 	}

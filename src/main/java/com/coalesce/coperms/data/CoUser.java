@@ -2,36 +2,41 @@ package com.coalesce.coperms.data;
 
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
-import org.bukkit.Bukkit;
-import org.bukkit.permissions.PermissionAttachment;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public final class CoUser {
-	
-	/*
-	This will store the users group, current world, user ID, the user section, all the permissions the user has.
-	 */
-	private String name; //From load method
-	private Group group; //From load method
-	private CoWorld world; //From load method
+
+	private String name;
+	private Group group;
+	private String prefix;
+	private String suffix;
+	private CoWorld world;
 	private final UUID uuid;
 	private final CoPerms plugin;
-	private ISection userSection; //From load method
-	private final Set<Group> groups; //From getGroups
-	private PermissionAttachment perms; //From load method
-	private final Set<String> wildcards; //From
-	private final Set<String> permissions; //From load method
+	private ISection userSection;
+	private final boolean isOnline;
+	private final Set<Group> groups;
+	private final Set<String> wildcards;
+	private final Set<String> negations;
+	private final Set<String> permissions;
 	
-	public CoUser(CoPerms plugin, UUID userID) {
+	public CoUser(CoPerms plugin, UUID userID, boolean isOnline) {
 		this.permissions = new HashSet<>();
 		this.wildcards = new HashSet<>();
+		this.negations = new HashSet<>();
 		this.groups = new HashSet<>();
+		this.isOnline = isOnline;
 		this.plugin = plugin;
 		this.uuid = userID;
+	}
+	
+	/**
+	 * Checks if this CoUser is an online user.
+	 * @return True if online, false otherwise.
+	 */
+	public boolean isOnline() {
+		return isOnline;
 	}
 	
 	/**
@@ -48,6 +53,59 @@ public final class CoUser {
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	/**
+	 * Gets the user prefix
+	 * @return The user prefix
+	 */
+	public String getPrefix() {
+		return prefix;
+	}
+	
+	/**
+	 * Sets the user prefix
+	 * @param prefix The user prefix
+	 */
+	public void setPrefix(String prefix) {
+		addInfo("prefix", prefix);
+		this.prefix = prefix;
+	}
+	
+	/**
+	 * Gets the user suffix
+	 * @return The user suffix
+	 */
+	public String getSuffix() {
+		return suffix;
+	}
+	
+	/**
+	 * Sets the user suffix
+	 * @param suffix The user suffix
+	 */
+	public void setSuffix(String suffix) {
+		addInfo("suffix", suffix);
+		this.suffix = suffix;
+	}
+	
+	/**
+	 * Adds info to the user section
+	 * @param node The node to add
+	 * @param value The value to set the node
+	 */
+	public void addInfo(String node, Object value) {
+		userSection.getConfig().setEntry(userSection.getCurrentPath() + ".info." + node, value);
+	}
+	
+	/**
+	 * Gets a node from the user section
+	 * @param node The node path to get
+	 * @return The value of the node, null if it doesn't exist.
+	 */
+	public Object getInfo(String node) {
+		if (userSection.getSection("info").getEntry(node) == null) return null;
+		return userSection.getSection("info").getEntry(node).getValue();
 	}
 	
 	/**
@@ -71,11 +129,16 @@ public final class CoUser {
 	 * @return Whether the user was added or not.
 	 */
 	public boolean setGroup(CoWorld world, String name) {
-		group.removeUser(uuid);
+		boolean ret = true;
+		if (group != null) {
+			ret = !group.getName().equalsIgnoreCase(name);
+			group.removeUser(uuid);
+		}
+		userSection.getEntry("group").setValue(name);
 		this.group = world.getGroup(name);
 		this.group.addUser(uuid);
 		resolvePermissions();
-		return group.getName().equalsIgnoreCase(name);
+		return ret;
 	}
 	
 	/**
@@ -99,7 +162,7 @@ public final class CoUser {
 	 * @return All the user permissions in this world
 	 */
 	public Set<String> getUserPermissions() {
-		return new HashSet<>(userSection.getEntry("permissions").getStringList());
+		return new HashSet<String>(userSection.getEntry("permissions").getStringList());
 	}
 	
 	/**
@@ -134,7 +197,7 @@ public final class CoUser {
 	 */
 	public boolean addPermission(String node) {
 		boolean ret;
-		List<String > perms = getUserSection().getEntry("permissions").getStringList();
+		Set<String> perms = getUserPermissions();
 		ret = perms.add(node);
 		userSection.getEntry("permissions").setValue(perms.toArray());
 		resolvePermissions();
@@ -148,7 +211,7 @@ public final class CoUser {
 	 */
 	public boolean removePermission(String node) {
 		boolean ret;
-		List<String > perms = getUserSection().getEntry("permissions").getStringList();
+		Set<String> perms = getPermissions();
 		ret = perms.remove(node);
 		userSection.getEntry("permissions").setValue(perms.toArray());
 		resolvePermissions();
@@ -163,41 +226,58 @@ public final class CoUser {
 		this.world = world;
 		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
 		this.group = world.getGroup(userSection.getEntry("group").getString());
-		if (group == null) {
-			group = world.getDefaultGroup();
-		}
+		if (group == null) setGroup(world, world.getDefaultGroup().getName());
 		this.name = userSection.getEntry("username").getString();
 		this.group.addUser(uuid);
-		this.perms= Bukkit.getPlayer(uuid).addAttachment(plugin);
+		this.prefix = (String)getInfo("prefix");
+		this.suffix = (String)getInfo("suffix");
 		resolvePermissions();
+	}
+	
+	/**
+	 * Unloads a user from any world.
+	 */
+	public void unload() {
+		this.group.removeUser(uuid);
+		this.permissions.clear();
+		this.wildcards.clear();
+		this.negations.clear();
+		this.userSection = null;
+		this.suffix = null;
+		this.prefix = null;
+		this.world = null;
+		this.group = null;
 	}
 	
 	/**
 	 * Gets all the wildcard permissions
 	 * @return The user wildcard permissions
 	 */
-	public Set<String> getWildcardPerms() {
+	public Set<String> getWildcardNodes() {
 		return wildcards;
+	}
+	
+	/**
+	 * Gets all the negated nodes. (including negated wildcards)
+	 * @return The user negated nodes.
+	 */
+	public Set<String> getNegationNodes() {
+		return negations;
 	}
 	
 	/**
 	 * Resolves the user permissions
 	 */
 	public void resolvePermissions() {
-		
 		permissions.clear();
-		perms.getPermissions().clear();
-		
 		this.permissions.addAll(group.getPermissions());
 		this.permissions.addAll(getUserPermissions());
-		
 		permissions.forEach(node -> {
-			
 			if (node.endsWith(".*")) {
 				wildcards.add(node);
 			}
-			if (!node.startsWith("-")) {
-				perms.setPermission(node, true);
+			if (node.startsWith("-")) {
+				negations.add(node);
 			}
 		});
 	}
