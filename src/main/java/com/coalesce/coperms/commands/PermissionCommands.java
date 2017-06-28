@@ -81,7 +81,7 @@ public final class PermissionCommands {
 				.permission("coperms.permission.group.see")
 				.build();
 		
-		plugin.addCommand(getuperms, getgperms, adduperm, addgperm, remuperm, remgperm);
+		plugin.addCommand(getuperms, getgperms/*, adduperm, addgperm, remuperm, remgperm*/);
 		
 	}
 	

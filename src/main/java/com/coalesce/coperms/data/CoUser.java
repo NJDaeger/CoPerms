@@ -196,9 +196,6 @@ public final class CoUser {
 	 * @return If the permission was added or not.
 	 */
 	public boolean addPermission(String node) {
-		System.out.println(userSection.getEntry("permissions").getValue());
-		getPermissions().forEach(System.out::println);
-		getUserPermissions().forEach(System.out::println);
 		boolean ret;
 		Set<String> perms = getUserPermissions();
 		ret = perms.add(node);

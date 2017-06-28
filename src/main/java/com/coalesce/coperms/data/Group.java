@@ -2,6 +2,7 @@ package com.coalesce.coperms.data;
 
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
+import com.coalesce.coperms.DataLoader;
 import com.coalesce.coperms.exceptions.GroupInheritMissing;
 import com.coalesce.coperms.exceptions.SuperGroupMissing;
 
@@ -14,6 +15,7 @@ public final class Group {
 	
 	private final List<String> inheritance;
 	private final Set<String> permissions;
+	private final DataLoader loader;
 	private final boolean isDefault;
 	private final ISection section;
 	private final Set<UUID> users;
@@ -26,7 +28,7 @@ public final class Group {
 	private String suffix;
 	
 	
-	public Group(CoPerms plugin, CoWorld world, String name) {
+	public Group(CoPerms plugin, CoWorld world, String name, DataLoader loader) {
 		this.section = world.getGroupDataFile().getSection("groups." + name);
 		this.permissions = new HashSet<>(section.getEntry("permissions").getStringList());
 		this.inheritance = section.getEntry("inherits").getStringList();
@@ -36,6 +38,7 @@ public final class Group {
 		this.rankID = section.getEntry("info.rankid").getInt();
 		this.isDefault = rankID == 0;
 		this.users = new HashSet<>();
+		this.loader = loader;
 		this.plugin = plugin;
 		this.world = world;
 		this.name = name;
@@ -62,6 +65,7 @@ public final class Group {
 	 * @param prefix The new group prefix
 	 */
 	public void setPrefix(String prefix) {
+		addInfo("prefix", prefix);
 		this.prefix = prefix;
 	}
 	
@@ -78,6 +82,7 @@ public final class Group {
 	 * @param suffix The new suffix
 	 */
 	public void setSuffix(String suffix) {
+		addInfo("suffix", suffix);
 		this.suffix = suffix;
 	}
 	
@@ -87,7 +92,7 @@ public final class Group {
 	 * @param value The value to set the node
 	 */
 	public void addInfo(String node, Object value) {
-		section.getConfig().setEntry(section.getCurrentPath() + "." + node, value);
+		section.getConfig().setEntry(section.getCurrentPath() + ".info." + node, value);
 	}
 	
 	/**
@@ -96,8 +101,8 @@ public final class Group {
 	 * @return The value of the node, null if it doesn't exist.
 	 */
 	public Object getInfo(String node) {
-		if (section.getEntry(node) == null) return null;
-		return section.getEntry(node).getValue();
+		if (section.getSection("info").getEntry(node) == null) return null;
+		return section.getSection("info").getEntry(node).getValue();
 	}
 	
 	/**
@@ -250,16 +255,18 @@ public final class Group {
 	void loadInheritanceTree() {
 		inheritance.forEach(key -> {
 			if (key.startsWith("s:")) {
-				if (plugin.getDataHolder().getSuperGroup(key.split("s:")[1]) == null) {
+				if (loader.getSuperGroup(key.split("s:")[1]) == null) {
 					throw new SuperGroupMissing();
 				}
-				permissions.addAll(plugin.getDataHolder().getSuperGroup(key.split("s:")[1]).getPermissions());
+				permissions.addAll(loader.getSuperGroup(key.split("s:")[1]).getPermissions());
 			}
-			if (world.getGroup(key) == null) {
-				throw new GroupInheritMissing();
+			else {
+				if (world.getGroup(key) == null) {
+					throw new GroupInheritMissing(key);
+				}
+				world.getGroup(key).loadInheritanceTree();
+				permissions.addAll(world.getGroup(key).getPermissions());
 			}
-			world.getGroup(key).loadInheritanceTree();
-			permissions.addAll(world.getGroup(key).getPermissions());
 			
 		});
 	}

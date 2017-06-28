@@ -61,7 +61,7 @@ public final class UserCommands {
 				.description("Adds or removes a prefix from a user")
 				.usage("/prefix <user> [prefix]")
 				.minArgs(1)
-				.permission("coperms.variables.prefix")
+				.permission("coperms.variables.user.prefix")
 				.build();
 		
 		CoCommand setSuffix = new CommandBuilder(plugin, "setsuffix")
@@ -70,10 +70,30 @@ public final class UserCommands {
 				.description("Adds or removes a suffix from a user")
 				.usage("/suffix <user> [prefix]")
 				.minArgs(1)
-				.permission("coperms.variables.suffix")
+				.permission("coperms.variables.user.suffix")
 				.build();
 		
-		plugin.addCommand(promote, setRank, demote, setPrefix, setSuffix);
+		CoCommand setGPrefix = new CommandBuilder(plugin, "setgprefix")
+				.executor(this::setGroupPrefix)
+				.completer(this::groupVarChange)
+				.description("Sets the prefix of a group.")
+				.usage("/setgprefix <group> <world> [prefix]")
+				.aliases("setgpre")
+				.minArgs(2)
+				.permission("coperms.variables.group.prefix")
+				.build();
+		
+		CoCommand setGSuffix = new CommandBuilder(plugin, "setgsuffix")
+				.executor(this::setGroupSuffix)
+				.completer(this::groupVarChange)
+				.description("Sets the suffix of a group.")
+				.usage("/setgsuffix <group> <world> [suffix]")
+				.aliases("setgsuf")
+				.minArgs(2)
+				.permission("coperms.variables.group.suffix")
+				.build();
+		
+		plugin.addCommand(promote, setRank, demote, setPrefix, setSuffix, setGPrefix, setGSuffix);
 	}
 	
 	//
@@ -207,7 +227,7 @@ public final class UserCommands {
 			return;
 		}
 		user.setPrefix(context.joinArgs(1) + " ");
-		context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + context.joinArgs(1));
+		context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + user.getPrefix());
 	}
 	
 	private void setPrefixTab(TabContext context) {
@@ -235,11 +255,59 @@ public final class UserCommands {
 			return;
 		}
 		user.setSuffix(" " + context.joinArgs(1));
-		context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + context.joinArgs(1));
+		context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + user.getSuffix());
 	}
 	
 	private void setSuffixTab(TabContext context) {
 		context.playerCompletion(0);
 	}
 	
+	//
+	//
+	//
+	//
+	
+	private void setGroupPrefix(CommandContext context) {
+		CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
+		Group group = world.getGroup(context.argAt(0));
+		if (group == null) {
+			context.pluginMessage(RED + "The group specified does not exist in the world specified");
+			return;
+		}
+		if (context.getArgs().size() < 3) {
+			group.setPrefix(null);
+			context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + group.getName() + GRAY + " has been disabled.");
+			return;
+		}
+		group.setPrefix(context.joinArgs(2) + " ");
+		context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + group.getName() + GRAY + " has been changed to " + DARK_AQUA + group.getPrefix());
+	}
+	
+	private void groupVarChange(TabContext context) {
+		Set<String> worlds = holder.getWorlds().keySet();
+		Set<String> groups = holder.getGroups().keySet();
+		context.completionAt(0, groups.toArray(new String[groups.size()]));
+		context.completionAt(1, worlds.toArray(new String[worlds.size()]));
+	}
+	
+	//
+	//
+	//
+	//
+	
+	private void setGroupSuffix(CommandContext context) {
+		CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
+		Group group = world.getGroup(context.argAt(0));
+		if (group == null) {
+			context.pluginMessage(RED + "The group specified does not exist in the world specified");
+			return;
+		}
+		if (context.getArgs().size() < 3) {
+			group.setSuffix(null);
+			context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + group.getName() + GRAY + " has been disabled.");
+			return;
+		}
+		group.setSuffix(" " + context.joinArgs(2));
+		context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + group.getName() + GRAY + " has been changed to" + DARK_AQUA + group.getSuffix());
+	}
 }

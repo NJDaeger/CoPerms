@@ -22,12 +22,11 @@ public final class DataHolder {
 	public DataHolder(DataLoader dataloader, CoPerms plugin) {
 		this.plugin = plugin;
 		this.users = new HashMap<>();
-		this.supers = new HashMap<>();
+		this.supers = dataloader.getSuperGroups();
 		this.worlds = dataloader.getWorlds();
 		this.groups = new HashMap<>();
 		
 		worlds.forEach((name, world) -> world.getGroups().forEach(groups::putIfAbsent));
-		plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName(), g));
 	}
 	
 	/**
@@ -175,7 +174,7 @@ public final class DataHolder {
 	 */
 	public SuperGroup getSuperGroup(String name) {
 		if (!supers.containsKey(name)) return null;
-		return supers.get(name);
+		return supers.get(name.toLowerCase());
 	}
 	
 	/**

@@ -7,6 +7,7 @@ import com.coalesce.coperms.commands.UserCommands;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.coperms.data.CoWorld;
+import com.coalesce.coperms.data.SuperGroup;
 import com.coalesce.plugin.CoModule;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -17,6 +18,7 @@ public final class DataLoader extends CoModule {
 	
 	private final Map<String, GroupDataFile> groupDataFiles;
 	private final Map<String, UserDataFile> userDataFiles;
+	private final Map<String, SuperGroup> supers;
 	private final Map<String, CoWorld> worlds;
 	private final Set<World> loaded;
 	private final Set<World> queue;
@@ -37,6 +39,7 @@ public final class DataLoader extends CoModule {
 		this.def = Bukkit.getWorlds().get(0).getName();
 		this.groupDataFiles = new HashMap<>();
 		this.userDataFiles = new HashMap<>();
+		this.supers = new HashMap<>();
 		this.worlds = new HashMap<>();
 		this.loaded = new HashSet<>();
 		this.queue = new HashSet<>();
@@ -47,13 +50,11 @@ public final class DataLoader extends CoModule {
 	
 	@Override
 	protected void onEnable() throws Exception {
+		plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName().toLowerCase(), g));
 	    Bukkit.getWorlds().forEach(this::loadData);
 	    queue.forEach(this::loadOtherWorlds);
-	    loaded.forEach(world -> {
-			worlds.put(world.getName(), new CoWorld(plugin, world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName())));
-		});
-
-	    
+		loaded.forEach(world -> worlds.put(world.getName(), new CoWorld(plugin, world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName()), this)));
+		
 		this.dataHolder = new DataHolder(this, plugin);
 		new DataListener(dataHolder, plugin);
 		new UserCommands(plugin, dataHolder);
@@ -88,6 +89,24 @@ public final class DataLoader extends CoModule {
 	 */
 	Map<String, CoWorld> getWorlds() {
 		return worlds;
+	}
+	
+	/**
+	 * Gets a SuperGroup if exists
+	 * @param name The name of the SuperGroup
+	 * @return The SuperGroup
+	 */
+	public SuperGroup getSuperGroup(String name) {
+		if (!supers.containsKey(name)) return null;
+		return supers.get(name.toLowerCase());
+	}
+	
+	/**
+	 * Gets a list of all the SuperGroups
+	 * @return The server SuperGroups
+	 */
+	public Map<String, SuperGroup> getSuperGroups() {
+		return supers;
 	}
 	
 	/**

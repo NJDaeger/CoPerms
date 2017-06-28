@@ -1,6 +1,7 @@
 package com.coalesce.coperms.data;
 
 import com.coalesce.coperms.CoPerms;
+import com.coalesce.coperms.DataLoader;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import org.bukkit.Bukkit;
@@ -18,7 +19,7 @@ public final class CoWorld {
 	private final Map<String, Group> groups;
 	private final Map<Integer, String> rankID;
 	
-	public CoWorld(CoPerms plugin, World world, UserDataFile userData, GroupDataFile groupData) {
+	public CoWorld(CoPerms plugin, World world, UserDataFile userData, GroupDataFile groupData, DataLoader loader) {
 		this.world = world;
 		this.plugin = plugin;
 		this.userData = userData;
@@ -28,7 +29,7 @@ public final class CoWorld {
 		this.rankID = new HashMap<>();
 		
 		
-		groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key.toLowerCase(), new Group(plugin, this, key)));
+		groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key.toLowerCase(), new Group(plugin, this, key, loader)));
 		groups.values().forEach(Group::loadInheritanceTree);
 		groups.values().forEach(g -> rankID.put(g.getRankID(), g.getName()));
 	}
