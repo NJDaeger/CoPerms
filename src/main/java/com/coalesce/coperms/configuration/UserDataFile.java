@@ -30,8 +30,8 @@ public final class UserDataFile extends YamlConfig {
 		String path = "users." + uuid.toString();
 		setEntry(path + ".username", Bukkit.getPlayer(uuid).getName());
 		addEntry(path + ".group", plugin.getDataHolder().getWorld(world).getDefaultGroup().getName());
-		addEntry(path + ".info.prefix", "");
-		addEntry(path + ".info.suffix", "");
+		addEntry(path + ".info.prefix", null);
+		addEntry(path + ".info.suffix", null);
 		addEntry(path + ".permissions", Collections.emptyList());
 	}
 }

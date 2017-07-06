@@ -25,6 +25,7 @@ public final class PermissionCommands {
 		
 		CoCommand adduperm = new CommandBuilder(plugin, "adduperm")
 				.executor(this::addUserPermission)
+				.completer(this::userPermissionTab)
 				.aliases("adduserperm")
 				.description("Adds a permission to a user")
 				.usage("/adduperm <user> w:[world] <permission> [permission]...")
@@ -34,6 +35,7 @@ public final class PermissionCommands {
 		
 		CoCommand remuperm = new CommandBuilder(plugin, "remuperm")
 				.executor(this::removeUserPermission)
+				.completer(this::userPermissionTab)
 				.aliases("remuserperm")
 				.description("Removes a permission from a user")
 				.usage("/remuperm <user> w:[world] <permission> [permission]...")
@@ -81,7 +83,11 @@ public final class PermissionCommands {
 				.permission("coperms.permission.group.see")
 				.build();
 		
-		plugin.addCommand(getuperms, getgperms/*, adduperm, addgperm, remuperm, remgperm*/);
+		CoCommand test = new CommandBuilder(plugin, "test")
+				.executor(this::testCommand)
+				.build();
+		
+		plugin.addCommand(getuperms, getgperms, test, adduperm, /*addgperm,*/ remuperm /* remgperm*/);
 		
 	}
 	
@@ -93,19 +99,27 @@ public final class PermissionCommands {
 	private void addUserPermission(CommandContext context) {
 		CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
 		if (world == null) {
-		
+			context.pluginMessage(RED + "The world specified does not exist.");
+			return;
 		}
 		CoUser user = holder.getUser(context.argAt(0)) == null ? holder.getUser(world.getName(), context.argAt(0)) : holder.getUser(context.argAt(0));
 		if (user == null) {
-		
+			context.pluginMessage(RED + "The user specified does not exist in the world specified");
+			return;
 		}
 		Set<String> unable = new HashSet<>();
+		Set<String> added = new HashSet<>();
 		for (int i = 0; context.getArgs().size() > i; i++) {
 			if (i < (context.argAt(1).startsWith("w:") ? 2 : 1)) continue;
-			if (!user.addPermission(context.argAt(i))) unable.add(context.argAt(i));
+			if (!user.addPermission(context.argAt(i))) {
+				unable.add(context.argAt(i));
+			}
+			else {
+				added.add(context.argAt(i));
+			}
 		}
-		context.pluginMessage(GRAY + "The following permissions were added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(context.getArgs().subList((context.argAt(1).startsWith("w:") ? 2 : 1), context.getArgs().size())));
-		if (unable.size() > 0) context.pluginMessage(GRAY + "Some permissions could not be added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(unable));
+		if (!added.isEmpty()) context.pluginMessage(GRAY + "The following permission(s) was added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(added));
+		if (!unable.isEmpty()) context.pluginMessage(GRAY + "Some permissions could not be added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(unable));
 	}
 	
 	//
@@ -116,19 +130,34 @@ public final class PermissionCommands {
 	private void removeUserPermission(CommandContext context) {
 		CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
 		if (world == null) {
-		
+			context.pluginMessage(RED + "The world specified does not exist.");
+			return;
 		}
 		CoUser user = holder.getUser(context.argAt(0)) == null ? holder.getUser(world.getName(), context.argAt(0)) : holder.getUser(context.argAt(0));
 		if (user == null) {
-		
+			context.pluginMessage(RED + "The user specified does not exist in the world specified");
+			return;
 		}
 		Set<String> unable = new HashSet<>();
+		Set<String> removed = new HashSet<>();
 		for (int i = 0; context.getArgs().size() > i; i++) {
-			if (i < 2) continue;
-			if (!user.removePermission(context.argAt(i))) unable.add(context.argAt(i));
+			if (i < (context.argAt(1).startsWith("w:") ? 2 : 1)) continue;
+			if (!user.removePermission(context.argAt(i))) {
+				unable.add(context.argAt(i));
+			}
+			else {
+				removed.add(context.argAt(i));
+			}
 		}
-		context.pluginMessage(GRAY + "The following permissions were removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(context.getArgs().subList(2, context.getArgs().size())));
-		context.pluginMessage(GRAY + "Some permissions could not be removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(unable));
+		if (!removed.isEmpty()) context.pluginMessage(GRAY + "The following permission(s) was removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(removed));
+		if (!unable.isEmpty()) context.pluginMessage(GRAY + "Some permissions could not be removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(unable));
+	}
+	
+	private void userPermissionTab(TabContext context) {
+		Set<String> worlds = new HashSet<>();
+		holder.getWorlds().keySet().forEach(w -> worlds.add("w:"+ w));
+		context.playerCompletion(0);
+		context.completionAt(1, worlds.toArray(new String[worlds.size()]));
 	}
 	
 	//
@@ -187,23 +216,33 @@ public final class PermissionCommands {
 	
 	private String formatPerms(Collection<String> permissions) {
 		StringBuilder builder = new StringBuilder();
+		if (permissions == null || permissions.isEmpty()) return null;
 		String[] message = permissions.toArray(new String[permissions.size()]);
-		for (int i = 0; i < message.length; i++) {
-			if (message[i].startsWith("-") && message[i].endsWith(".*")) {
-				builder.append("" + GRAY + ITALIC + UNDERLINE + message[i]).append(RESET + ", ");
+		String comma = ""  +RESET + WHITE + ", ";
+		for (String node : message) {
+			if (node == null) continue;
+			if (node.startsWith("-") && node.endsWith(".*")) {
+				builder.append(GRAY).append(ITALIC).append(UNDERLINE).append(node).append(comma);
 				continue;
 			}
-			if (message[i].startsWith("-")) {
-				builder.append("" + GRAY +ITALIC + message[i]).append(RESET + ", ");
+			if (node.startsWith("-")) {
+				builder.append(GRAY).append(ITALIC).append(node).append(comma);
 				continue;
 			}
-			if (message[i].endsWith(".*")) {
-				builder.append("" + GRAY + UNDERLINE + message[i]).append(RESET + ", ");
+			if (node.endsWith(".*")) {
+				builder.append(GRAY).append(UNDERLINE).append(node).append(comma);
 				continue;
 			}
-			builder.append(message[i]).append(RESET + ", ");
+			builder.append(node).append(comma);
 		}
-		return builder.toString().trim();
+		String s = builder.toString().trim();
+		return s.substring(0, (s.endsWith(",") ? s.lastIndexOf(",") : s.length()));
+	}
+	
+	private void testCommand(CommandContext context) {
+		CoUser user = holder.getUser(context.argAt(0));
+		System.out.println(user.getName());
+		user.getUserPermissions().forEach(System.out::println);
 	}
 	
 }

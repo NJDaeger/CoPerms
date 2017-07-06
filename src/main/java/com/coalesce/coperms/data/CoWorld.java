@@ -205,8 +205,8 @@ public final class CoWorld {
 	 *          <p>FOR INTERNAL USE ONLY</p>
 	 */
 	public void unloadUser(CoUser user) {
-		if (!users.containsKey(user.getUserID())) return;
 		user.unload();
+		if (!users.containsKey(user.getUserID())) return;
 		this.users.remove(user.getUserID());
 	}
 }

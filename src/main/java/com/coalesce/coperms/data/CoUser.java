@@ -20,8 +20,10 @@ public final class CoUser {
 	private final Set<String> wildcards;
 	private final Set<String> negations;
 	private final Set<String> permissions;
+	private final Set<String> userPermissions;
 	
 	public CoUser(CoPerms plugin, UUID userID, boolean isOnline) {
+		this.userPermissions = new HashSet<>();
 		this.permissions = new HashSet<>();
 		this.wildcards = new HashSet<>();
 		this.negations = new HashSet<>();
@@ -162,7 +164,7 @@ public final class CoUser {
 	 * @return All the user permissions in this world
 	 */
 	public Set<String> getUserPermissions() {
-		return new HashSet<String>(userSection.getEntry("permissions").getStringList());
+		return userPermissions;
 	}
 	
 	/**
@@ -207,11 +209,11 @@ public final class CoUser {
 	/**
 	 * Removes a permission from the users permissions.
 	 * @param node The permission to add
-	 * @return If the permission was added or not.
+	 * @return If the permission was removed or not.
 	 */
 	public boolean removePermission(String node) {
 		boolean ret;
-		Set<String> perms = getPermissions();
+		Set<String> perms = getUserPermissions();
 		ret = perms.remove(node);
 		userSection.getEntry("permissions").setValue(perms.toArray());
 		resolvePermissions();
@@ -225,6 +227,7 @@ public final class CoUser {
 	public void load(CoWorld world) {
 		this.world = world;
 		this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
+		this.userPermissions.addAll(userSection.getEntry("permissions").getStringList());
 		this.group = world.getGroup(userSection.getEntry("group").getString());
 		if (group == null) setGroup(world, world.getDefaultGroup().getName());
 		this.name = userSection.getEntry("username").getString();
@@ -238,6 +241,7 @@ public final class CoUser {
 	 * Unloads a user from any world.
 	 */
 	public void unload() {
+		this.userPermissions.clear();
 		this.group.removeUser(uuid);
 		this.permissions.clear();
 		this.wildcards.clear();
