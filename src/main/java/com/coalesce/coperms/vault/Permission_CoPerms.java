@@ -41,6 +41,7 @@ public final class Permission_CoPerms extends Permission {
 			}
 		}
 		
+		@EventHandler( priority = EventPriority.MONITOR)
 		public void onDisable(PluginDisableEvent e) {
 			if (permission.coperms != null) {
 				if (e.getPlugin().getDescription().getName().equalsIgnoreCase("CoPerms")) {
