@@ -13,6 +13,7 @@ import java.util.UUID;
 
 public final class Group {
 	
+	private final Set<String> groupPermissions;
 	private final List<String> inheritance;
 	private final Set<String> permissions;
 	private final DataLoader loader;
@@ -30,12 +31,13 @@ public final class Group {
 	
 	public Group(CoPerms plugin, CoWorld world, String name, DataLoader loader) {
 		this.section = world.getGroupDataFile().getSection("groups." + name);
-		this.permissions = new HashSet<>(section.getEntry("permissions").getStringList());
+		this.groupPermissions = new HashSet<>(section.getEntry("permissions").getStringList());
 		this.inheritance = section.getEntry("inherits").getStringList();
 		this.canBuild = section.getEntry("info.canBuild").getBoolean();
 		this.prefix = section.getEntry("info.prefix").getString();
 		this.suffix = section.getEntry("info.suffix").getString();
 		this.rankID = section.getEntry("info.rankid").getInt();
+		this.permissions = new HashSet<>();
 		this.isDefault = rankID == 0;
 		this.users = new HashSet<>();
 		this.loader = loader;
@@ -130,11 +132,19 @@ public final class Group {
 	}
 	
 	/**
-	 * Gets the permissions of this group
+	 * Gets all the permissions of this group. (including inherited permissions)
 	 * @return The group permissions
 	 */
 	public Set<String> getPermissions() {
 		return permissions;
+	}
+	
+	/**
+	 * Gets the permissions that are specified for this group
+	 * @return THe group private permissions.
+	 */
+	public Set<String> getGroupPermissions() {
+		return groupPermissions;
 	}
 	
 	/**
@@ -195,8 +205,8 @@ public final class Group {
 	 */
 	public boolean addPermission(String permission) {
 		boolean ret;
-		ret = permissions.add(permission);
-		section.getEntry("permissions").setValue(permissions.toArray());
+		ret = getGroupPermissions().add(permission);
+		section.getEntry("permissions").setValue(getGroupPermissions().toArray());
 		loadInheritanceTree();
 		reloadUsers();
 		return ret;
@@ -209,8 +219,8 @@ public final class Group {
 	 */
 	public boolean removePermission(String permission) {
 		boolean ret;
-		ret = permissions.remove(permission);
-		section.getEntry("permissions").setValue(permissions.toArray());
+		ret = getGroupPermissions().remove(permission);
+		section.getEntry("permissions").setValue(getGroupPermissions().toArray());
 		loadInheritanceTree();
 		reloadUsers();
 		return ret;
@@ -253,12 +263,16 @@ public final class Group {
 	}
 	
 	void loadInheritanceTree() {
+		permissions.clear();
+		permissions.addAll(getGroupPermissions());
 		inheritance.forEach(key -> {
 			if (key.startsWith("s:")) {
 				if (loader.getSuperGroup(key.split("s:")[1]) == null) {
 					throw new SuperGroupMissing();
 				}
-				permissions.addAll(loader.getSuperGroup(key.split("s:")[1]).getPermissions());
+				else {
+					permissions.addAll(loader.getSuperGroup(key.split("s:")[1]).getPermissions());
+				}
 			}
 			else {
 				if (world.getGroup(key) == null) {

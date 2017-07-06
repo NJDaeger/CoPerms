@@ -124,6 +124,12 @@ public final class UserCommands {
 				DARK_AQUA + group.getName() +
 				GRAY + " in world " +
 				DARK_AQUA + world.getName());
+		user.pluginMessage(
+				GRAY + "You were promoted to " +
+				DARK_AQUA + group.getName() +
+				GRAY + " in world " +
+				DARK_AQUA + world.getName()
+		);
 	}
 	
 	private void promoteTab(TabContext context) {
@@ -160,6 +166,12 @@ public final class UserCommands {
 				DARK_AQUA + group.getName() +
 				GRAY + " in world " +
 				DARK_AQUA + world.getName());
+		user.pluginMessage(
+				GRAY + "You were demoted to " +
+				DARK_AQUA + group.getName() +
+				GRAY + " in world " +
+				DARK_AQUA + world.getName()
+		);
 	}
 	
 	private void demoteTab(TabContext context) {
@@ -194,7 +206,12 @@ public final class UserCommands {
 				DARK_AQUA + user.getName() +
 				GRAY + " was added to group " +
 				DARK_AQUA + group.getName() +
-				GRAY + " in " +
+				GRAY + " in world " +
+				DARK_AQUA + world.getName());
+		user.pluginMessage(
+				GRAY + "You were added to group " +
+				DARK_AQUA + group.getName() +
+				GRAY + " in world " +
 				DARK_AQUA + world.getName());
 	}
 	
@@ -224,10 +241,12 @@ public final class UserCommands {
 		if (context.getArgs().size() < 2) {
 			user.setPrefix(null);
 			context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + user.getName() + GRAY + " has been disabled.");
+			user.pluginMessage(GRAY + "Your prefix has been disabled.");
 			return;
 		}
 		user.setPrefix(context.joinArgs(1) + " ");
-		context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + user.getPrefix());
+		context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + translateAlternateColorCodes('&', user.getPrefix()));
+		user.pluginMessage(GRAY + "Your prefix has been changed to " + DARK_AQUA + translateAlternateColorCodes('&', user.getPrefix()));
 	}
 	
 	private void setPrefixTab(TabContext context) {
@@ -252,10 +271,12 @@ public final class UserCommands {
 		if (context.getArgs().size() < 2) {
 			user.setSuffix(null);
 			context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + user.getName() + GRAY + " has been disabled.");
+			user.pluginMessage(GRAY + "Your suffix has been disabled.");
 			return;
 		}
 		user.setSuffix(" " + context.joinArgs(1));
-		context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + user.getSuffix());
+		context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + translateAlternateColorCodes('&', user.getSuffix()));
+		user.pluginMessage(GRAY + "Your suffix has been changed to " + DARK_AQUA + translateAlternateColorCodes('&', user.getSuffix()));
 	}
 	
 	private void setSuffixTab(TabContext context) {
