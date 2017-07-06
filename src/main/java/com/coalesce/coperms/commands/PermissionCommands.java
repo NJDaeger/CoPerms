@@ -45,6 +45,7 @@ public final class PermissionCommands {
 		
 		CoCommand addgperm = new CommandBuilder(plugin, "addgperm")
 				.executor(this::addGroupPermission)
+				.completer(this::groupPermissionsTab)
 				.aliases("addgroupperm")
 				.description("Adds a permission to a group")
 				.usage("/addgperm <group> w:[world] <permission> [permission]...")
@@ -54,6 +55,7 @@ public final class PermissionCommands {
 		
 		CoCommand remgperm = new CommandBuilder(plugin, "remgperm")
 				.executor(this::removeGroupPermission)
+				.completer(this::groupPermissionsTab)
 				.aliases("remgroupperm")
 				.description("Removes a permission from a group")
 				.usage("/remgperm <group> w:[world] <permission> [permission]...")
@@ -83,11 +85,7 @@ public final class PermissionCommands {
 				.permission("coperms.permission.group.see")
 				.build();
 		
-		CoCommand test = new CommandBuilder(plugin, "test")
-				.executor(this::testCommand)
-				.build();
-		
-		plugin.addCommand(getuperms, getgperms, test, adduperm, /*addgperm,*/ remuperm /* remgperm*/);
+		plugin.addCommand(getuperms, getgperms, adduperm, addgperm, remuperm, remgperm);
 		
 	}
 	
@@ -166,7 +164,25 @@ public final class PermissionCommands {
 	//
 	
 	private void addGroupPermission(CommandContext context) {
-	
+		CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
+		if (world == null) {
+			context.pluginMessage(RED + "The world specified does not exist.");
+			return;
+		}
+		Group group = world.getGroup(context.argAt(0));
+		if (group == null) {
+			context.pluginMessage(RED + "The group specified does not exist in the world specified");
+			return;
+		}
+		Set<String> unable = new HashSet<>();
+		Set<String> added = new HashSet<>();
+		for (int i = 0; context.getArgs().size() > i; i++) {
+			if (i < (context.argAt(1).startsWith("w:") ? 2 : 1)) continue;
+			if (!group.addPermission(context.argAt(i))) unable.add(context.argAt(i));
+			else added.add(context.argAt(i));
+		}
+		if (!added.isEmpty()) context.pluginMessage(GRAY + "The following permission(s) was added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(added));
+		if (!unable.isEmpty()) context.pluginMessage(GRAY + "Some permissions could not be added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(unable));
 	}
 	
 	//
@@ -175,7 +191,33 @@ public final class PermissionCommands {
 	//
 	
 	private void removeGroupPermission(CommandContext context) {
+		CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
+		if (world == null) {
+			context.pluginMessage(RED + "The world specified does not exist.");
+			return;
+		}
+		Group group = world.getGroup(context.argAt(0));
+		if (group == null) {
+			context.pluginMessage(RED + "The group specified does not exist in the world specified");
+			return;
+		}
+		Set<String> unable = new HashSet<>();
+		Set<String> removed = new HashSet<>();
+		for (int i = 0; context.getArgs().size() > i; i++) {
+			if (i < (context.argAt(1).startsWith("w:") ? 2 : 1)) continue;
+			if (!group.removePermission(context.argAt(i))) unable.add(context.argAt(i));
+			else removed.add(context.argAt(i));
+		}
+		if (!removed.isEmpty()) context.pluginMessage(GRAY + "The following permission(s) was removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(removed));
+		if (!unable.isEmpty()) context.pluginMessage(GRAY + "Some permissions could not be removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(unable));
+	}
 	
+	private void groupPermissionsTab(TabContext context) {
+		Set<String> groups = holder.getGroups().keySet();
+		Set<String> worlds = new HashSet<>();
+		holder.getWorlds().keySet().forEach(w -> worlds.add("w:"+ w));
+		context.completionAt(0, groups.toArray(new String[groups.size()]));
+		context.completionAt(1, worlds.toArray(new String[worlds.size()]));
 	}
 	
 	//
@@ -237,12 +279,6 @@ public final class PermissionCommands {
 		}
 		String s = builder.toString().trim();
 		return s.substring(0, (s.endsWith(",") ? s.lastIndexOf(",") : s.length()));
-	}
-	
-	private void testCommand(CommandContext context) {
-		CoUser user = holder.getUser(context.argAt(0));
-		System.out.println(user.getName());
-		user.getUserPermissions().forEach(System.out::println);
 	}
 	
 }

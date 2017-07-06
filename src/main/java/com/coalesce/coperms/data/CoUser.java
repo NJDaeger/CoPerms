@@ -2,6 +2,7 @@ package com.coalesce.coperms.data;
 
 import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 
@@ -204,6 +205,10 @@ public final class CoUser {
 		userSection.getEntry("permissions").setValue(perms.toArray());
 		resolvePermissions();
 		return ret;
+	}
+	
+	public void pluginMessage(String message) {
+		if (isOnline()) Bukkit.getPlayer(getName()).sendMessage(plugin.getFormatter().format(message));
 	}
 	
 	/**
