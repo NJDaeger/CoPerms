@@ -1,18 +1,22 @@
 package com.coalesce.coperms;
 
-import com.coalesce.config.IEntry;
-import com.coalesce.config.ISection;
 import com.coalesce.coperms.commands.PermissionCommands;
 import com.coalesce.coperms.commands.UserCommands;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.SuperGroup;
-import com.coalesce.plugin.CoModule;
+import com.coalesce.core.bukkit.CoModule;
+import com.coalesce.core.config.base.IEntry;
+import com.coalesce.core.config.base.ISection;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public final class DataLoader extends CoModule {
 	
@@ -49,7 +53,7 @@ public final class DataLoader extends CoModule {
 	//All other worlds needs to be any worlds that weren't specified in the configuration.
 	
 	@Override
-	protected void onEnable() throws Exception {
+	public void onEnable() throws Exception {
 		plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName().toLowerCase(), g));
 	    Bukkit.getWorlds().forEach(this::loadData);
 	    queue.forEach(this::loadOtherWorlds);
@@ -69,7 +73,7 @@ public final class DataLoader extends CoModule {
 	}
 	
 	@Override
-	protected void onDisable() throws Exception {
+	public void onDisable() throws Exception {
 		if (!Bukkit.getOnlinePlayers().isEmpty()) {
 			Bukkit.getOnlinePlayers().forEach(p -> dataHolder.unloadUser(p.getUniqueId()));
 		}

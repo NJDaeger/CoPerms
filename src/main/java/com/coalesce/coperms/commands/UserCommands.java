@@ -1,14 +1,13 @@
 package com.coalesce.coperms.commands;
 
-import com.coalesce.command.CoCommand;
-import com.coalesce.command.CommandBuilder;
-import com.coalesce.command.CommandContext;
-import com.coalesce.command.tabcomplete.TabContext;
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataHolder;
 import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
+import com.coalesce.core.command.base.CommandContext;
+import com.coalesce.core.command.base.ProcessedCommand;
+import com.coalesce.core.command.base.TabContext;
 
 import java.util.Set;
 
@@ -20,8 +19,8 @@ public final class UserCommands {
 	
 	public UserCommands(CoPerms plugin, DataHolder holder) {
 		this.holder = holder;
-		
-		CoCommand promote = new CommandBuilder(plugin, "promote")
+
+		ProcessedCommand promote = ProcessedCommand.builder(plugin, "promote")
 				.executor(this::promote)
 				.completer(this::promoteTab)
 				.aliases("promo")
@@ -32,7 +31,7 @@ public final class UserCommands {
 				.permission("coperms.ranks.promote")
 				.build();
 		
-		CoCommand setRank = new CommandBuilder(plugin, "setrank")
+		ProcessedCommand setRank = ProcessedCommand.builder(plugin, "setrank")
 				.executor(this::setRank)
 				.completer(this::setRankTab)
 				.aliases("setr", "setgroup")
@@ -43,7 +42,7 @@ public final class UserCommands {
 				.permission("coperms.ranks.setrank")
 				.build();
 		
-		CoCommand demote = new CommandBuilder(plugin, "demote")
+		ProcessedCommand demote = ProcessedCommand.builder(plugin, "demote")
 				.executor(this::demote)
 				.completer(this::demoteTab)
 				.aliases("demo")
@@ -54,7 +53,7 @@ public final class UserCommands {
 				.permission("coperms.ranks.demote")
 				.build();
 		
-		CoCommand setPrefix = new CommandBuilder(plugin, "setprefix")
+		ProcessedCommand setPrefix = ProcessedCommand.builder(plugin, "setprefix")
 				.executor(this::setPrefix)
 				.completer(this::setPrefixTab)
 				.aliases("prefix")
@@ -64,7 +63,7 @@ public final class UserCommands {
 				.permission("coperms.variables.user.prefix")
 				.build();
 		
-		CoCommand setSuffix = new CommandBuilder(plugin, "setsuffix")
+		ProcessedCommand setSuffix = ProcessedCommand.builder(plugin, "setsuffix")
 				.executor(this::setSuffix)
 				.completer(this::setSuffixTab)
 				.description("Adds or removes a suffix from a user")
@@ -73,7 +72,7 @@ public final class UserCommands {
 				.permission("coperms.variables.user.suffix")
 				.build();
 		
-		CoCommand setGPrefix = new CommandBuilder(plugin, "setgprefix")
+		ProcessedCommand setGPrefix = ProcessedCommand.builder(plugin, "setgprefix")
 				.executor(this::setGroupPrefix)
 				.completer(this::groupVarChange)
 				.description("Sets the prefix of a group.")
@@ -83,7 +82,7 @@ public final class UserCommands {
 				.permission("coperms.variables.group.prefix")
 				.build();
 		
-		CoCommand setGSuffix = new CommandBuilder(plugin, "setgsuffix")
+		ProcessedCommand setGSuffix = ProcessedCommand.builder(plugin, "setgsuffix")
 				.executor(this::setGroupSuffix)
 				.completer(this::groupVarChange)
 				.description("Sets the suffix of a group.")
@@ -93,7 +92,7 @@ public final class UserCommands {
 				.permission("coperms.variables.group.suffix")
 				.build();
 		
-		plugin.addCommand(promote, setRank, demote, setPrefix, setSuffix, setGPrefix, setGSuffix);
+		plugin.getCommandStore().registerCommands(promote, setRank, demote, setPrefix, setSuffix, setGPrefix, setGSuffix);
 	}
 	
 	//
@@ -128,8 +127,7 @@ public final class UserCommands {
 				GRAY + "You were promoted to " +
 				DARK_AQUA + group.getName() +
 				GRAY + " in world " +
-				DARK_AQUA + world.getName()
-		);
+				DARK_AQUA + world.getName());
 	}
 	
 	private void promoteTab(TabContext context) {
@@ -227,7 +225,7 @@ public final class UserCommands {
 	//
 	//
 	//
-	
+	@SuppressWarnings("ConstantConditions")
 	private void setPrefix(CommandContext context) {
 		CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
 		if (user == null) {
@@ -257,7 +255,7 @@ public final class UserCommands {
 	//
 	//
 	//
-	
+	@SuppressWarnings("ConstantConditions")
 	private void setSuffix(CommandContext context) {
 		CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
 		if (user == null) {

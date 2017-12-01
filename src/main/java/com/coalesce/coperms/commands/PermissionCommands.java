@@ -1,14 +1,13 @@
 package com.coalesce.coperms.commands;
 
-import com.coalesce.command.CoCommand;
-import com.coalesce.command.CommandBuilder;
-import com.coalesce.command.CommandContext;
-import com.coalesce.command.tabcomplete.TabContext;
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataHolder;
 import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
+import com.coalesce.core.command.base.CommandContext;
+import com.coalesce.core.command.base.ProcessedCommand;
+import com.coalesce.core.command.base.TabContext;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -23,7 +22,7 @@ public final class PermissionCommands {
 	public PermissionCommands(CoPerms plugin, DataHolder holder) {
 		this.holder = holder;
 		
-		CoCommand adduperm = new CommandBuilder(plugin, "adduperm")
+		ProcessedCommand adduperm = ProcessedCommand.builder(plugin, "adduperm")
 				.executor(this::addUserPermission)
 				.completer(this::userPermissionTab)
 				.aliases("adduserperm")
@@ -33,7 +32,7 @@ public final class PermissionCommands {
 				.permission("coperms.permissions.user.add")
 				.build();
 		
-		CoCommand remuperm = new CommandBuilder(plugin, "remuperm")
+		ProcessedCommand remuperm = ProcessedCommand.builder(plugin, "remuperm")
 				.executor(this::removeUserPermission)
 				.completer(this::userPermissionTab)
 				.aliases("remuserperm")
@@ -43,7 +42,7 @@ public final class PermissionCommands {
 				.permission("coperms.permission.user.remove")
 				.build();
 		
-		CoCommand addgperm = new CommandBuilder(plugin, "addgperm")
+		ProcessedCommand addgperm = ProcessedCommand.builder(plugin, "addgperm")
 				.executor(this::addGroupPermission)
 				.completer(this::groupPermissionsTab)
 				.aliases("addgroupperm")
@@ -53,7 +52,7 @@ public final class PermissionCommands {
 				.permission("coperms.permission.group.add")
 				.build();
 		
-		CoCommand remgperm = new CommandBuilder(plugin, "remgperm")
+		ProcessedCommand remgperm = ProcessedCommand.builder(plugin, "remgperm")
 				.executor(this::removeGroupPermission)
 				.completer(this::groupPermissionsTab)
 				.aliases("remgroupperm")
@@ -63,7 +62,7 @@ public final class PermissionCommands {
 				.permission("coperms.permission.group.remove")
 				.build();
 		
-		CoCommand getuperms = new CommandBuilder(plugin, "getuperms")
+		ProcessedCommand getuperms = ProcessedCommand.builder(plugin, "getuperms")
 				.executor(this::getUserPermissions)
 				.completer(this::getUPermsTab)
 				.aliases("userperms")
@@ -74,7 +73,7 @@ public final class PermissionCommands {
 				.permission("coperms.permission.user.see")
 				.build();
 		
-		CoCommand getgperms = new CommandBuilder(plugin, "getgperms")
+		ProcessedCommand getgperms = ProcessedCommand.builder(plugin, "getgperms")
 				.executor(this::getGroupPermissions)
 				.completer(this::getGPermsTab)
 				.aliases("groupperms")
@@ -85,7 +84,7 @@ public final class PermissionCommands {
 				.permission("coperms.permission.group.see")
 				.build();
 		
-		plugin.addCommand(getuperms, getgperms, adduperm, addgperm, remuperm, remgperm);
+		plugin.getCommandStore().registerCommands(getuperms, getgperms, adduperm, addgperm, remuperm, remgperm);
 		
 	}
 	
@@ -93,7 +92,7 @@ public final class PermissionCommands {
 	//
 	//
 	//
-	
+	@SuppressWarnings("ConstantConditions")
 	private void addUserPermission(CommandContext context) {
 		CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
 		if (world == null) {
@@ -125,6 +124,7 @@ public final class PermissionCommands {
 	//
 	//
 	
+	@SuppressWarnings("ConstantConditions")
 	private void removeUserPermission(CommandContext context) {
 		CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
 		if (world == null) {
@@ -163,6 +163,7 @@ public final class PermissionCommands {
 	//
 	//
 	
+	@SuppressWarnings("ConstantConditions")
 	private void addGroupPermission(CommandContext context) {
 		CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
 		if (world == null) {
@@ -190,6 +191,7 @@ public final class PermissionCommands {
 	//
 	//
 	
+	@SuppressWarnings("ConstantConditions")
 	private void removeGroupPermission(CommandContext context) {
 		CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
 		if (world == null) {
@@ -243,6 +245,7 @@ public final class PermissionCommands {
 	//
 	//
 	
+	@SuppressWarnings("ConstantConditions")
 	private void getGroupPermissions(CommandContext context) {
 		Group group = holder.getGroup(context.argAt(0).toLowerCase());
 		if (group == null) {

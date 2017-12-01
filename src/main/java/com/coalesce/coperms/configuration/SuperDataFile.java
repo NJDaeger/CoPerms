@@ -1,14 +1,14 @@
 package com.coalesce.coperms.configuration;
 
-import com.coalesce.config.yml.YamlConfig;
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.data.SuperGroup;
+import com.coalesce.core.config.YmlConfig;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class SuperDataFile extends YamlConfig {
+public final class SuperDataFile extends YmlConfig {
 	
 	private final Set<SuperGroup> superGroups;
 	

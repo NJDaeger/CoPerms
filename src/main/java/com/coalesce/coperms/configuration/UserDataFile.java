@@ -1,7 +1,7 @@
 package com.coalesce.coperms.configuration;
 
-import com.coalesce.config.yml.YamlConfig;
 import com.coalesce.coperms.CoPerms;
+import com.coalesce.core.config.YmlConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -9,7 +9,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.UUID;
 
-public final class UserDataFile extends YamlConfig {
+public final class UserDataFile extends YmlConfig {
 	
 	private final CoPerms plugin;
 	private final World world;

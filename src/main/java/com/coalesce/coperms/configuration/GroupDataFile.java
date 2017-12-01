@@ -1,8 +1,8 @@
 package com.coalesce.coperms.configuration;
 
-import com.coalesce.config.yml.YamlConfig;
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.data.Group;
+import com.coalesce.core.config.YmlConfig;
 import org.bukkit.World;
 
 import java.io.File;
@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public final class GroupDataFile extends YamlConfig {
+public final class GroupDataFile extends YmlConfig {
 	
 	private final List<Group> groups;
 	

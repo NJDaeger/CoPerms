@@ -1,12 +1,12 @@
 package com.coalesce.coperms.configuration;
 
-import com.coalesce.config.yml.YamlConfig;
 import com.coalesce.coperms.CoPerms;
+import com.coalesce.core.config.YmlConfig;
 import org.bukkit.Bukkit;
 
 import java.util.Arrays;
 
-public final class CoPermsConfig extends YamlConfig {
+public final class CoPermsConfig extends YmlConfig {
 	
 	public CoPermsConfig(CoPerms plugin) {
 		super("config", plugin);

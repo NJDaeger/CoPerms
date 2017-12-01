@@ -1,10 +1,10 @@
 package com.coalesce.coperms.data;
 
-import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataLoader;
 import com.coalesce.coperms.exceptions.GroupInheritMissing;
 import com.coalesce.coperms.exceptions.SuperGroupMissing;
+import com.coalesce.core.config.base.ISection;
 
 import java.util.HashSet;
 import java.util.List;
@@ -32,11 +32,11 @@ public final class Group {
 	public Group(CoPerms plugin, CoWorld world, String name, DataLoader loader) {
 		this.section = world.getGroupDataFile().getSection("groups." + name);
 		this.groupPermissions = new HashSet<>(section.getEntry("permissions").getStringList());
+		this.rankID = section.getEntry("info.rankid").getAs(Integer.class);
 		this.inheritance = section.getEntry("inherits").getStringList();
 		this.canBuild = section.getEntry("info.canBuild").getBoolean();
 		this.prefix = section.getEntry("info.prefix").getString();
 		this.suffix = section.getEntry("info.suffix").getString();
-		this.rankID = section.getEntry("info.rankid").getInt();
 		this.permissions = new HashSet<>();
 		this.isDefault = rankID == 0;
 		this.users = new HashSet<>();

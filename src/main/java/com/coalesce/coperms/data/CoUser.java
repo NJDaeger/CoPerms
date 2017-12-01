@@ -1,10 +1,12 @@
 package com.coalesce.coperms.data;
 
-import com.coalesce.config.ISection;
 import com.coalesce.coperms.CoPerms;
+import com.coalesce.core.config.base.ISection;
 import org.bukkit.Bukkit;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public final class CoUser {
 
@@ -208,7 +210,7 @@ public final class CoUser {
 	}
 	
 	public void pluginMessage(String message) {
-		if (isOnline()) Bukkit.getPlayer(getName()).sendMessage(plugin.getFormatter().format(message));
+		if (isOnline()) Bukkit.getPlayer(getName()).sendMessage(plugin.getCoFormatter().format(message));
 	}
 	
 	/**

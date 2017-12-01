@@ -1,6 +1,6 @@
 package com.coalesce.coperms.data;
 
-import com.coalesce.config.ISection;
+import com.coalesce.core.config.base.ISection;
 
 import java.util.HashSet;
 import java.util.Set;
