@@ -12,29 +12,30 @@ import java.util.Collections;
 import java.util.List;
 
 public final class GroupDataFile extends YmlConfig {
-	
-	private final List<Group> groups;
-	
-	public GroupDataFile(CoPerms plugin, World world) {
-		super("worlds" + File.separator + world.getName() + File.separator + "groups", plugin);
-		
-		this.groups = new ArrayList<>();
-		
-		if (!contains("groups", false)) {
-			addEntry("groups.default.permissions", Arrays.asList("ttb.generate", "ttb.undo", "ttb.redo"));
-			addEntry("groups.default.inherits", Collections.emptyList());
-			addEntry("groups.default.info.canBuild", true);
-			addEntry("groups.default.info.prefix", "");
-			addEntry("groups.default.info.suffix", "");
-			addEntry("groups.default.info.rankid", 0);
-		}
-	}
-	
-	/**
-	 * Gets a list of groups held in this file.
-	 * @return The groups list.
-	 */
-	public List<Group> getGroups() {
-		return groups;
-	}
+
+    private final List<Group> groups;
+
+    public GroupDataFile(CoPerms plugin, World world) {
+        super("worlds" + File.separator + world.getName() + File.separator + "groups", plugin);
+
+        this.groups = new ArrayList<>();
+
+        if (!contains("groups", false)) {
+            addEntry("groups.default.permissions", Arrays.asList("ttb.generate", "ttb.undo", "ttb.redo"));
+            addEntry("groups.default.inherits", Collections.emptyList());
+            addEntry("groups.default.info.canBuild", true);
+            addEntry("groups.default.info.prefix", "");
+            addEntry("groups.default.info.suffix", "");
+            addEntry("groups.default.info.rankid", 0);
+        }
+    }
+
+    /**
+     * Gets a list of groups held in this file.
+     *
+     * @return The groups list.
+     */
+    public List<Group> getGroups() {
+        return groups;
+    }
 }
