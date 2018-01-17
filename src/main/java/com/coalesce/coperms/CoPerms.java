@@ -18,7 +18,7 @@ public final class CoPerms extends CoPlugin {
 
     @Override
     public void onPluginEnable() {
-        this.updateCheck("Project-Coalesce", "CoPerms", true);
+        //this.updateCheck("Project-Coalesce", "CoPerms", true);
         this.config = new CoPermsConfig(this);
         this.supers = new SuperDataFile(this);
         new Metrics(this);

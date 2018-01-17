@@ -1,6 +1,6 @@
 name: CoPerms
-version: 0.2.0
+version: 0.3.0
 main: com.coalesce.coperms.CoPerms
-author: ProjectCoalesce
-depend: [CoalesceCore]
+author: NJDaeger
+depend: [CoalesceCoreBukkit]
 softdepend: [Vault]
