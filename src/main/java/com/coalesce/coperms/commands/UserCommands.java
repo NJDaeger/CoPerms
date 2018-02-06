@@ -6,6 +6,7 @@ import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
 import com.coalesce.core.command.base.CommandContext;
+import com.coalesce.core.command.base.CommandStore;
 import com.coalesce.core.command.base.ProcessedCommand;
 import com.coalesce.core.command.base.TabContext;
 
@@ -20,22 +21,85 @@ public final class UserCommands {
     public UserCommands(CoPerms plugin, DataHolder holder) {
         this.holder = holder;
 
-        ProcessedCommand promote = ProcessedCommand.builder(plugin, "promote").executor(this::promote).completer(this::promoteTab).aliases("promo").description("Promotes someone to the next rank.").usage("/promote <user> [world]").minArgs(1).maxArgs(2).permission("coperms.ranks.promote").build();
+        ProcessedCommand<CommandContext, TabContext> promote = ProcessedCommand.builder(plugin, "promote")
+                .executor(this::promote)
+                .completer(this::promoteTab)
+                .aliases("promo")
+                .description("Promotes someone to the next rank.")
+                .usage("/promote <user> [world]")
+                .minArgs(1)
+                .maxArgs(2)
+                .permission("coperms.ranks.promote")
+                .build();
 
-        ProcessedCommand setRank = ProcessedCommand.builder(plugin, "setrank").executor(this::setRank).completer(this::setRankTab).aliases("setr", "setgroup").description("Adds a user to a specified rank").usage("/setrank <user> <rank> [world]") //Make a list in the UserDataFile for each user that is similar to the group data file that specifies ranks per world
-                .minArgs(2).maxArgs(3).permission("coperms.ranks.setrank").build();
+        ProcessedCommand<CommandContext, TabContext> setRank = ProcessedCommand.builder(plugin, "setrank")
+                .executor(this::setRank)
+                .completer(this::setRankTab)
+                .aliases("setr", "setgroup")
+                .description("Adds a user to a specified rank")
+                .usage("/setrank <user> <rank> [world]") //Make a list in the UserDataFile for each user that is similar to the group data file that specifies ranks per world
+                .minArgs(2)
+                .maxArgs(3)
+                .permission("coperms.ranks.setrank")
+                .build();
 
-        ProcessedCommand demote = ProcessedCommand.builder(plugin, "demote").executor(this::demote).completer(this::demoteTab).aliases("demo").description("Demotes someone to the previous rank.").usage("/demote <user> [world]").minArgs(1).maxArgs(2).permission("coperms.ranks.demote").build();
+        ProcessedCommand<CommandContext, TabContext> demote = ProcessedCommand.builder(plugin, "demote")
+                .executor(this::demote)
+                .completer(this::demoteTab)
+                .aliases("demo")
+                .description("Demotes someone to the previous rank.")
+                .usage("/demote <user> [world]")
+                .minArgs(1)
+                .maxArgs(2)
+                .permission("coperms.ranks.demote")
+                .build();
 
-        ProcessedCommand setPrefix = ProcessedCommand.builder(plugin, "setprefix").executor(this::setPrefix).completer(this::setPrefixTab).aliases("prefix").description("Adds or removes a prefix from a user").usage("/prefix <user> [prefix]").minArgs(1).permission("coperms.variables.user.prefix").build();
+        ProcessedCommand<CommandContext, TabContext> setPrefix = ProcessedCommand.builder(plugin, "setprefix")
+                .executor(this::setPrefix)
+                .completer(this::setPrefixTab)
+                .aliases("prefix")
+                .description("Adds or removes a prefix from a user")
+                .usage("/prefix <user> [prefix]")
+                .minArgs(1)
+                .permission("coperms.variables.user.prefix")
+                .build();
 
-        ProcessedCommand setSuffix = ProcessedCommand.builder(plugin, "setsuffix").executor(this::setSuffix).completer(this::setSuffixTab).description("Adds or removes a suffix from a user").usage("/suffix <user> [prefix]").minArgs(1).permission("coperms.variables.user.suffix").build();
+        ProcessedCommand<CommandContext, TabContext> setSuffix = ProcessedCommand.builder(plugin, "setsuffix")
+                .executor(this::setSuffix)
+                .completer(this::setSuffixTab)
+                .description("Adds or removes a suffix from a user")
+                .usage("/suffix <user> [prefix]")
+                .minArgs(1)
+                .permission("coperms.variables.user.suffix")
+                .build();
 
-        ProcessedCommand setGPrefix = ProcessedCommand.builder(plugin, "setgprefix").executor(this::setGroupPrefix).completer(this::groupVarChange).description("Sets the prefix of a group.").usage("/setgprefix <group> <world> [prefix]").aliases("setgpre").minArgs(2).permission("coperms.variables.group.prefix").build();
+        ProcessedCommand<CommandContext, TabContext> setGPrefix = ProcessedCommand.builder(plugin, "setgprefix")
+                .executor(this::setGroupPrefix)
+                .completer(this::groupVarChange)
+                .description("Sets the prefix of a group.")
+                .usage("/setgprefix <group> <world> [prefix]")
+                .aliases("setgpre")
+                .minArgs(2)
+                .permission("coperms.variables.group.prefix").build();
 
-        ProcessedCommand setGSuffix = ProcessedCommand.builder(plugin, "setgsuffix").executor(this::setGroupSuffix).completer(this::groupVarChange).description("Sets the suffix of a group.").usage("/setgsuffix <group> <world> [suffix]").aliases("setgsuf").minArgs(2).permission("coperms.variables.group.suffix").build();
-
-        plugin.getCommandStore().registerCommands(promote, setRank, demote, setPrefix, setSuffix, setGPrefix, setGSuffix);
+        ProcessedCommand<CommandContext, TabContext> setGSuffix = ProcessedCommand.builder(plugin, "setgsuffix")
+                .executor(this::setGroupSuffix)
+                .completer(this::groupVarChange)
+                .description("Sets the suffix of a group.")
+                .usage("/setgsuffix <group> <world> [suffix]")
+                .aliases("setgsuf")
+                .minArgs(2)
+                .permission("coperms.variables.group.suffix")
+                .build();
+    
+        CommandStore cs = plugin.getCommandStore();
+        cs.registerCommand(promote);
+        cs.registerCommand(setRank);
+        cs.registerCommand(demote);
+        cs.registerCommand(setPrefix);
+        cs.registerCommand(setSuffix);
+        cs.registerCommand(setGPrefix);
+        cs.registerCommand(setGSuffix);
     }
 
     //

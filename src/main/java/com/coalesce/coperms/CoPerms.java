@@ -4,7 +4,7 @@ import com.coalesce.coperms.configuration.CoPermsConfig;
 import com.coalesce.coperms.configuration.SuperDataFile;
 import com.coalesce.coperms.vault.Chat_CoPerms;
 import com.coalesce.coperms.vault.Permission_CoPerms;
-import com.coalesce.core.bukkit.CoPlugin;
+import com.coalesce.core.CoPlugin;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;

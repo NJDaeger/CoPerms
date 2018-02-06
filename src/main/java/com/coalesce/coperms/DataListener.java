@@ -1,6 +1,6 @@
 package com.coalesce.coperms;
 
-import com.coalesce.core.bukkit.CoModule;
+import com.coalesce.core.CoModule;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;

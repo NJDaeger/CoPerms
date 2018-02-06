@@ -6,6 +6,7 @@ import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
 import com.coalesce.core.command.base.CommandContext;
+import com.coalesce.core.command.base.CommandStore;
 import com.coalesce.core.command.base.ProcessedCommand;
 import com.coalesce.core.command.base.TabContext;
 
@@ -22,19 +23,25 @@ public final class PermissionCommands {
     public PermissionCommands(CoPerms plugin, DataHolder holder) {
         this.holder = holder;
 
-        ProcessedCommand adduperm = ProcessedCommand.builder(plugin, "adduperm").executor(this::addUserPermission).completer(this::userPermissionTab).aliases("adduserperm").description("Adds a permission to a user").usage("/adduperm <user> w:[world] <permission> [permission]...").minArgs(2).permission("coperms.permissions.user.add").build();
+        ProcessedCommand<CommandContext, TabContext> adduperm = ProcessedCommand.builder(plugin, "adduperm").executor(this::addUserPermission).completer(this::userPermissionTab).aliases("adduserperm").description("Adds a permission to a user").usage("/adduperm <user> w:[world] <permission> [permission]...").minArgs(2).permission("coperms.permissions.user.add").build();
 
-        ProcessedCommand remuperm = ProcessedCommand.builder(plugin, "remuperm").executor(this::removeUserPermission).completer(this::userPermissionTab).aliases("remuserperm").description("Removes a permission from a user").usage("/remuperm <user> w:[world] <permission> [permission]...").minArgs(2).permission("coperms.permission.user.remove").build();
+        ProcessedCommand<CommandContext, TabContext> remuperm = ProcessedCommand.builder(plugin, "remuperm").executor(this::removeUserPermission).completer(this::userPermissionTab).aliases("remuserperm").description("Removes a permission from a user").usage("/remuperm <user> w:[world] <permission> [permission]...").minArgs(2).permission("coperms.permission.user.remove").build();
 
-        ProcessedCommand addgperm = ProcessedCommand.builder(plugin, "addgperm").executor(this::addGroupPermission).completer(this::groupPermissionsTab).aliases("addgroupperm").description("Adds a permission to a group").usage("/addgperm <group> w:[world] <permission> [permission]...").minArgs(2).permission("coperms.permission.group.add").build();
+        ProcessedCommand<CommandContext, TabContext> addgperm = ProcessedCommand.builder(plugin, "addgperm").executor(this::addGroupPermission).completer(this::groupPermissionsTab).aliases("addgroupperm").description("Adds a permission to a group").usage("/addgperm <group> w:[world] <permission> [permission]...").minArgs(2).permission("coperms.permission.group.add").build();
 
-        ProcessedCommand remgperm = ProcessedCommand.builder(plugin, "remgperm").executor(this::removeGroupPermission).completer(this::groupPermissionsTab).aliases("remgroupperm").description("Removes a permission from a group").usage("/remgperm <group> w:[world] <permission> [permission]...").minArgs(2).permission("coperms.permission.group.remove").build();
+        ProcessedCommand<CommandContext, TabContext> remgperm = ProcessedCommand.builder(plugin, "remgperm").executor(this::removeGroupPermission).completer(this::groupPermissionsTab).aliases("remgroupperm").description("Removes a permission from a group").usage("/remgperm <group> w:[world] <permission> [permission]...").minArgs(2).permission("coperms.permission.group.remove").build();
 
-        ProcessedCommand getuperms = ProcessedCommand.builder(plugin, "getuperms").executor(this::getUserPermissions).completer(this::getUPermsTab).aliases("userperms").description("Shows a list of user permissions").usage("/getuperms <user>").minArgs(1).maxArgs(1).permission("coperms.permission.user.see").build();
+        ProcessedCommand<CommandContext, TabContext> getuperms = ProcessedCommand.builder(plugin, "getuperms").executor(this::getUserPermissions).completer(this::getUPermsTab).aliases("userperms").description("Shows a list of user permissions").usage("/getuperms <user>").minArgs(1).maxArgs(1).permission("coperms.permission.user.see").build();
 
-        ProcessedCommand getgperms = ProcessedCommand.builder(plugin, "getgperms").executor(this::getGroupPermissions).completer(this::getGPermsTab).aliases("groupperms").description("Shows a list of group permissions").usage("/getgperms <group>").minArgs(1).maxArgs(1).permission("coperms.permission.group.see").build();
-
-        plugin.getCommandStore().registerCommands(getuperms, getgperms, adduperm, addgperm, remuperm, remgperm);
+        ProcessedCommand<CommandContext, TabContext> getgperms = ProcessedCommand.builder(plugin, "getgperms").executor(this::getGroupPermissions).completer(this::getGPermsTab).aliases("groupperms").description("Shows a list of group permissions").usage("/getgperms <group>").minArgs(1).maxArgs(1).permission("coperms.permission.group.see").build();
+    
+        CommandStore cs = plugin.getCommandStore();
+        cs.registerCommand(getuperms);
+        cs.registerCommand(getgperms);
+        cs.registerCommand(adduperm);
+        cs.registerCommand(addgperm);
+        cs.registerCommand(remuperm);
+        cs.registerCommand(remgperm);
 
     }
 
