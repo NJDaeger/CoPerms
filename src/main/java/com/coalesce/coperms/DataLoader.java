@@ -7,7 +7,6 @@ import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.SuperGroup;
 import com.coalesce.core.CoModule;
-import com.coalesce.core.config.base.IEntry;
 import com.coalesce.core.config.base.ISection;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
