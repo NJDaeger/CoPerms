@@ -56,7 +56,7 @@ public final class DataLoader extends CoModule {
         plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName().toLowerCase(), g));
         Bukkit.getWorlds().forEach(this::loadData);
         queue.forEach(this::loadOtherWorlds);
-        loaded.forEach(world -> worlds.put(world.getName(), new CoWorld(plugin, world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName()), this)));
+        loadWorlds();
 
         this.dataHolder = new DataHolder(this, plugin);
         new DataListener(dataHolder, plugin);
@@ -117,7 +117,16 @@ public final class DataLoader extends CoModule {
     public Map<String, SuperGroup> getSuperGroups() {
         return supers;
     }
-
+    
+    private void loadWorlds() {
+        loaded.forEach(world -> {
+            CoWorld cw = new CoWorld(plugin, world, this);
+            cw.load(userDataFiles.get(world.getName()), groupDataFiles.get(world.getName()));
+            worlds.put(world.getName(), cw);
+        });
+        
+    }
+    
     /**
      * Loads the data from a world that is contained in the mirrors configuration section.
      *
@@ -127,27 +136,28 @@ public final class DataLoader extends CoModule {
 
         //Mirrors must contain the default world
         if (mirrors.contains(world.getName())) {
-            IEntry e = mirrors.getEntry(world.getName());
+            
+            ISection mirror = mirrors.getSection(world.getName());
 
             //if the world in mirrors has both the groups and users string, then load the datafiles.
-            if (e.getStringList().contains("groups") && e.getStringList().contains("users")) {
+            if (mirror.contains("groups") && mirror.contains("users")) {
                 userDataFiles.put(world.getName(), new UserDataFile(plugin, world));
-                groupDataFiles.put(world.getName(), new GroupDataFile(plugin, world));
+                groupDataFiles.put(world.getName(), new GroupDataFile(plugin, this, world));
                 loaded.add(world);
             }
 
             //we need to resolve what else is contained in this datafile
             else {
-                if (e.getStringList() == null) {
+                if (mirrors.getStringList(world.getName()) == null) {
                     if (world.equals(Bukkit.getWorlds().get(0))) {
                         throw new RuntimeException("Default world must have both the groups file and users file specified.");
                     }
-                    userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(def));
-                    groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(def));
+                    userDataFiles.put(world.getName(), userDataFiles.get(def));
+                    groupDataFiles.put(world.getName(), groupDataFiles.get(def));
                     loaded.add(world);
                     return;
                 }
-                loadKeys(e.getStringList(), world);
+                loadKeys(mirrors.getStringList(world.getName()), world);
             }
         } else {
             queue.add(world);
@@ -162,13 +172,13 @@ public final class DataLoader extends CoModule {
     private void loadOtherWorlds(World world) {
         //If the mirrors section of the config contains "all-other-worlds" then we will load the keys and generate files for each world.
         if (mirrors.contains("all-other-worlds")) {
-            loadKeys(mirrors.getEntry("all-other-worlds").getStringList(), world);
+            loadKeys(mirrors.getStringList("all-other-worlds"), world);
             return;
         }
 
         //All other worlds will get their data from the default world.
-        userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(def));
-        groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(def));
+        userDataFiles.put(world.getName(), userDataFiles.get(def));
+        groupDataFiles.put(world.getName(), groupDataFiles.get(def));
         loaded.add(world);
     }
 
@@ -185,7 +195,7 @@ public final class DataLoader extends CoModule {
 
             //If a key equals "groups" then it creates a new groupfile for this world
             if (key.equalsIgnoreCase("groups")) {
-                groupDataFiles.put(world.getName(), new GroupDataFile(plugin, world));
+                groupDataFiles.put(world.getName(), new GroupDataFile(plugin, this, world));
             }
 
             //If a key equals "users" then it creates a new userfile for this world

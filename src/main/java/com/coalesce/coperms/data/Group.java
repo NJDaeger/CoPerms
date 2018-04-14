@@ -2,6 +2,7 @@ package com.coalesce.coperms.data;
 
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataLoader;
+import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.exceptions.GroupInheritMissing;
 import com.coalesce.coperms.exceptions.SuperGroupMissing;
 import com.coalesce.core.config.base.ISection;
@@ -11,38 +12,34 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue"})
 public final class Group {
 
-    private final Set<String> groupPermissions;
-    private final List<String> inheritance;
-    private final Set<String> permissions;
+    private final GroupDataFile groupDataFile;
+    private Set<String> groupPermissions;
+    private final ISection infoSection;
+    private List<String> inheritance;
+    private Set<String> permissions;
     private final DataLoader loader;
     private final boolean isDefault;
     private final ISection section;
     private final Set<UUID> users;
     private final CoPerms plugin;
-    private final CoWorld world;
     private final String name;
-    private final int rankID;
     private boolean canBuild;
     private String prefix;
     private String suffix;
+    private int rankID;
 
 
-    public Group(CoPerms plugin, CoWorld world, String name, DataLoader loader) {
-        this.section = world.getGroupDataFile().getSection("groups." + name);
-        this.groupPermissions = new HashSet<>(section.getEntry("permissions").getStringList());
-        this.rankID = section.getEntry("info.rankid").getAs(Integer.class);
-        this.inheritance = section.getEntry("inherits").getStringList();
-        this.canBuild = section.getEntry("info.canBuild").getBoolean();
-        this.prefix = section.getEntry("info.prefix").getString();
-        this.suffix = section.getEntry("info.suffix").getString();
+    public Group(CoPerms plugin, GroupDataFile groupDataFile, String name, DataLoader loader) {
+        this.section = groupDataFile.getSection("groups." + name);
+        this.infoSection = section.getSection("info");
+        this.groupDataFile = groupDataFile;
         this.permissions = new HashSet<>();
-        this.isDefault = rankID == 0;
+        this.isDefault = rankID == 0; //TODO this will throw an error
         this.users = new HashSet<>();
         this.loader = loader;
-        this.plugin = plugin;
-        this.world = world;
         this.name = name;
     }
 
@@ -100,7 +97,7 @@ public final class Group {
      * @param value The value to set the node
      */
     public void addInfo(String node, Object value) {
-        section.getConfig().setEntry(section.getCurrentPath() + ".info." + node, value);
+        infoSection.setEntry(node, value);
     }
 
     /**
@@ -110,10 +107,8 @@ public final class Group {
      * @return The value of the node, null if it doesn't exist.
      */
     public Object getInfo(String node) {
-        if (section.getSection("info").getEntry(node) == null) {
-            return null;
-        }
-        return section.getSection("info").getEntry(node).getValue();
+        if (!infoSection.contains(node)) return null;
+        else return infoSection.getValue(node);
     }
 
     /**
@@ -192,11 +187,21 @@ public final class Group {
     /**
      * Gets a user from this group
      *
-     * @param user The user to get
+     * @param uuid The user to get
      * @return The user if online.
      */
-    public CoUser getUser(UUID user) {
-        return world.getUser(user);
+    public CoUser getUser(UUID uuid) {
+        if (users.contains(uuid)) {
+            return plugin.getDataHolder().getUser(uuid);
+        }
+        if (hasUser(uuid)) {
+            CoUser user = new CoUser(plugin, uuid, false);
+            user.load(this);
+            return user;
+        }
+        return null;
+        /*if (!users.contains(user)) return null;
+        return world.getUser(user);*/
     }
 
     /**
@@ -310,6 +315,28 @@ public final class Group {
 
     private void reloadUsers() {
         users.forEach(u -> getUser(u).resolvePermissions());
+    }
+    
+    public void unload() {
+        section.setEntry("permissions", groupPermissions.toArray(new String[0]));
+        section.setEntry("inherits", inheritance.toArray(new String[0]));
+        addInfo("canBuild", canBuild);
+        addInfo("rankid", rankID);
+        addInfo("prefix", prefix);
+        addInfo("suffix", suffix);
+    }
+    
+    public void load() {
+    
+        this.groupPermissions = new HashSet<>(section.getStringList("permissions"));
+        this.rankID = section.getInt("info.rankid");
+        this.inheritance = section.getStringList("inherits");
+        this.canBuild = section.getBoolean("info.canBuild");
+        this.prefix = section.getString("info.prefix");
+        this.suffix = section.getString("info.suffix");
+        
+        loadInheritanceTree();
+        
     }
 
 }

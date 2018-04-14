@@ -5,9 +5,11 @@ import com.coalesce.core.config.base.ISection;
 import org.bukkit.Bukkit;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public final class CoUser {
 
     private String name;
@@ -16,6 +18,7 @@ public final class CoUser {
     private String suffix;
     private CoWorld world;
     private final UUID uuid;
+    private ISection userInfo;
     private final CoPerms plugin;
     private ISection userSection;
     private final boolean isOnline;
@@ -78,7 +81,6 @@ public final class CoUser {
      * @param prefix The user prefix
      */
     public void setPrefix(String prefix) {
-        addInfo("prefix", prefix);
         this.prefix = prefix;
     }
 
@@ -97,7 +99,6 @@ public final class CoUser {
      * @param suffix The user suffix
      */
     public void setSuffix(String suffix) {
-        addInfo("suffix", suffix);
         this.suffix = suffix;
     }
 
@@ -108,7 +109,11 @@ public final class CoUser {
      * @param value The value to set the node
      */
     public void addInfo(String node, Object value) {
-        userSection.getConfig().setEntry(userSection.getCurrentPath() + ".info." + node, value);
+        if (userInfo == null) {
+            userSection.setEntry(".info." + node, value);
+            userInfo = userSection.getSection("info");
+        }
+        else userInfo.setEntry(node, value);
     }
 
     /**
@@ -118,10 +123,16 @@ public final class CoUser {
      * @return The value of the node, null if it doesn't exist.
      */
     public Object getInfo(String node) {
-        if (userSection.getSection("info").getEntry(node) == null) {
-            return null;
-        }
-        return userSection.getSection("info").getEntry(node).getValue();
+        if (userInfo == null || userInfo.getValue(node) == null) return null;
+        else return userInfo.getValue(node);
+    }
+    
+    /**
+     * Gets the section containing additional user info
+     * @return The user info section. May be null if the user doesn't have a user info section.
+     */
+    public ISection getUserInfo() {
+        return userInfo;
     }
 
     /**
@@ -130,12 +141,6 @@ public final class CoUser {
      * @return All the user groups
      */
     public Set<Group> getGroups() {
-        groups.clear();
-        for (CoWorld world : plugin.getDataHolder().getWorlds().values()) {
-            if (world.hasUser(uuid)) {
-                groups.add(plugin.getDataHolder().getGroup(world.getUserDataFile().getEntry("users." + uuid.toString() + ".group").getString()));
-            }
-        }
         return groups;
     }
 
@@ -147,16 +152,16 @@ public final class CoUser {
      * @return Whether the user was added or not.
      */
     public boolean setGroup(CoWorld world, String name) {
-        boolean ret = true;
-        if (group != null) {
-            ret = !group.getName().equalsIgnoreCase(name);
-            group.removeUser(uuid);
-        }
-        userSection.getEntry("group").setValue(name);
+        if (world.getGroup(name) == null) return false;
+        
+        this.group.removeUser(uuid);
+        this.groups.remove(group);
         this.group = world.getGroup(name);
+        this.groups.add(group);
         this.group.addUser(uuid);
+        
         resolvePermissions();
-        return ret;
+        return true;
     }
 
     /**
@@ -221,18 +226,17 @@ public final class CoUser {
      * @return If the permission was added or not.
      */
     public boolean addPermission(String node) {
-        boolean ret;
-        Set<String> perms = getUserPermissions();
-        ret = perms.add(node);
-        userSection.getEntry("permissions").setValue(perms.toArray());
+        boolean ret = getUserPermissions().add(node);
         resolvePermissions();
         return ret;
     }
-
+    
+    /**
+     * Sends a formatted plugin message to the represented player
+     * @param message The message to send
+     */
     public void pluginMessage(String message) {
-        if (isOnline()) {
-            Bukkit.getPlayer(getName()).sendMessage(plugin.getCoFormatter().format(message));
-        }
+        if (isOnline()) Bukkit.getPlayer(uuid).sendMessage(plugin.getCoFormatter().format(message));
     }
 
     /**
@@ -242,10 +246,7 @@ public final class CoUser {
      * @return If the permission was removed or not.
      */
     public boolean removePermission(String node) {
-        boolean ret;
-        Set<String> perms = getUserPermissions();
-        ret = perms.remove(node);
-        userSection.getEntry("permissions").setValue(perms.toArray());
+        boolean ret = userPermissions.remove(node);
         resolvePermissions();
         return ret;
     }
@@ -257,16 +258,35 @@ public final class CoUser {
      */
     public void load(CoWorld world) {
         this.world = world;
+        
+        //Set the user section in this CoUser object
         this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
-        this.userPermissions.addAll(userSection.getEntry("permissions").getStringList());
-        this.group = world.getGroup(userSection.getEntry("group").getString());
-        if (group == null) {
-            setGroup(world, world.getDefaultGroup().getName());
-        }
-        this.name = userSection.getEntry("username").getString();
-        this.group.addUser(uuid);
+        
+        //Get the user info if possible
+        this.userInfo = userSection.getSection("info");
+        
+        //Checking for any custom permissions this user has in their user section in the datafile
+        List<String> customPerms = userSection.getStringList("permissions");
+        if (customPerms != null) this.userPermissions.addAll(customPerms);
+        
+        //Trying to get the group the user is in on this world. If the group doesnt exist, it gets the default of the world
+        this.group = world.getGroup(userSection.getString("group"));
+        if (group == null) setGroup(world, world.getDefaultGroup().getName());
+        
+        //Gets the name of the user. If the username doesnt exist for some reason and the user is online, we get their name
+        this.name = userSection.getString("username");
+        if (name == null && isOnline) this.name = Bukkit.getPlayer(uuid).getName();
+        
+        //Get the prefix and suffix. The info may be null.
         this.prefix = (String)getInfo("prefix");
         this.suffix = (String)getInfo("suffix");
+    
+        //Add in all the groups this user is currently in into the groups set.
+        for (CoWorld w : plugin.getDataHolder().getWorlds().values()) {
+            if (w.hasUser(uuid)) groups.add(w.getUser(uuid).getGroup());
+            
+        }
+        //Finish up permission parsing
         resolvePermissions();
     }
 
@@ -274,6 +294,11 @@ public final class CoUser {
      * Unloads a user from any world.
      */
     public void unload() {
+        addInfo("suffix", suffix);
+        addInfo("prefix", prefix);
+        this.userSection.setEntry("group", name);
+        this.userSection.setEntry("permissions", userPermissions.toArray());
+        
         this.userPermissions.clear();
         this.group.removeUser(uuid);
         this.permissions.clear();

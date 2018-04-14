@@ -131,7 +131,7 @@ public final class UserCommands {
     private void promoteTab(TabContext context) {
         Set<String> worlds = holder.getWorlds().keySet();
         context.playerCompletion(0);
-        context.completionAt(1, worlds.toArray(new String[worlds.size()]));
+        context.completionAt(1, worlds.toArray(new String[0]));
     }
 
     //
@@ -196,8 +196,8 @@ public final class UserCommands {
         Set<String> groups = holder.getGroups().keySet();
         Set<String> worlds = holder.getWorlds().keySet();
         context.playerCompletion(0);
-        context.completionAt(1, groups.toArray(new String[groups.size()]));
-        context.completionAt(2, worlds.toArray(new String[worlds.size()]));
+        context.completionAt(1, groups.toArray(new String[0]));
+        context.completionAt(2, worlds.toArray(new String[0]));
     }
 
     //
