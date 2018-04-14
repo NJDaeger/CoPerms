@@ -1,7 +1,6 @@
 package com.coalesce.coperms.data;
 
 import com.coalesce.coperms.CoPerms;
-import com.coalesce.coperms.DataLoader;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.core.config.base.ISection;
@@ -24,7 +23,7 @@ public final class CoWorld {
     private GroupDataFile groupData;
     private final Map<UUID, CoUser> users;
 
-    public CoWorld(CoPerms plugin, World world, DataLoader loader) {
+    public CoWorld(CoPerms plugin, World world) {
         this.world = world;
         this.plugin = plugin;
         this.users = new HashMap<>();

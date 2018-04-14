@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public final class GroupDataFile extends YmlConfig {
 
     
@@ -30,7 +31,7 @@ public final class GroupDataFile extends YmlConfig {
      * @param loader The data loader instance
      * @param world The world the datafile was originally created with.
      */
-    public GroupDataFile(CoPerms plugin, DataLoader loader, World world) {
+    public GroupDataFile(CoPerms plugin, DataLoader loader, UserDataFile userDataFile, World world) {
         super("worlds" + File.separator + world.getName() + File.separator + "groups", plugin);
         
         this.groups = new HashMap<>();
@@ -46,7 +47,7 @@ public final class GroupDataFile extends YmlConfig {
             addEntry("groups.default.info.rankid", 0);
         }
         
-        getSection("groups").getKeys(false).forEach(k -> groups.put(k.toLowerCase(), new Group(plugin, this, k, loader)));
+        getSection("groups").getKeys(false).forEach(k -> groups.put(k.toLowerCase(), new Group(this, userDataFile, k, loader)));
         groups.values().forEach(Group::load);
         groups.values().forEach(g -> groupIds.put(g.getRankID(), g.getName()));
         

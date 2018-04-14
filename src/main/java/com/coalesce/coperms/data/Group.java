@@ -1,21 +1,23 @@
 package com.coalesce.coperms.data;
 
-import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataLoader;
 import com.coalesce.coperms.configuration.GroupDataFile;
+import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.coperms.exceptions.GroupInheritMissing;
 import com.coalesce.coperms.exceptions.SuperGroupMissing;
 import com.coalesce.core.config.base.ISection;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 @SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue"})
 public final class Group {
-
+    
     private final GroupDataFile groupDataFile;
+    private final UserDataFile userDataFile;
     private Set<String> groupPermissions;
     private final ISection infoSection;
     private List<String> inheritance;
@@ -24,20 +26,21 @@ public final class Group {
     private final boolean isDefault;
     private final ISection section;
     private final Set<UUID> users;
-    private final CoPerms plugin;
     private final String name;
     private boolean canBuild;
+    private final int rankID;
     private String prefix;
     private String suffix;
-    private int rankID;
 
 
-    public Group(CoPerms plugin, GroupDataFile groupDataFile, String name, DataLoader loader) {
+    public Group(GroupDataFile groupDataFile, UserDataFile userDataFile, String name, DataLoader loader) {
         this.section = groupDataFile.getSection("groups." + name);
+        this.rankID = section.getInt("info.rankid");
         this.infoSection = section.getSection("info");
         this.groupDataFile = groupDataFile;
         this.permissions = new HashSet<>();
-        this.isDefault = rankID == 0; //TODO this will throw an error
+        this.userDataFile = userDataFile;
+        this.isDefault = rankID == 0;
         this.users = new HashSet<>();
         this.loader = loader;
         this.name = name;
@@ -67,7 +70,6 @@ public final class Group {
      * @param prefix The new group prefix
      */
     public void setPrefix(String prefix) {
-        addInfo("prefix", prefix);
         this.prefix = prefix;
     }
 
@@ -86,7 +88,6 @@ public final class Group {
      * @param suffix The new suffix
      */
     public void setSuffix(String suffix) {
-        addInfo("suffix", suffix);
         this.suffix = suffix;
     }
 
@@ -191,26 +192,10 @@ public final class Group {
      * @return The user if online.
      */
     public CoUser getUser(UUID uuid) {
-        if (users.contains(uuid)) {
-            return plugin.getDataHolder().getUser(uuid);
-        }
         if (hasUser(uuid)) {
-            CoUser user = new CoUser(plugin, uuid, false);
-            user.load(this);
-            return user;
+            return userDataFile.getUser(uuid);
         }
         return null;
-        /*if (!users.contains(user)) return null;
-        return world.getUser(user);*/
-    }
-
-    /**
-     * Gets the world this group belongs too.
-     *
-     * @return The world of this group.
-     */
-    public CoWorld getWorld() {
-        return world;
     }
 
     /**
@@ -231,8 +216,7 @@ public final class Group {
      */
     public boolean addPermission(String permission) {
         boolean ret;
-        ret = getGroupPermissions().add(permission);
-        section.getEntry("permissions").setValue(getGroupPermissions().toArray());
+        ret = groupPermissions.add(permission);
         loadInheritanceTree();
         reloadUsers();
         return ret;
@@ -245,9 +229,7 @@ public final class Group {
      * @return True if the permission was successfully removed.
      */
     public boolean removePermission(String permission) {
-        boolean ret;
-        ret = getGroupPermissions().remove(permission);
-        section.getEntry("permissions").setValue(getGroupPermissions().toArray());
+        boolean ret = groupPermissions.remove(permission);
         loadInheritanceTree();
         reloadUsers();
         return ret;
@@ -260,9 +242,7 @@ public final class Group {
      * @return True if successfully added
      */
     public boolean addInheritance(String group) {
-        boolean ret;
-        ret = inheritance.add(group);
-        section.getEntry("inherits").setValue(inheritance.toArray());
+        boolean ret = inheritance.add(group);
         loadInheritanceTree();
         reloadUsers();
         return ret;
@@ -275,9 +255,7 @@ public final class Group {
      * @return True if successfully removed
      */
     public boolean removeInheritance(String group) {
-        boolean ret;
-        ret = inheritance.remove(group);
-        section.getEntry("inherits").setValue(inheritance.toArray());
+        boolean ret = inheritance.remove(group);
         loadInheritanceTree();
         reloadUsers();
         return ret;
@@ -297,24 +275,25 @@ public final class Group {
         permissions.addAll(getGroupPermissions());
         inheritance.forEach(key -> {
             if (key.startsWith("s:")) {
-                if (loader.getSuperGroup(key.split("s:")[1]) == null) {
+                SuperGroup sg = loader.getSuperGroup(key.split("s:")[1]);
+                if (sg == null) {
                     throw new SuperGroupMissing();
                 } else {
-                    permissions.addAll(loader.getSuperGroup(key.split("s:")[1]).getPermissions());
+                    permissions.addAll(sg.getPermissions());
                 }
             } else {
-                if (world.getGroup(key) == null) {
+                if (groupDataFile.getGroup(key) == null) {
                     throw new GroupInheritMissing(key);
                 }
-                world.getGroup(key).loadInheritanceTree();
-                permissions.addAll(world.getGroup(key).getPermissions());
+                groupDataFile.getGroup(key).loadInheritanceTree();
+                permissions.addAll(groupDataFile.getGroup(key).getPermissions());
             }
 
         });
     }
 
     private void reloadUsers() {
-        users.forEach(u -> getUser(u).resolvePermissions());
+        users.forEach(u -> Objects.requireNonNull(getUser(u)).resolvePermissions());
     }
     
     public void unload() {
@@ -327,13 +306,13 @@ public final class Group {
     }
     
     public void load() {
-    
+        
         this.groupPermissions = new HashSet<>(section.getStringList("permissions"));
-        this.rankID = section.getInt("info.rankid");
         this.inheritance = section.getStringList("inherits");
         this.canBuild = section.getBoolean("info.canBuild");
         this.prefix = section.getString("info.prefix");
         this.suffix = section.getString("info.suffix");
+        userDataFile.getSection("users").getKeys(false).forEach(k -> users.add(UUID.fromString(k)));
         
         loadInheritanceTree();
         

@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,8 +20,8 @@ public final class CoUser {
     private CoWorld world;
     private final UUID uuid;
     private ISection userInfo;
-    private final CoPerms plugin;
     private ISection userSection;
+    private final CoPerms plugin;
     private final boolean isOnline;
     private final Set<Group> groups;
     private final Set<String> wildcards;
@@ -110,7 +111,7 @@ public final class CoUser {
      */
     public void addInfo(String node, Object value) {
         if (userInfo == null) {
-            userSection.setEntry(".info." + node, value);
+            userSection.setEntry("info." + node, value);
             userInfo = userSection.getSection("info");
         }
         else userInfo.setEntry(node, value);
@@ -261,6 +262,7 @@ public final class CoUser {
         
         //Set the user section in this CoUser object
         this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
+        this.userInfo = userSection.getSection("info");
         
         //Get the user info if possible
         this.userInfo = userSection.getSection("info");
@@ -283,7 +285,7 @@ public final class CoUser {
     
         //Add in all the groups this user is currently in into the groups set.
         for (CoWorld w : plugin.getDataHolder().getWorlds().values()) {
-            if (w.hasUser(uuid)) groups.add(w.getUser(uuid).getGroup());
+            if (w.hasUser(uuid)) groups.add(Objects.requireNonNull(w.getUser(uuid)).getGroup());
             
         }
         //Finish up permission parsing

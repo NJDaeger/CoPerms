@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue", "WeakerAccess"})
 public final class DataHolder {
 
     private final CoPerms plugin;
@@ -111,9 +111,6 @@ public final class DataHolder {
      * @return the user
      */
     public CoUser getUser(String name) {
-        if (Bukkit.getPlayer(name) == null) {
-            return null;
-        }
         return users.get(Bukkit.getPlayer(name).getUniqueId());
     }
 
@@ -220,14 +217,16 @@ public final class DataHolder {
 
     //This should only ever load a user that is online.
     public CoUser loadUser(World world, UUID userID) {
-        if (getUser(userID) != null) {
-            getWorld(world).unloadUser(getUser(userID));
-            getUser(userID).load(getWorld(world));
+        CoUser user = getUser(userID);
+        if (user != null) {
+            getWorld(world).unloadUser(user);
+            user.load(getWorld(world));
             return getUser(userID);
         }
-        this.users.put(userID, new CoUser(plugin, userID, true));
-        getWorld(world).loadUser(getUser(userID));
-        return getUser(userID);
+        user = new CoUser(plugin, userID, true);
+        this.users.put(userID, user);
+        getWorld(world).loadUser(user);
+        return user;
     }
 
     /**
@@ -238,7 +237,9 @@ public final class DataHolder {
 
     //This should only ever unload a user that is online
     public void unloadUser(UUID userID) {
-        getUser(userID).getWorld().unloadUser(getUser(userID));
+        CoUser user = getUser(userID);
+        if (user == null) return;
+        user.getWorld().unloadUser(user);
         this.users.remove(userID);
     }
 

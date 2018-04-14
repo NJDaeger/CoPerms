@@ -17,8 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public final class DataLoader extends CoModule {
-
+    
     private final Map<String, GroupDataFile> groupDataFiles;
     private final Map<String, UserDataFile> userDataFiles;
     private final Map<String, SuperGroup> supers;
@@ -37,7 +38,7 @@ public final class DataLoader extends CoModule {
      */
     public DataLoader(CoPerms plugin) {
         super(plugin, "Data Loader");
-
+        
         this.mirrors = plugin.getPermsConfig().getSection("mirrors");
         this.def = Bukkit.getWorlds().get(0).getName();
         this.groupDataFiles = new HashMap<>();
@@ -52,7 +53,7 @@ public final class DataLoader extends CoModule {
     //All other worlds needs to be any worlds that weren't specified in the configuration.
 
     @Override
-    public void onEnable() throws Exception {
+    public void onEnable() {
         plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName().toLowerCase(), g));
         Bukkit.getWorlds().forEach(this::loadData);
         queue.forEach(this::loadOtherWorlds);
@@ -72,7 +73,7 @@ public final class DataLoader extends CoModule {
     }
 
     @Override
-    public void onDisable() throws Exception {
+    public void onDisable() {
         if (!Bukkit.getOnlinePlayers().isEmpty()) {
             Bukkit.getOnlinePlayers().forEach(p -> dataHolder.unloadUser(p.getUniqueId()));
         }
@@ -120,7 +121,7 @@ public final class DataLoader extends CoModule {
     
     private void loadWorlds() {
         loaded.forEach(world -> {
-            CoWorld cw = new CoWorld(plugin, world, this);
+            CoWorld cw = new CoWorld(plugin, world);
             cw.load(userDataFiles.get(world.getName()), groupDataFiles.get(world.getName()));
             worlds.put(world.getName(), cw);
         });
@@ -142,7 +143,7 @@ public final class DataLoader extends CoModule {
             //if the world in mirrors has both the groups and users string, then load the datafiles.
             if (mirror.contains("groups") && mirror.contains("users")) {
                 userDataFiles.put(world.getName(), new UserDataFile(plugin, world));
-                groupDataFiles.put(world.getName(), new GroupDataFile(plugin, this, world));
+                groupDataFiles.put(world.getName(), new GroupDataFile(plugin, this, userDataFiles.get(world.getName()), world));
                 loaded.add(world);
             }
 
@@ -188,19 +189,19 @@ public final class DataLoader extends CoModule {
 
             //If even one key matches a loaded world name, then the loop stops and both datafiles are used from the found world
             if (loaded.contains(Bukkit.getWorld(key))) {
-                groupDataFiles.put(world.getName(), groupDataFiles.get(key));
                 userDataFiles.put(world.getName(), userDataFiles.get(key));
+                groupDataFiles.put(world.getName(), groupDataFiles.get(key));
                 return;
-            }
-
-            //If a key equals "groups" then it creates a new groupfile for this world
-            if (key.equalsIgnoreCase("groups")) {
-                groupDataFiles.put(world.getName(), new GroupDataFile(plugin, this, world));
             }
 
             //If a key equals "users" then it creates a new userfile for this world
             if (key.equalsIgnoreCase("users")) {
                 userDataFiles.put(world.getName(), new UserDataFile(plugin, world));
+            }
+    
+            //If a key equals "groups" then it creates a new groupfile for this world
+            if (key.equalsIgnoreCase("groups")) {
+                groupDataFiles.put(world.getName(), new GroupDataFile(plugin, this, userDataFiles.get(world.getName()), world));
             }
 
             //If the key contains a colon, then we know the key means its getting data from elsewhere.
