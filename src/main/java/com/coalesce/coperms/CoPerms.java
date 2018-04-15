@@ -1,7 +1,10 @@
 package com.coalesce.coperms;
 
+import com.coalesce.coperms.commands.api.CoCommand;
+import com.coalesce.coperms.commands.api.CoRegister;
 import com.coalesce.coperms.configuration.CoPermsConfig;
 import com.coalesce.coperms.configuration.SuperDataFile;
+import com.coalesce.coperms.data.Group;
 import com.coalesce.coperms.vault.Chat_CoPerms;
 import com.coalesce.coperms.vault.Permission_CoPerms;
 import com.coalesce.core.CoPlugin;
@@ -36,7 +39,7 @@ public final class CoPerms extends CoPlugin {
 
     @Override
     public void onPluginDisable() {
-
+        getDataHolder().getGroups().values().forEach(Group::unload);
     }
 
     /**
@@ -66,4 +69,10 @@ public final class CoPerms extends CoPlugin {
         return supers;
     }
 
+    public void registerCommand(CoCommand... commands) {
+        for (CoCommand command : commands) {
+            getCommandStore().registerCommand(command, new CoRegister(command, this));
+        }
+    }
+    
 }

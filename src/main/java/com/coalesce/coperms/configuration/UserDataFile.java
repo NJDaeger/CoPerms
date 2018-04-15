@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class UserDataFile extends YmlConfig {
@@ -28,7 +29,7 @@ public final class UserDataFile extends YmlConfig {
         super("worlds" + File.separator + world.getName() + File.separator + "users", plugin);
         
         this.worlds = new ArrayList<>();
-        this.users = new HashSet<>();
+        this.users = getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet());
         this.plugin = plugin;
         this.world = world;
     }

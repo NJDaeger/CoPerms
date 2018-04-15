@@ -5,14 +5,14 @@ import com.coalesce.core.config.base.ISection;
 import java.util.HashSet;
 import java.util.Set;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings("WeakerAccess")
 public final class SuperGroup {
 
     private final String name;
     private final Set<String> permissions;
 
     public SuperGroup(String name, ISection section) {
-        this.permissions = (Set<String>)section.getStringList("permissions");
+        this.permissions = new HashSet<>(section.getStringList("permissions"));
         this.name = name;
     }
 

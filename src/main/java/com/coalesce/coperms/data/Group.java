@@ -270,9 +270,9 @@ public final class Group {
         return inheritance;
     }
 
-    void loadInheritanceTree() {
+    public void loadInheritanceTree() {
         permissions.clear();
-        permissions.addAll(getGroupPermissions());
+        permissions.addAll(groupPermissions);
         inheritance.forEach(key -> {
             if (key.startsWith("s:")) {
                 SuperGroup sg = loader.getSuperGroup(key.split("s:")[1]);
@@ -313,8 +313,6 @@ public final class Group {
         this.prefix = section.getString("info.prefix");
         this.suffix = section.getString("info.suffix");
         userDataFile.getSection("users").getKeys(false).forEach(k -> users.add(UUID.fromString(k)));
-        
-        loadInheritanceTree();
         
     }
 

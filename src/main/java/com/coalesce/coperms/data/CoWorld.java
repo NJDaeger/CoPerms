@@ -3,12 +3,10 @@ package com.coalesce.coperms.data;
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
-import com.coalesce.core.config.base.ISection;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -18,7 +16,6 @@ public final class CoWorld {
 
     private final World world;
     private final CoPerms plugin;
-    private final Set<UUID> allUsers;
     private UserDataFile userData;
     private GroupDataFile groupData;
     private final Map<UUID, CoUser> users;
@@ -27,7 +24,6 @@ public final class CoWorld {
         this.world = world;
         this.plugin = plugin;
         this.users = new HashMap<>();
-        this.allUsers = new HashSet<>();
     }
 
     /**
@@ -95,7 +91,7 @@ public final class CoWorld {
             return users.get(Bukkit.getPlayer(name).getUniqueId());
         }
         if (hasUser(name)) {
-            CoUser user = new CoUser(plugin, resolveID(name), false);
+            CoUser user = new CoUser(plugin, userData.resolveId(name), false);
             user.load(this);
             return user;
         }
@@ -109,7 +105,7 @@ public final class CoWorld {
      * @return True if the user has been in this world, false otherwise.
      */
     public boolean hasUser(UUID uuid) {
-        return getUser(uuid) != null || allUsers.contains(uuid);
+        return userData.hasUser(uuid);
     }
 
     /**
@@ -119,17 +115,7 @@ public final class CoWorld {
      * @return True if the user has been in this world, false otherwise.
      */
     public boolean hasUser(String name) {
-        return resolveID(name) != null;
-    }
-
-    private UUID resolveID(String name) {
-        ISection idSection = userData.getSection("users");
-        
-        for (UUID uuid : allUsers) {
-            if (idSection.getSection(uuid.toString()).getString("username").equalsIgnoreCase(name)) return uuid;
-        }
-        
-        return null;
+        return userData.hasUser(name);
     }
 
     /**
@@ -147,7 +133,7 @@ public final class CoWorld {
      * @return All the users. Online or offline
      */
     public Set<UUID> getAllUsers() {
-        return allUsers;
+        return userData.getUsers();
     }
 
     /**
@@ -229,6 +215,6 @@ public final class CoWorld {
         this.userData = userData;
         this.groupData = groupData;
         groupData.addWorld(this);
-        userData.getSection("users").getKeys(false).forEach(id -> allUsers.add(UUID.fromString(id)));
+        userData.addWorld(this);
     }
 }

@@ -49,6 +49,7 @@ public final class GroupDataFile extends YmlConfig {
         
         getSection("groups").getKeys(false).forEach(k -> groups.put(k.toLowerCase(), new Group(this, userDataFile, k, loader)));
         groups.values().forEach(Group::load);
+        groups.values().forEach(Group::loadInheritanceTree);
         groups.values().forEach(g -> groupIds.put(g.getRankID(), g.getName()));
         
         int[] arr = groupIds.keySet().stream().mapToInt(Integer::intValue).toArray();

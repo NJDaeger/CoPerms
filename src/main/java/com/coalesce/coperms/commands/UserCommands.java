@@ -2,12 +2,11 @@ package com.coalesce.coperms.commands;
 
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataHolder;
+import com.coalesce.coperms.commands.api.CoCommand;
 import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
 import com.coalesce.core.command.base.CommandContext;
-import com.coalesce.core.command.base.CommandStore;
-import com.coalesce.core.command.base.ProcessedCommand;
 import com.coalesce.core.command.base.TabContext;
 
 import java.util.Set;
@@ -21,7 +20,7 @@ public final class UserCommands {
     public UserCommands(CoPerms plugin, DataHolder holder) {
         this.holder = holder;
 
-        ProcessedCommand<CommandContext, TabContext> promote = ProcessedCommand.builder(plugin, "promote")
+        CoCommand promote = CoCommand.builder("promote")
                 .executor(this::promote)
                 .completer(this::promoteTab)
                 .aliases("promo")
@@ -31,8 +30,8 @@ public final class UserCommands {
                 .maxArgs(2)
                 .permission("coperms.ranks.promote")
                 .build();
-
-        ProcessedCommand<CommandContext, TabContext> setRank = ProcessedCommand.builder(plugin, "setrank")
+    
+        CoCommand setRank = CoCommand.builder( "setrank")
                 .executor(this::setRank)
                 .completer(this::setRankTab)
                 .aliases("setr", "setgroup")
@@ -43,7 +42,7 @@ public final class UserCommands {
                 .permission("coperms.ranks.setrank")
                 .build();
 
-        ProcessedCommand<CommandContext, TabContext> demote = ProcessedCommand.builder(plugin, "demote")
+        CoCommand demote = CoCommand.builder("demote")
                 .executor(this::demote)
                 .completer(this::demoteTab)
                 .aliases("demo")
@@ -54,7 +53,7 @@ public final class UserCommands {
                 .permission("coperms.ranks.demote")
                 .build();
 
-        ProcessedCommand<CommandContext, TabContext> setPrefix = ProcessedCommand.builder(plugin, "setprefix")
+        CoCommand setPrefix = CoCommand.builder("setprefix")
                 .executor(this::setPrefix)
                 .completer(this::setPrefixTab)
                 .aliases("prefix")
@@ -64,7 +63,7 @@ public final class UserCommands {
                 .permission("coperms.variables.user.prefix")
                 .build();
 
-        ProcessedCommand<CommandContext, TabContext> setSuffix = ProcessedCommand.builder(plugin, "setsuffix")
+        CoCommand setSuffix = CoCommand.builder("setsuffix")
                 .executor(this::setSuffix)
                 .completer(this::setSuffixTab)
                 .description("Adds or removes a suffix from a user")
@@ -72,8 +71,8 @@ public final class UserCommands {
                 .minArgs(1)
                 .permission("coperms.variables.user.suffix")
                 .build();
-
-        ProcessedCommand<CommandContext, TabContext> setGPrefix = ProcessedCommand.builder(plugin, "setgprefix")
+    
+        CoCommand setGPrefix = CoCommand.builder("setgprefix")
                 .executor(this::setGroupPrefix)
                 .completer(this::groupVarChange)
                 .description("Sets the prefix of a group.")
@@ -81,8 +80,8 @@ public final class UserCommands {
                 .aliases("setgpre")
                 .minArgs(2)
                 .permission("coperms.variables.group.prefix").build();
-
-        ProcessedCommand<CommandContext, TabContext> setGSuffix = ProcessedCommand.builder(plugin, "setgsuffix")
+    
+        CoCommand setGSuffix = CoCommand.builder("setgsuffix")
                 .executor(this::setGroupSuffix)
                 .completer(this::groupVarChange)
                 .description("Sets the suffix of a group.")
@@ -91,15 +90,8 @@ public final class UserCommands {
                 .minArgs(2)
                 .permission("coperms.variables.group.suffix")
                 .build();
-    
-        CommandStore cs = plugin.getCommandStore();
-        cs.registerCommand(promote);
-        cs.registerCommand(setRank);
-        cs.registerCommand(demote);
-        cs.registerCommand(setPrefix);
-        cs.registerCommand(setSuffix);
-        cs.registerCommand(setGPrefix);
-        cs.registerCommand(setGSuffix);
+        
+        plugin.registerCommand(promote, setRank, demote, setPrefix, setSuffix, setGPrefix, setGSuffix);
     }
 
     //
@@ -163,7 +155,7 @@ public final class UserCommands {
     private void demoteTab(TabContext context) {
         Set<String> worlds = holder.getWorlds().keySet();
         context.playerCompletion(0);
-        context.completionAt(1, worlds.toArray(new String[worlds.size()]));
+        context.completionAt(1, worlds.toArray(new String[0]));
     }
 
     //
@@ -284,8 +276,8 @@ public final class UserCommands {
     private void groupVarChange(TabContext context) {
         Set<String> worlds = holder.getWorlds().keySet();
         Set<String> groups = holder.getGroups().keySet();
-        context.completionAt(0, groups.toArray(new String[groups.size()]));
-        context.completionAt(1, worlds.toArray(new String[worlds.size()]));
+        context.completionAt(0, groups.toArray(new String[0]));
+        context.completionAt(1, worlds.toArray(new String[0]));
     }
 
     //

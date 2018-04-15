@@ -155,8 +155,10 @@ public final class CoUser {
     public boolean setGroup(CoWorld world, String name) {
         if (world.getGroup(name) == null) return false;
         
-        this.group.removeUser(uuid);
-        this.groups.remove(group);
+        if (group != null) {
+            this.group.removeUser(uuid);
+            this.groups.remove(group);
+        }
         this.group = world.getGroup(name);
         this.groups.add(group);
         this.group.addUser(uuid);
@@ -284,8 +286,10 @@ public final class CoUser {
         this.suffix = (String)getInfo("suffix");
     
         //Add in all the groups this user is currently in into the groups set.
-        for (CoWorld w : plugin.getDataHolder().getWorlds().values()) {
-            if (w.hasUser(uuid)) groups.add(Objects.requireNonNull(w.getUser(uuid)).getGroup());
+        for (CoWorld w : getWorld().getGroupDataFile().getWorlds()) {
+            for (Group g : w.getGroups().values()) {
+                if (g.hasUser(uuid)) groups.add(g);
+            }
             
         }
         //Finish up permission parsing
@@ -298,7 +302,7 @@ public final class CoUser {
     public void unload() {
         addInfo("suffix", suffix);
         addInfo("prefix", prefix);
-        this.userSection.setEntry("group", name);
+        this.userSection.setEntry("group", group.getName());
         this.userSection.setEntry("permissions", userPermissions.toArray());
         
         this.userPermissions.clear();
