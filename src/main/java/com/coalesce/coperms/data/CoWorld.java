@@ -1,9 +1,7 @@
 package com.coalesce.coperms.data;
 
-import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.util.HashMap;
@@ -15,14 +13,12 @@ import java.util.UUID;
 public final class CoWorld {
 
     private final World world;
-    private final CoPerms plugin;
     private UserDataFile userData;
     private GroupDataFile groupData;
     private final Map<UUID, CoUser> users;
 
-    public CoWorld(CoPerms plugin, World world) {
+    public CoWorld(World world) {
         this.world = world;
-        this.plugin = plugin;
         this.users = new HashMap<>();
     }
 
@@ -69,15 +65,7 @@ public final class CoWorld {
      * @return The user whether they
      */
     public CoUser getUser(UUID uuid) {
-        if (users.containsKey(uuid)) {
-            return users.get(uuid);
-        }
-        if (hasUser(uuid)) {
-            CoUser user = new CoUser(plugin, uuid, false);
-            user.load(this);
-            return user;
-        }
-        return null;
+        return userData.getUser(this, uuid);
     }
 
     /**
@@ -87,15 +75,7 @@ public final class CoWorld {
      * @return The user online or not
      */
     public CoUser getUser(String name) {
-        if (plugin.getDataHolder().getUser(name) != null) {
-            return users.get(Bukkit.getPlayer(name).getUniqueId());
-        }
-        if (hasUser(name)) {
-            CoUser user = new CoUser(plugin, userData.resolveId(name), false);
-            user.load(this);
-            return user;
-        }
-        return null;
+        return userData.getUser(this, name);
     }
 
     /**
@@ -214,6 +194,7 @@ public final class CoWorld {
     public void load(UserDataFile userData, GroupDataFile groupData) {
         this.userData = userData;
         this.groupData = groupData;
+        
         groupData.addWorld(this);
         userData.addWorld(this);
     }

@@ -293,7 +293,10 @@ public final class Group {
     }
 
     private void reloadUsers() {
-        users.forEach(u -> Objects.requireNonNull(getUser(u)).resolvePermissions());
+        users.forEach(u -> {
+            CoUser user = getUser(u);
+            if (user != null) user.resolvePermissions();
+        });
     }
     
     public void unload() {

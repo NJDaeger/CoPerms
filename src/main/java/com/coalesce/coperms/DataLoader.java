@@ -121,7 +121,7 @@ public final class DataLoader extends CoModule {
     
     private void loadWorlds() {
         loaded.forEach(world -> {
-            CoWorld cw = new CoWorld(plugin, world);
+            CoWorld cw = new CoWorld(world);
             cw.load(userDataFiles.get(world.getName()), groupDataFiles.get(world.getName()));
             worlds.put(world.getName(), cw);
         });
@@ -138,8 +138,7 @@ public final class DataLoader extends CoModule {
         //Mirrors must contain the default world
         if (mirrors.contains(world.getName())) {
             
-            ISection mirror = mirrors.getSection(world.getName());
-
+            List<String> mirror = mirrors.getStringList(world.getName());
             //if the world in mirrors has both the groups and users string, then load the datafiles.
             if (mirror.contains("groups") && mirror.contains("users")) {
                 userDataFiles.put(world.getName(), new UserDataFile(plugin, world));

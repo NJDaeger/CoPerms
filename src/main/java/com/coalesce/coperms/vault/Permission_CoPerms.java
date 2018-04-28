@@ -13,6 +13,7 @@ import org.bukkit.plugin.Plugin;
 import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public final class Permission_CoPerms extends Permission {
 
     private CoPerms coperms;
@@ -24,7 +25,7 @@ public final class Permission_CoPerms extends Permission {
 
     public class PermissionServerListener implements Listener {
 
-        Permission_CoPerms permission = null;
+        Permission_CoPerms permission;
 
         public PermissionServerListener(Permission_CoPerms permission) {
             this.permission = permission;
@@ -117,7 +118,7 @@ public final class Permission_CoPerms extends Permission {
     public String[] getPlayerGroups(String world, String player) {
         Set<String> groups = new HashSet<>();
         coperms.getDataHolder().getWorld(world).getUser(player).getGroups().forEach(g -> groups.add(g.getName()));
-        return groups.toArray(new String[groups.size()]);
+        return groups.toArray(new String[0]);
     }
 
     @Override
@@ -129,7 +130,7 @@ public final class Permission_CoPerms extends Permission {
     public String[] getGroups() {
         Set<String> groups = new HashSet<>();
         coperms.getDataHolder().getGroups().forEach((n, g) -> groups.add(n));
-        return groups.toArray(new String[groups.size()]);
+        return groups.toArray(new String[0]);
     }
 
     @Override

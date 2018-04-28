@@ -146,9 +146,9 @@ public final class UserDataFile extends YmlConfig {
      */
     public UUID resolveId(String name) {
         ISection idSection = getSection("users");
-    
-        for (UUID uuid : users) {
-            if (idSection.getSection(uuid.toString()).getString("username").equalsIgnoreCase(name)) return uuid;
+        
+        for (String uuid : idSection.getKeys(false)) {
+            if (idSection.getSection(uuid).getString("username").equalsIgnoreCase(name)) return UUID.fromString(uuid);
         }
         return null;
     }
