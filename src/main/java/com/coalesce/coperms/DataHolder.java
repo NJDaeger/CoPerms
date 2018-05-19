@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @SuppressWarnings({"unused", "UnusedReturnValue", "WeakerAccess"})
-public final class DataHolder {
+public class DataHolder {
 
     private final CoPerms plugin;
     private final Map<UUID, CoUser> users;
@@ -111,6 +111,7 @@ public final class DataHolder {
      * @return the user
      */
     public CoUser getUser(String name) {
+        if (Bukkit.getPlayer(name) == null) return null;
         return users.get(Bukkit.getPlayer(name).getUniqueId());
     }
 

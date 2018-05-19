@@ -8,6 +8,7 @@ import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
 import com.coalesce.core.command.base.CommandContext;
 import com.coalesce.core.command.base.TabContext;
+import javafx.util.Pair;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -87,6 +88,29 @@ public final class PermissionCommands {
         plugin.registerCommand(adduperm, remuperm, addgperm, remgperm, getuperms, getgperms);
     }
 
+    private Pair<Set<String>, Set<String>> resolveSets(CommandContext context, Group group, CoUser user) {
+        Set<String> setA = new HashSet<>();
+        Set<String> setB = new HashSet<>();
+        for (int i = 0; context.getArgs().size() > i; i++) {
+            if (i < (context.argAt(1).startsWith("w:") ? 2 : 1)) {
+                continue;
+            }
+            if (user == null) {
+                if (group.addPermission(context.argAt(i))) {
+                    setA.add(context.argAt(i));
+                    continue;
+                }
+            } else {
+                if (user.addPermission(context.argAt(i))) {
+                    setA.add(context.argAt(i));
+                    continue;
+                }
+            }
+            setB.add(context.argAt(i));
+        }
+        return new Pair<>(setA, setB);
+    }
+    
     //
     //
     //
@@ -103,23 +127,12 @@ public final class PermissionCommands {
             context.pluginMessage(RED + "The user specified does not exist in the world specified");
             return;
         }
-        Set<String> unable = new HashSet<>();
-        Set<String> added = new HashSet<>();
-        for (int i = 0; context.getArgs().size() > i; i++) {
-            if (i < (context.argAt(1).startsWith("w:") ? 2 : 1)) {
-                continue;
-            }
-            if (!user.addPermission(context.argAt(i))) {
-                unable.add(context.argAt(i));
-            } else {
-                added.add(context.argAt(i));
-            }
+        Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
+        if (!pair.getKey().isEmpty()) {
+            context.pluginMessage(GRAY + "The following permission(s) was added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getKey()));
         }
-        if (!added.isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(added));
-        }
-        if (!unable.isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(unable));
+        if (!pair.getValue().isEmpty()) {
+            context.pluginMessage(GRAY + "Some permissions could not be added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getValue()));
         }
     }
 
@@ -140,23 +153,12 @@ public final class PermissionCommands {
             context.pluginMessage(RED + "The user specified does not exist in the world specified");
             return;
         }
-        Set<String> unable = new HashSet<>();
-        Set<String> removed = new HashSet<>();
-        for (int i = 0; context.getArgs().size() > i; i++) {
-            if (i < (context.argAt(1).startsWith("w:") ? 2 : 1)) {
-                continue;
-            }
-            if (!user.removePermission(context.argAt(i))) {
-                unable.add(context.argAt(i));
-            } else {
-                removed.add(context.argAt(i));
-            }
+        Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
+        if (!pair.getKey().isEmpty()) {
+            context.pluginMessage(GRAY + "The following permission(s) was removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getKey()));
         }
-        if (!removed.isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(removed));
-        }
-        if (!unable.isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(unable));
+        if (!pair.getValue().isEmpty()) {
+            context.pluginMessage(GRAY + "Some permissions could not be removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getValue()));
         }
     }
 
@@ -184,23 +186,12 @@ public final class PermissionCommands {
             context.pluginMessage(RED + "The group specified does not exist in the world specified");
             return;
         }
-        Set<String> unable = new HashSet<>();
-        Set<String> added = new HashSet<>();
-        for (int i = 0; context.getArgs().size() > i; i++) {
-            if (i < (context.argAt(1).startsWith("w:") ? 2 : 1)) {
-                continue;
-            }
-            if (!group.addPermission(context.argAt(i))) {
-                unable.add(context.argAt(i));
-            } else {
-                added.add(context.argAt(i));
-            }
+        Pair<Set<String>, Set<String>> pair = resolveSets(context, group, null);
+        if (!pair.getKey().isEmpty()) {
+            context.pluginMessage(GRAY + "The following permission(s) was added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getKey()));
         }
-        if (!added.isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(added));
-        }
-        if (!unable.isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(unable));
+        if (!pair.getValue().isEmpty()) {
+            context.pluginMessage(GRAY + "Some permissions could not be added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getValue()));
         }
     }
 
@@ -221,23 +212,12 @@ public final class PermissionCommands {
             context.pluginMessage(RED + "The group specified does not exist in the world specified");
             return;
         }
-        Set<String> unable = new HashSet<>();
-        Set<String> removed = new HashSet<>();
-        for (int i = 0; context.getArgs().size() > i; i++) {
-            if (i < (context.argAt(1).startsWith("w:") ? 2 : 1)) {
-                continue;
-            }
-            if (!group.removePermission(context.argAt(i))) {
-                unable.add(context.argAt(i));
-            } else {
-                removed.add(context.argAt(i));
-            }
+        Pair<Set<String>, Set<String>> pair = resolveSets(context, group, null);
+        if (!pair.getKey().isEmpty()) {
+            context.pluginMessage(GRAY + "The following permission(s) was removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getKey()));
         }
-        if (!removed.isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(removed));
-        }
-        if (!unable.isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(unable));
+        if (!pair.getValue().isEmpty()) {
+            context.pluginMessage(GRAY + "Some permissions could not be removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getValue()));
         }
     }
 

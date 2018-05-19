@@ -101,11 +101,11 @@ public final class UserCommands {
 
     private void promote(CommandContext context) {
         CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
-        CoUser user = holder.getUser((context.getArgs().size() == 1 ? holder.getDefaultWorld().getName() : context.argAt(1)), context.argAt(0));
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
             return;
         }
+        CoUser user = world.getUser(context.argAt(0));
         if (user == null) {
             context.pluginMessage(RED + "The user specified does not exist in the world specified");
             return;
@@ -133,11 +133,11 @@ public final class UserCommands {
 
     private void demote(CommandContext context) {
         CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
-        CoUser user = holder.getUser((context.getArgs().size() == 1 ? holder.getDefaultWorld().getName() : context.argAt(1)), context.argAt(0));
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
             return;
         }
+        CoUser user = world.getUser(context.argAt(0));
         if (user == null) {
             context.pluginMessage(RED + "The user specified does not exist in the world specified");
             return;
@@ -165,16 +165,16 @@ public final class UserCommands {
 
     private void setRank(CommandContext context) {
         CoWorld world = holder.getWorld(context.argAt(2)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(2));
-        CoUser user = holder.getUser((context.getArgs().size() < 3 ? holder.getDefaultWorld().getName() : context.argAt(2)), context.argAt(0));
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
             return;
         }
-        Group group = world.getGroup(context.argAt(1));
+        CoUser user = world.getUser(context.argAt(0));
         if (user == null) {
             context.pluginMessage(RED + "The user specified does not exist in the world specified");
             return;
         }
+        Group group = world.getGroup(context.argAt(1));
         if (group == null) {
             context.pluginMessage(RED + "The group specified does not exist in the world specified");
             return;
@@ -259,6 +259,10 @@ public final class UserCommands {
 
     private void setGroupPrefix(CommandContext context) {
         CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
+        if (world == null) {
+            context.pluginMessage(RED + "The world specified does not exist.");
+            return;
+        }
         Group group = world.getGroup(context.argAt(0));
         if (group == null) {
             context.pluginMessage(RED + "The group specified does not exist in the world specified");
@@ -287,6 +291,10 @@ public final class UserCommands {
 
     private void setGroupSuffix(CommandContext context) {
         CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
+        if (world == null) {
+            context.pluginMessage(RED + "The world specified does not exist.");
+            return;
+        }
         Group group = world.getGroup(context.argAt(0));
         if (group == null) {
             context.pluginMessage(RED + "The group specified does not exist in the world specified");

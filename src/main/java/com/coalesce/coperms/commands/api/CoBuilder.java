@@ -6,6 +6,7 @@ import com.coalesce.core.command.base.CommandContext;
 import com.coalesce.core.command.base.TabContext;
 
 public class CoBuilder extends CommandBuilder<CommandContext, TabContext, CoBuilder, CoCommand> {
+    
     /**
      * Creates a new CommandBuilder
      *
@@ -14,5 +15,10 @@ public class CoBuilder extends CommandBuilder<CommandContext, TabContext, CoBuil
      */
     public CoBuilder(CoPerms plugin, String name) {
         super(plugin, name, new CoCommand(plugin, name));
+    }
+    
+    @Override
+    public CoCommand build() {
+        return command;
     }
 }

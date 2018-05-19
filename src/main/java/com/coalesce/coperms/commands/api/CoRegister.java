@@ -10,22 +10,22 @@ import org.bukkit.command.CommandSender;
 
 import java.util.List;
 
-public class CoRegister extends CommandRegister<CommandContext, TabContext, CoBuilder> {
+public class CoRegister extends CommandRegister<CommandContext, TabContext, CoBuilder, CoCommand> {
     
     private final CoPerms plugin;
     
-    public CoRegister(ProcessedCommand<CommandContext, TabContext, CoBuilder> command, CoPerms plugin) {
+    public CoRegister(CoCommand command, CoPerms plugin) {
         super(command, plugin);
         this.plugin = plugin;
     }
     
     @Override
     public boolean execute(CommandSender sender, String alias, String[] args) {
-        return command.run(new CommandContext(new CoSender(plugin, sender), alias, args, plugin));
+        return command.run(new CommandContext<>(new CoSender(plugin, sender), alias, args, plugin));
     }
     
     @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
-        return command.complete(new TabContext(new CommandContext(new CoSender(plugin, sender), alias, args, plugin), command, args));
+        return command.complete(new TabContext<>(new CommandContext<>(new CoSender(plugin, sender), alias, args, plugin), command, args));
     }
 }
