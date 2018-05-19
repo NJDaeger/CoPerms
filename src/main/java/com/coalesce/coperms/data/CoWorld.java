@@ -1,37 +1,25 @@
 package com.coalesce.coperms.data;
 
-import com.coalesce.coperms.CoPerms;
-import com.coalesce.coperms.DataLoader;
 import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public final class CoWorld {
 
     private final World world;
-    private final CoPerms plugin;
-    private final UserDataFile userData;
-    private final GroupDataFile groupData;
+    private UserDataFile userData;
+    private GroupDataFile groupData;
     private final Map<UUID, CoUser> users;
-    private final Map<String, Group> groups;
-    private final Map<Integer, String> rankID;
 
-    public CoWorld(CoPerms plugin, World world, UserDataFile userData, GroupDataFile groupData, DataLoader loader) {
+    public CoWorld(World world) {
         this.world = world;
-        this.plugin = plugin;
-        this.userData = userData;
-        this.groupData = groupData;
         this.users = new HashMap<>();
-        this.groups = new HashMap<>();
-        this.rankID = new HashMap<>();
-
-
-        groupData.getSection("groups").getKeys(false).forEach(key -> groups.put(key.toLowerCase(), new Group(plugin, this, key, loader)));
-        groups.values().forEach(Group::loadInheritanceTree);
-        groups.values().forEach(g -> rankID.put(g.getRankID(), g.getName()));
     }
 
     /**
@@ -74,18 +62,10 @@ public final class CoWorld {
      * Gets a user from this world
      *
      * @param uuid The user to find
-     * @return The user if in this world, null otherwise.
+     * @return The user whether they
      */
     public CoUser getUser(UUID uuid) {
-        if (plugin.getDataHolder().getUser(uuid) != null) {
-            return users.get(uuid);
-        }
-        if (hasUser(uuid)) {
-            CoUser user = new CoUser(plugin, uuid, false);
-            user.load(this);
-            return user;
-        }
-        return null;
+        return userData.getUser(this, uuid);
     }
 
     /**
@@ -95,14 +75,7 @@ public final class CoWorld {
      * @return The user online or not
      */
     public CoUser getUser(String name) {
-        if (plugin.getDataHolder().getUser(name) != null) {
-            return users.get(Bukkit.getPlayer(name).getUniqueId());
-        } else if (hasUser(name)) {
-            CoUser user = new CoUser(plugin, resolveID(name), false);
-            user.load(this);
-            return user;
-        }
-        return null;
+        return userData.getUser(this, name);
     }
 
     /**
@@ -112,7 +85,7 @@ public final class CoWorld {
      * @return True if the user has been in this world, false otherwise.
      */
     public boolean hasUser(UUID uuid) {
-        return getUser(uuid) != null || userData.getSection("users").contains(uuid.toString());
+        return userData.hasUser(uuid);
     }
 
     /**
@@ -122,21 +95,7 @@ public final class CoWorld {
      * @return True if the user has been in this world, false otherwise.
      */
     public boolean hasUser(String name) {
-        for (UUID id : getAllUsers()) {
-            if (userData.getSection("users").getEntry(id.toString() + ".username").getString().equalsIgnoreCase(name)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private UUID resolveID(String name) {
-        for (UUID id : getAllUsers()) {
-            if (userData.getSection("users").getEntry(id.toString() + ".username").getString().equalsIgnoreCase(name)) {
-                return id;
-            }
-        }
-        return null;
+        return userData.hasUser(name);
     }
 
     /**
@@ -144,7 +103,7 @@ public final class CoWorld {
      *
      * @return The worlds user map
      */
-    public Map<UUID, CoUser> getUsers() {
+    public Map<UUID, CoUser> getOnlineUsers() {
         return users;
     }
 
@@ -154,9 +113,7 @@ public final class CoWorld {
      * @return All the users. Online or offline
      */
     public Set<UUID> getAllUsers() {
-        Set<UUID> users = new HashSet<>();
-        userData.getSection("users").getKeys(false).forEach(k -> users.add(UUID.fromString(k)));
-        return users;
+        return userData.getUsers();
     }
 
     /**
@@ -166,7 +123,7 @@ public final class CoWorld {
      * @return The group
      */
     public Group getGroup(String name) {
-        return groups.get(name.toLowerCase());
+        return groupData.getGroup(name);
     }
 
     /**
@@ -176,19 +133,25 @@ public final class CoWorld {
      * @return The rank if it exists
      */
     public Group getGroup(int id) {
-        if (rankID.get(id) == null) {
-            return null;
-        }
-        return getGroup(rankID.get(id));
+        return groupData.getGroup(id);
     }
-
+    
+    /**
+     * Check if this world has a group
+     * @param name The name of the group to look for
+     * @return True if this world has the group, false otherwise.
+     */
+    public boolean hasGroup(String name) {
+        return getGroup(name) != null;
+    }
+    
     /**
      * Gets a map of all the groups in this world
      *
      * @return The group map
      */
     public Map<String, Group> getGroups() {
-        return groups;
+        return groupData.getGroupMap();
     }
 
     /**
@@ -197,12 +160,7 @@ public final class CoWorld {
      * @return The worlds default group
      */
     public Group getDefaultGroup() {
-        for (Group group : groups.values()) {
-            if (group.isDefault()) {
-                return group;
-            }
-        }
-        return null;
+        return groupData.getDefaultGroup();
     }
 
     /**
@@ -231,5 +189,13 @@ public final class CoWorld {
             return;
         }
         this.users.remove(user.getUserID());
+    }
+    
+    public void load(UserDataFile userData, GroupDataFile groupData) {
+        this.userData = userData;
+        this.groupData = groupData;
+        
+        groupData.addWorld(this);
+        userData.addWorld(this);
     }
 }
