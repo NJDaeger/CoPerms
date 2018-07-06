@@ -20,7 +20,7 @@ public final class CoPerms extends CoPlugin<com.coalesce.core.i18n.DummyLang> {
 
     @Override
     public void onPluginEnable() {
-        //this.updateCheck("Project-Coalesce", "CoPerms", true);
+        updateCheck("Project-Coalesce", "CoPerms", true);
         this.config = new CoPermsConfig(this);
         this.supers = new SuperDataFile(this);
         new Metrics(this);
