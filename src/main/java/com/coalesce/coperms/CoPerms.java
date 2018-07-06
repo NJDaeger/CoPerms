@@ -1,19 +1,18 @@
 package com.coalesce.coperms;
 
-import com.coalesce.coperms.commands.api.CoCommand;
-import com.coalesce.coperms.commands.api.CoRegister;
 import com.coalesce.coperms.configuration.CoPermsConfig;
 import com.coalesce.coperms.configuration.SuperDataFile;
 import com.coalesce.coperms.data.Group;
 import com.coalesce.coperms.vault.Chat_CoPerms;
 import com.coalesce.coperms.vault.Permission_CoPerms;
 import com.coalesce.core.CoPlugin;
+import com.coalesce.core.i18n.DummyLang;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 
-public final class CoPerms extends CoPlugin {
+public final class CoPerms extends CoPlugin<com.coalesce.core.i18n.DummyLang> {
 
     private DataLoader dataLoader;
     private CoPermsConfig config;
@@ -67,12 +66,6 @@ public final class CoPerms extends CoPlugin {
      */
     public SuperDataFile getSuperDataFile() {
         return supers;
-    }
-
-    public void registerCommand(CoCommand... commands) {
-        for (CoCommand command : commands) {
-            getCommandStore().registerCommand(command, new CoRegister(command, this));
-        }
     }
     
 }

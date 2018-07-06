@@ -2,18 +2,20 @@ package com.coalesce.coperms.commands;
 
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataHolder;
-import com.coalesce.coperms.commands.api.CoCommand;
 import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
-import com.coalesce.core.command.base.CommandContext;
-import com.coalesce.core.command.base.TabContext;
+import com.coalesce.core.command.defaults.DefaultCContext;
+import com.coalesce.core.command.defaults.DefaultProcessedCommand;
+import com.coalesce.core.command.defaults.DefaultTContext;
+import com.coalesce.core.i18n.DummyLang;
 import javafx.util.Pair;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.coalesce.core.command.defaults.DefaultProcessedCommand.builder;
 import static org.bukkit.ChatColor.*;
 
 public final class PermissionCommands {
@@ -22,8 +24,8 @@ public final class PermissionCommands {
 
     public PermissionCommands(CoPerms plugin, DataHolder holder) {
         this.holder = holder;
-    
-        CoCommand adduperm = CoCommand.builder( "adduperm")
+        
+        DefaultProcessedCommand<DummyLang> adduperm = builder(plugin,"adduperm")
                 .executor(this::addUserPermission)
                 .completer(this::userPermissionTab)
                 .aliases("adduserperm")
@@ -33,7 +35,7 @@ public final class PermissionCommands {
                 .permission("coperms.permissions.user.add")
                 .build();
     
-        CoCommand remuperm = CoCommand.builder( "remuperm")
+        DefaultProcessedCommand remuperm = builder(plugin,"remuperm")
                 .executor(this::removeUserPermission)
                 .completer(this::userPermissionTab)
                 .aliases("remuserperm")
@@ -43,7 +45,7 @@ public final class PermissionCommands {
                 .permission("coperms.permission.user.remove")
                 .build();
     
-        CoCommand addgperm = CoCommand.builder( "addgperm")
+        DefaultProcessedCommand addgperm = builder(plugin,"addgperm")
                 .executor(this::addGroupPermission)
                 .completer(this::groupPermissionsTab)
                 .aliases("addgroupperm")
@@ -53,7 +55,7 @@ public final class PermissionCommands {
                 .permission("coperms.permission.group.add")
                 .build();
     
-        CoCommand remgperm = CoCommand.builder( "remgperm")
+        DefaultProcessedCommand remgperm = builder(plugin,"remgperm")
                 .executor(this::removeGroupPermission)
                 .completer(this::groupPermissionsTab)
                 .aliases("remgroupperm")
@@ -63,7 +65,7 @@ public final class PermissionCommands {
                 .permission("coperms.permission.group.remove")
                 .build();
     
-        CoCommand getuperms = CoCommand.builder( "getuperms")
+        DefaultProcessedCommand getuperms = builder(plugin,"getuperms")
                 .executor(this::getUserPermissions)
                 .completer(this::getUPermsTab)
                 .aliases("userperms")
@@ -74,7 +76,7 @@ public final class PermissionCommands {
                 .permission("coperms.permission.user.see")
                 .build();
     
-        CoCommand getgperms = CoCommand.builder( "getgperms")
+        DefaultProcessedCommand getgperms = builder(plugin,"getgperms")
                 .executor(this::getGroupPermissions)
                 .completer(this::getGPermsTab)
                 .aliases("groupperms")
@@ -84,11 +86,11 @@ public final class PermissionCommands {
                 .maxArgs(1)
                 .permission("coperms.permission.group.see")
                 .build();
-    
-        plugin.registerCommand(adduperm, remuperm, addgperm, remgperm, getuperms, getgperms);
+        
+        plugin.getCommandStore().registerCommands(adduperm, remuperm, addgperm, remgperm, getuperms, getgperms);
     }
 
-    private Pair<Set<String>, Set<String>> resolveSets(CommandContext context, Group group, CoUser user) {
+    private Pair<Set<String>, Set<String>> resolveSets(DefaultCContext<DummyLang> context, Group group, CoUser user) {
         Set<String> setA = new HashSet<>();
         Set<String> setB = new HashSet<>();
         for (int i = 0; context.getArgs().size() > i; i++) {
@@ -115,8 +117,7 @@ public final class PermissionCommands {
     //
     //
     //
-    @SuppressWarnings( "ConstantConditions" )
-    private void addUserPermission(CommandContext context) {
+    private void addUserPermission(DefaultCContext<DummyLang> context) {
         CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
@@ -140,9 +141,7 @@ public final class PermissionCommands {
     //
     //
     //
-
-    @SuppressWarnings( "ConstantConditions" )
-    private void removeUserPermission(CommandContext context) {
+    private void removeUserPermission(DefaultCContext<DummyLang> context) {
         CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
@@ -162,7 +161,7 @@ public final class PermissionCommands {
         }
     }
 
-    private void userPermissionTab(TabContext context) {
+    private void userPermissionTab(DefaultTContext context) {
         Set<String> worlds = new HashSet<>();
         holder.getWorlds().keySet().forEach(w -> worlds.add("w:" + w));
         context.playerCompletion(0);
@@ -173,9 +172,7 @@ public final class PermissionCommands {
     //
     //
     //
-
-    @SuppressWarnings( "ConstantConditions" )
-    private void addGroupPermission(CommandContext context) {
+    private void addGroupPermission(DefaultCContext<DummyLang> context) {
         CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
@@ -199,9 +196,7 @@ public final class PermissionCommands {
     //
     //
     //
-
-    @SuppressWarnings( "ConstantConditions" )
-    private void removeGroupPermission(CommandContext context) {
+    private void removeGroupPermission(DefaultCContext<DummyLang> context) {
         CoWorld world = context.argAt(1).startsWith("w:") ? holder.getWorld(context.argAt(1).substring(2)) : holder.getDefaultWorld();
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
@@ -221,7 +216,7 @@ public final class PermissionCommands {
         }
     }
 
-    private void groupPermissionsTab(TabContext context) {
+    private void groupPermissionsTab(DefaultTContext context) {
         Set<String> groups = holder.getGroups().keySet();
         Set<String> worlds = new HashSet<>();
         holder.getWorlds().keySet().forEach(w -> worlds.add("w:" + w));
@@ -234,7 +229,7 @@ public final class PermissionCommands {
     //
     //
 
-    private void getUserPermissions(CommandContext context) {
+    private void getUserPermissions(DefaultCContext<DummyLang> context) {
         CoUser user = holder.getUser(context.argAt(0)) == null ? holder.getUser(holder.getDefaultWorld().getName(), context.argAt(0)) : holder.getUser(context.argAt(0));
         if (user == null) {
             context.pluginMessage(RED + "The user specified does not exist in the world specified");
@@ -243,7 +238,7 @@ public final class PermissionCommands {
         context.pluginMessage(GRAY + "All permissions for user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(user.getPermissions()));
     }
 
-    private void getUPermsTab(TabContext context) {
+    private void getUPermsTab(DefaultTContext context) {
         context.playerCompletion(0);
     }
 
@@ -251,9 +246,7 @@ public final class PermissionCommands {
     //
     //
     //
-
-    @SuppressWarnings( "ConstantConditions" )
-    private void getGroupPermissions(CommandContext context) {
+    private void getGroupPermissions(DefaultCContext<DummyLang> context) {
         Group group = holder.getGroup(context.argAt(0).toLowerCase());
         if (group == null) {
             context.pluginMessage(RED + "The group specified does not exist");
@@ -262,7 +255,7 @@ public final class PermissionCommands {
         context.pluginMessage(GRAY + "All permissions for group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(group.getPermissions()));
     }
 
-    private void getGPermsTab(TabContext context) {
+    private void getGPermsTab(DefaultTContext context) {
         context.completionAt(0, holder.getGroups().keySet().toArray(new String[0]));
     }
 

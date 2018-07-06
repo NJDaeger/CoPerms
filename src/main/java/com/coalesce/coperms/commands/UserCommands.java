@@ -2,16 +2,18 @@ package com.coalesce.coperms.commands;
 
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataHolder;
-import com.coalesce.coperms.commands.api.CoCommand;
 import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
-import com.coalesce.core.command.base.CommandContext;
-import com.coalesce.core.command.base.TabContext;
+import com.coalesce.core.command.defaults.DefaultCContext;
+import com.coalesce.core.command.defaults.DefaultProcessedCommand;
+import com.coalesce.core.command.defaults.DefaultTContext;
+import com.coalesce.core.i18n.DummyLang;
 
 import java.util.Set;
 
-import static org.bukkit.ChatColor.*;
+import static com.coalesce.core.command.defaults.DefaultProcessedCommand.builder;
+import static com.coalesce.core.Color.*;
 
 public final class UserCommands {
 
@@ -20,7 +22,7 @@ public final class UserCommands {
     public UserCommands(CoPerms plugin, DataHolder holder) {
         this.holder = holder;
 
-        CoCommand promote = CoCommand.builder("promote")
+        DefaultProcessedCommand promote = builder(plugin, "promote")
                 .executor(this::promote)
                 .completer(this::promoteTab)
                 .aliases("promo")
@@ -31,7 +33,7 @@ public final class UserCommands {
                 .permission("coperms.ranks.promote")
                 .build();
     
-        CoCommand setRank = CoCommand.builder( "setrank")
+        DefaultProcessedCommand setRank = builder(plugin, "setrank")
                 .executor(this::setRank)
                 .completer(this::setRankTab)
                 .aliases("setr", "setgroup")
@@ -42,7 +44,7 @@ public final class UserCommands {
                 .permission("coperms.ranks.setrank")
                 .build();
 
-        CoCommand demote = CoCommand.builder("demote")
+        DefaultProcessedCommand demote = builder(plugin, "demote")
                 .executor(this::demote)
                 .completer(this::demoteTab)
                 .aliases("demo")
@@ -53,7 +55,7 @@ public final class UserCommands {
                 .permission("coperms.ranks.demote")
                 .build();
 
-        CoCommand setPrefix = CoCommand.builder("setprefix")
+        DefaultProcessedCommand setPrefix = builder(plugin, "setprefix")
                 .executor(this::setPrefix)
                 .completer(this::setPrefixTab)
                 .aliases("prefix")
@@ -63,7 +65,7 @@ public final class UserCommands {
                 .permission("coperms.variables.user.prefix")
                 .build();
 
-        CoCommand setSuffix = CoCommand.builder("setsuffix")
+        DefaultProcessedCommand setSuffix = builder(plugin, "setsuffix")
                 .executor(this::setSuffix)
                 .completer(this::setSuffixTab)
                 .description("Adds or removes a suffix from a user")
@@ -72,7 +74,7 @@ public final class UserCommands {
                 .permission("coperms.variables.user.suffix")
                 .build();
     
-        CoCommand setGPrefix = CoCommand.builder("setgprefix")
+        DefaultProcessedCommand setGPrefix = builder(plugin, "setgprefix")
                 .executor(this::setGroupPrefix)
                 .completer(this::groupVarChange)
                 .description("Sets the prefix of a group.")
@@ -81,7 +83,7 @@ public final class UserCommands {
                 .minArgs(2)
                 .permission("coperms.variables.group.prefix").build();
     
-        CoCommand setGSuffix = CoCommand.builder("setgsuffix")
+        DefaultProcessedCommand setGSuffix = builder(plugin, "setgsuffix")
                 .executor(this::setGroupSuffix)
                 .completer(this::groupVarChange)
                 .description("Sets the suffix of a group.")
@@ -91,7 +93,7 @@ public final class UserCommands {
                 .permission("coperms.variables.group.suffix")
                 .build();
         
-        plugin.registerCommand(promote, setRank, demote, setPrefix, setSuffix, setGPrefix, setGSuffix);
+        plugin.getCommandStore().registerCommands(promote, setRank, demote, setPrefix, setSuffix, setGPrefix, setGSuffix);
     }
 
     //
@@ -99,7 +101,7 @@ public final class UserCommands {
     //
     //
 
-    private void promote(CommandContext context) {
+    private void promote(DefaultCContext<DummyLang> context) {
         CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
@@ -116,11 +118,11 @@ public final class UserCommands {
             return;
         }
         user.setGroup(world, group.getName());
-        context.pluginMessage(DARK_AQUA + user.getName() + GRAY + " was promoted to " + DARK_AQUA + group.getName() + GRAY + " in world " + DARK_AQUA + world.getName());
-        user.pluginMessage(GRAY + "You were promoted to " + DARK_AQUA + group.getName() + GRAY + " in world " + DARK_AQUA + world.getName());
+        context.pluginMessage(AQUA + user.getName() + GRAY + " was promoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
+        user.pluginMessage(GRAY + "You were promoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
     }
 
-    private void promoteTab(TabContext context) {
+    private void promoteTab(DefaultTContext<DummyLang> context) {
         Set<String> worlds = holder.getWorlds().keySet();
         context.playerCompletion(0);
         context.completionAt(1, worlds.toArray(new String[0]));
@@ -131,7 +133,7 @@ public final class UserCommands {
     //
     //
 
-    private void demote(CommandContext context) {
+    private void demote(DefaultCContext<DummyLang> context) {
         CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
@@ -148,11 +150,11 @@ public final class UserCommands {
             return;
         }
         user.setGroup(world, group.getName());
-        context.pluginMessage(DARK_AQUA + user.getName() + GRAY + " was demoted to " + DARK_AQUA + group.getName() + GRAY + " in world " + DARK_AQUA + world.getName());
-        user.pluginMessage(GRAY + "You were demoted to " + DARK_AQUA + group.getName() + GRAY + " in world " + DARK_AQUA + world.getName());
+        context.pluginMessage(AQUA + user.getName() + GRAY + " was demoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
+        user.pluginMessage(GRAY + "You were demoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
     }
 
-    private void demoteTab(TabContext context) {
+    private void demoteTab(DefaultTContext<DummyLang> context) {
         Set<String> worlds = holder.getWorlds().keySet();
         context.playerCompletion(0);
         context.completionAt(1, worlds.toArray(new String[0]));
@@ -163,7 +165,7 @@ public final class UserCommands {
     //
     //
 
-    private void setRank(CommandContext context) {
+    private void setRank(DefaultCContext<DummyLang> context) {
         CoWorld world = holder.getWorld(context.argAt(2)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(2));
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
@@ -180,11 +182,11 @@ public final class UserCommands {
             return;
         }
         user.setGroup(world, group.getName());
-        context.pluginMessage(DARK_AQUA + user.getName() + GRAY + " was added to group " + DARK_AQUA + group.getName() + GRAY + " in world " + DARK_AQUA + world.getName());
-        user.pluginMessage(GRAY + "You were added to group " + DARK_AQUA + group.getName() + GRAY + " in world " + DARK_AQUA + world.getName());
+        context.pluginMessage(AQUA + user.getName() + GRAY + " was added to group " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
+        user.pluginMessage(GRAY + "You were added to group " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
     }
 
-    private void setRankTab(TabContext context) {
+    private void setRankTab(DefaultTContext<DummyLang> context) {
         Set<String> groups = holder.getGroups().keySet();
         Set<String> worlds = holder.getWorlds().keySet();
         context.playerCompletion(0);
@@ -196,8 +198,7 @@ public final class UserCommands {
     //
     //
     //
-    @SuppressWarnings( "ConstantConditions" )
-    private void setPrefix(CommandContext context) {
+    private void setPrefix(DefaultCContext<DummyLang> context) {
         CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
         if (user == null) {
             context.pluginMessage(RED + "The user specified does not exist in the world specified");
@@ -209,16 +210,16 @@ public final class UserCommands {
         }
         if (context.getArgs().size() < 2) {
             user.setPrefix(null);
-            context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + user.getName() + GRAY + " has been disabled.");
+            context.pluginMessage(GRAY + "Prefix for " + AQUA + user.getName() + GRAY + " has been disabled.");
             user.pluginMessage(GRAY + "Your prefix has been disabled.");
             return;
         }
         user.setPrefix(context.joinArgs(1) + " ");
-        context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + translateAlternateColorCodes('&', user.getPrefix()));
-        user.pluginMessage(GRAY + "Your prefix has been changed to " + DARK_AQUA + translateAlternateColorCodes('&', user.getPrefix()));
+        context.pluginMessage(GRAY + "Prefix for " + AQUA + user.getName() + GRAY + " has been changed to " + AQUA + translate(user.getPrefix()));
+        user.pluginMessage(GRAY + "Your prefix has been changed to " + AQUA + translate(user.getPrefix()));
     }
 
-    private void setPrefixTab(TabContext context) {
+    private void setPrefixTab(DefaultTContext<DummyLang> context) {
         context.playerCompletion(0);
     }
 
@@ -226,8 +227,7 @@ public final class UserCommands {
     //
     //
     //
-    @SuppressWarnings( "ConstantConditions" )
-    private void setSuffix(CommandContext context) {
+    private void setSuffix(DefaultCContext<DummyLang> context) {
         CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
         if (user == null) {
             context.pluginMessage(RED + "The user specified does not exist in the world specified");
@@ -239,16 +239,16 @@ public final class UserCommands {
         }
         if (context.getArgs().size() < 2) {
             user.setSuffix(null);
-            context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + user.getName() + GRAY + " has been disabled.");
+            context.pluginMessage(GRAY + "Suffix for " + AQUA + user.getName() + GRAY + " has been disabled.");
             user.pluginMessage(GRAY + "Your suffix has been disabled.");
             return;
         }
         user.setSuffix(" " + context.joinArgs(1));
-        context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + user.getName() + GRAY + " has been changed to " + DARK_AQUA + translateAlternateColorCodes('&', user.getSuffix()));
-        user.pluginMessage(GRAY + "Your suffix has been changed to " + DARK_AQUA + translateAlternateColorCodes('&', user.getSuffix()));
+        context.pluginMessage(GRAY + "Suffix for " + AQUA + user.getName() + GRAY + " has been changed to " + AQUA + translate(user.getSuffix()));
+        user.pluginMessage(GRAY + "Your suffix has been changed to " + AQUA + translate(user.getSuffix()));
     }
 
-    private void setSuffixTab(TabContext context) {
+    private void setSuffixTab(DefaultTContext<DummyLang> context) {
         context.playerCompletion(0);
     }
 
@@ -257,7 +257,7 @@ public final class UserCommands {
     //
     //
 
-    private void setGroupPrefix(CommandContext context) {
+    private void setGroupPrefix(DefaultCContext<DummyLang> context) {
         CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
@@ -270,14 +270,14 @@ public final class UserCommands {
         }
         if (context.getArgs().size() < 3) {
             group.setPrefix(null);
-            context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + group.getName() + GRAY + " has been disabled.");
+            context.pluginMessage(GRAY + "Prefix for " + AQUA + group.getName() + GRAY + " has been disabled.");
             return;
         }
         group.setPrefix(context.joinArgs(2) + " ");
-        context.pluginMessage(GRAY + "Prefix for " + DARK_AQUA + group.getName() + GRAY + " has been changed to " + DARK_AQUA + group.getPrefix());
+        context.pluginMessage(GRAY + "Prefix for " + AQUA + group.getName() + GRAY + " has been changed to " + AQUA + group.getPrefix());
     }
 
-    private void groupVarChange(TabContext context) {
+    private void groupVarChange(DefaultTContext<DummyLang> context) {
         Set<String> worlds = holder.getWorlds().keySet();
         Set<String> groups = holder.getGroups().keySet();
         context.completionAt(0, groups.toArray(new String[0]));
@@ -289,7 +289,7 @@ public final class UserCommands {
     //
     //
 
-    private void setGroupSuffix(CommandContext context) {
+    private void setGroupSuffix(DefaultCContext<DummyLang> context) {
         CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
         if (world == null) {
             context.pluginMessage(RED + "The world specified does not exist.");
@@ -302,10 +302,10 @@ public final class UserCommands {
         }
         if (context.getArgs().size() < 3) {
             group.setSuffix(null);
-            context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + group.getName() + GRAY + " has been disabled.");
+            context.pluginMessage(GRAY + "Suffix for " + AQUA + group.getName() + GRAY + " has been disabled.");
             return;
         }
         group.setSuffix(" " + context.joinArgs(2));
-        context.pluginMessage(GRAY + "Suffix for " + DARK_AQUA + group.getName() + GRAY + " has been changed to" + DARK_AQUA + group.getSuffix());
+        context.pluginMessage(GRAY + "Suffix for " + AQUA + group.getName() + GRAY + " has been changed to" + AQUA + group.getSuffix());
     }
 }
