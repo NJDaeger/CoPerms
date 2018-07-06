@@ -1,7 +1,6 @@
 package com.coalesce.coperms.vault;
 
 import com.coalesce.coperms.CoPerms;
-import com.coalesce.coperms.data.CoWorld;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
@@ -13,19 +12,17 @@ import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 
 public final class Chat_CoPerms extends Chat {
-
-    private Plugin plugin = null;
+    
     private CoPerms coperms;
 
     public Chat_CoPerms(Plugin plugin, Permission perms) {
         super(perms);
-        this.plugin = plugin;
         Bukkit.getServer().getPluginManager().registerEvents(new PermissionServiceListener(this), plugin);
     }
 
     public class PermissionServiceListener implements Listener {
 
-        Chat_CoPerms chat = null;
+        Chat_CoPerms chat;
 
         public PermissionServiceListener(Chat_CoPerms chat) {
             this.chat = chat;

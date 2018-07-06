@@ -2,6 +2,7 @@ package com.coalesce.coperms.commands;
 
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataHolder;
+import com.coalesce.coperms.Pair;
 import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
@@ -9,7 +10,6 @@ import com.coalesce.core.command.defaults.DefaultCContext;
 import com.coalesce.core.command.defaults.DefaultProcessedCommand;
 import com.coalesce.core.command.defaults.DefaultTContext;
 import com.coalesce.core.i18n.DummyLang;
-import javafx.util.Pair;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -129,11 +129,11 @@ public final class PermissionCommands {
             return;
         }
         Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
-        if (!pair.getKey().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getKey()));
+        if (!pair.getFirst().isEmpty()) {
+            context.pluginMessage(GRAY + "The following permission(s) was added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
         }
-        if (!pair.getValue().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getValue()));
+        if (!pair.getSecond().isEmpty()) {
+            context.pluginMessage(GRAY + "Some permissions could not be added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
         }
     }
 
@@ -153,11 +153,11 @@ public final class PermissionCommands {
             return;
         }
         Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
-        if (!pair.getKey().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getKey()));
+        if (!pair.getFirst().isEmpty()) {
+            context.pluginMessage(GRAY + "The following permission(s) was removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
         }
-        if (!pair.getValue().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getValue()));
+        if (!pair.getSecond().isEmpty()) {
+            context.pluginMessage(GRAY + "Some permissions could not be removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
         }
     }
 
@@ -184,11 +184,11 @@ public final class PermissionCommands {
             return;
         }
         Pair<Set<String>, Set<String>> pair = resolveSets(context, group, null);
-        if (!pair.getKey().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getKey()));
+        if (!pair.getFirst().isEmpty()) {
+            context.pluginMessage(GRAY + "The following permission(s) was added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
         }
-        if (!pair.getValue().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getValue()));
+        if (!pair.getSecond().isEmpty()) {
+            context.pluginMessage(GRAY + "Some permissions could not be added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
         }
     }
 
@@ -208,11 +208,11 @@ public final class PermissionCommands {
             return;
         }
         Pair<Set<String>, Set<String>> pair = resolveSets(context, group, null);
-        if (!pair.getKey().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getKey()));
+        if (!pair.getFirst().isEmpty()) {
+            context.pluginMessage(GRAY + "The following permission(s) was removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
         }
-        if (!pair.getValue().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getValue()));
+        if (!pair.getSecond().isEmpty()) {
+            context.pluginMessage(GRAY + "Some permissions could not be removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
         }
     }
 

@@ -6,7 +6,6 @@ import com.coalesce.coperms.data.Group;
 import com.coalesce.coperms.vault.Chat_CoPerms;
 import com.coalesce.coperms.vault.Permission_CoPerms;
 import com.coalesce.core.CoPlugin;
-import com.coalesce.core.i18n.DummyLang;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
