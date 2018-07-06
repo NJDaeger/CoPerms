@@ -1,5 +1,5 @@
-name: CoPerms
-version: 0.3.0
+name: ${project.artifactId}
+version: ${project.version}
 main: com.coalesce.coperms.CoPerms
 author: NJDaeger
 depend: [CoalesceCore]
