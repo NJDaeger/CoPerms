@@ -118,8 +118,8 @@ public final class UserCommands {
             return;
         }
         user.setGroup(world, group.getName());
-        context.pluginMessage(AQUA + user.getName() + GRAY + " was promoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
-        user.pluginMessage(GRAY + "You were promoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
+        context.pluginMessage(AQUA + user.getName() + SILVER + " was promoted to " + AQUA + group.getName() + SILVER + " in world " + AQUA + world.getName());
+        user.pluginMessage(SILVER + "You were promoted to " + AQUA + group.getName() + SILVER + " in world " + AQUA + world.getName());
     }
 
     private void promoteTab(DefaultTContext<DummyLang> context) {
@@ -150,8 +150,8 @@ public final class UserCommands {
             return;
         }
         user.setGroup(world, group.getName());
-        context.pluginMessage(AQUA + user.getName() + GRAY + " was demoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
-        user.pluginMessage(GRAY + "You were demoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
+        context.pluginMessage(AQUA + user.getName() + SILVER + " was demoted to " + AQUA + group.getName() + SILVER + " in world " + AQUA + world.getName());
+        user.pluginMessage(SILVER + "You were demoted to " + AQUA + group.getName() + SILVER + " in world " + AQUA + world.getName());
     }
 
     private void demoteTab(DefaultTContext<DummyLang> context) {
@@ -182,8 +182,8 @@ public final class UserCommands {
             return;
         }
         user.setGroup(world, group.getName());
-        context.pluginMessage(AQUA + user.getName() + GRAY + " was added to group " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
-        user.pluginMessage(GRAY + "You were added to group " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
+        context.pluginMessage(AQUA + user.getName() + SILVER + " was added to group " + AQUA + group.getName() + SILVER + " in world " + AQUA + world.getName());
+        user.pluginMessage(SILVER + "You were added to group " + AQUA + group.getName() + SILVER + " in world " + AQUA + world.getName());
     }
 
     private void setRankTab(DefaultTContext<DummyLang> context) {
@@ -205,18 +205,18 @@ public final class UserCommands {
             return;
         }
         if (!context.getSender().hasPermission("coperms.variables.prefix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) {
-            context.pluginMessage(RED + "You do not have permission for this command! Required Permission: " + GRAY + "coperms.variables.prefix.other");
+            context.pluginMessage(RED + "You do not have permission for this command! Required Permission: " + SILVER + "coperms.variables.prefix.other");
             return;
         }
         if (context.getArgs().size() < 2) {
             user.setPrefix(null);
-            context.pluginMessage(GRAY + "Prefix for " + AQUA + user.getName() + GRAY + " has been disabled.");
-            user.pluginMessage(GRAY + "Your prefix has been disabled.");
+            context.pluginMessage(SILVER + "Prefix for " + AQUA + user.getName() + SILVER + " has been disabled.");
+            user.pluginMessage(SILVER + "Your prefix has been disabled.");
             return;
         }
         user.setPrefix(context.joinArgs(1) + " ");
-        context.pluginMessage(GRAY + "Prefix for " + AQUA + user.getName() + GRAY + " has been changed to " + AQUA + translate(user.getPrefix()));
-        user.pluginMessage(GRAY + "Your prefix has been changed to " + AQUA + translate(user.getPrefix()));
+        context.pluginMessage(SILVER + "Prefix for " + AQUA + user.getName() + SILVER + " has been changed to " + AQUA + translate(user.getPrefix()));
+        user.pluginMessage(SILVER + "Your prefix has been changed to " + AQUA + translate(user.getPrefix()));
     }
 
     private void setPrefixTab(DefaultTContext<DummyLang> context) {
@@ -234,18 +234,18 @@ public final class UserCommands {
             return;
         }
         if (!context.getSender().hasPermission("coperms.variables.suffix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) {
-            context.pluginMessage(RED + "You do not have permission for this command! Required Permission: " + GRAY + "coperms.variables.suffix.other");
+            context.pluginMessage(RED + "You do not have permission for this command! Required Permission: " + SILVER + "coperms.variables.suffix.other");
             return;
         }
         if (context.getArgs().size() < 2) {
             user.setSuffix(null);
-            context.pluginMessage(GRAY + "Suffix for " + AQUA + user.getName() + GRAY + " has been disabled.");
-            user.pluginMessage(GRAY + "Your suffix has been disabled.");
+            context.pluginMessage(SILVER + "Suffix for " + AQUA + user.getName() + SILVER + " has been disabled.");
+            user.pluginMessage(SILVER + "Your suffix has been disabled.");
             return;
         }
         user.setSuffix(" " + context.joinArgs(1));
-        context.pluginMessage(GRAY + "Suffix for " + AQUA + user.getName() + GRAY + " has been changed to " + AQUA + translate(user.getSuffix()));
-        user.pluginMessage(GRAY + "Your suffix has been changed to " + AQUA + translate(user.getSuffix()));
+        context.pluginMessage(SILVER + "Suffix for " + AQUA + user.getName() + SILVER + " has been changed to " + AQUA + translate(user.getSuffix()));
+        user.pluginMessage(SILVER + "Your suffix has been changed to " + AQUA + translate(user.getSuffix()));
     }
 
     private void setSuffixTab(DefaultTContext<DummyLang> context) {
@@ -270,11 +270,11 @@ public final class UserCommands {
         }
         if (context.getArgs().size() < 3) {
             group.setPrefix(null);
-            context.pluginMessage(GRAY + "Prefix for " + AQUA + group.getName() + GRAY + " has been disabled.");
+            context.pluginMessage(SILVER + "Prefix for " + AQUA + group.getName() + SILVER + " has been disabled.");
             return;
         }
         group.setPrefix(context.joinArgs(2) + " ");
-        context.pluginMessage(GRAY + "Prefix for " + AQUA + group.getName() + GRAY + " has been changed to " + AQUA + group.getPrefix());
+        context.pluginMessage(SILVER + "Prefix for " + AQUA + group.getName() + SILVER + " has been changed to " + AQUA + group.getPrefix());
     }
 
     private void groupVarChange(DefaultTContext<DummyLang> context) {
@@ -302,10 +302,10 @@ public final class UserCommands {
         }
         if (context.getArgs().size() < 3) {
             group.setSuffix(null);
-            context.pluginMessage(GRAY + "Suffix for " + AQUA + group.getName() + GRAY + " has been disabled.");
+            context.pluginMessage(SILVER + "Suffix for " + AQUA + group.getName() + SILVER + " has been disabled.");
             return;
         }
         group.setSuffix(" " + context.joinArgs(2));
-        context.pluginMessage(GRAY + "Suffix for " + AQUA + group.getName() + GRAY + " has been changed to" + AQUA + group.getSuffix());
+        context.pluginMessage(SILVER + "Suffix for " + AQUA + group.getName() + SILVER + " has been changed to" + AQUA + group.getSuffix());
     }
 }

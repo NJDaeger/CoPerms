@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.coalesce.core.command.defaults.DefaultProcessedCommand.builder;
-import static org.bukkit.ChatColor.*;
+import static com.coalesce.core.Color.*;
 
 public final class PermissionCommands {
 
@@ -130,10 +130,10 @@ public final class PermissionCommands {
         }
         Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
         if (!pair.getFirst().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
+            context.pluginMessage(SILVER + "The following permission(s) was added to user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
         }
         if (!pair.getSecond().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be added to user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
+            context.pluginMessage(SILVER + "Some permissions could not be added to user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
         }
     }
 
@@ -154,10 +154,10 @@ public final class PermissionCommands {
         }
         Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
         if (!pair.getFirst().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
+            context.pluginMessage(SILVER + "The following permission(s) was removed from user " + AQUA + user.getName() + SILVER + ": " + WHITE + formatPerms(pair.getFirst()));
         }
         if (!pair.getSecond().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be removed from user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
+            context.pluginMessage(SILVER + "Some permissions could not be removed from user " + AQUA + user.getName() + SILVER + ": " + WHITE + formatPerms(pair.getSecond()));
         }
     }
 
@@ -185,10 +185,10 @@ public final class PermissionCommands {
         }
         Pair<Set<String>, Set<String>> pair = resolveSets(context, group, null);
         if (!pair.getFirst().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
+            context.pluginMessage(SILVER + "The following permission(s) was added to group " + AQUA + group.getName() + SILVER + ": " + WHITE + formatPerms(pair.getFirst()));
         }
         if (!pair.getSecond().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be added to group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
+            context.pluginMessage(SILVER + "Some permissions could not be added to group " + AQUA + group.getName() + SILVER + ": " + WHITE + formatPerms(pair.getSecond()));
         }
     }
 
@@ -209,10 +209,10 @@ public final class PermissionCommands {
         }
         Pair<Set<String>, Set<String>> pair = resolveSets(context, group, null);
         if (!pair.getFirst().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
+            context.pluginMessage(SILVER + "The following permission(s) was removed from group " + AQUA + group.getName() + SILVER + ": " + WHITE + formatPerms(pair.getFirst()));
         }
         if (!pair.getSecond().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be removed from group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
+            context.pluginMessage(SILVER + "Some permissions could not be removed from group " + AQUA + group.getName() + SILVER + ": " + WHITE + formatPerms(pair.getSecond()));
         }
     }
 
@@ -235,7 +235,7 @@ public final class PermissionCommands {
             context.pluginMessage(RED + "The user specified does not exist in the world specified");
             return;
         }
-        context.pluginMessage(GRAY + "All permissions for user " + DARK_AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(user.getPermissions()));
+        context.pluginMessage(SILVER + "All permissions for user " + AQUA + user.getName() + SILVER + ": " + WHITE + formatPerms(user.getPermissions()));
     }
 
     private void getUPermsTab(DefaultTContext context) {
@@ -252,7 +252,7 @@ public final class PermissionCommands {
             context.pluginMessage(RED + "The group specified does not exist");
             return;
         }
-        context.pluginMessage(GRAY + "All permissions for group " + DARK_AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(group.getPermissions()));
+        context.pluginMessage(SILVER + "All permissions for group " + AQUA + group.getName() + SILVER + ": " + WHITE + formatPerms(group.getPermissions()));
     }
 
     private void getGPermsTab(DefaultTContext context) {
@@ -271,15 +271,15 @@ public final class PermissionCommands {
                 continue;
             }
             if (node.startsWith("-") && node.endsWith(".*")) {
-                builder.append(GRAY).append(ITALIC).append(UNDERLINE).append(node).append(comma);
+                builder.append(SILVER).append(ITALICS).append(UNDERLINE).append(node).append(comma);
                 continue;
             }
             if (node.startsWith("-")) {
-                builder.append(GRAY).append(ITALIC).append(node).append(comma);
+                builder.append(SILVER).append(ITALICS).append(node).append(comma);
                 continue;
             }
             if (node.endsWith(".*")) {
-                builder.append(GRAY).append(UNDERLINE).append(node).append(comma);
+                builder.append(SILVER).append(UNDERLINE).append(node).append(comma);
                 continue;
             }
             builder.append(node).append(comma);
