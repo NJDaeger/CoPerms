@@ -1,8 +1,8 @@
-package com.coalesce.coperms.configuration;
+package com.njdaeger.coperms.configuration;
 
-import com.coalesce.coperms.CoPerms;
-import com.coalesce.coperms.data.CoUser;
-import com.coalesce.coperms.data.CoWorld;
+import com.njdaeger.coperms.CoPerms;
+import com.njdaeger.coperms.data.CoUser;
+import com.njdaeger.coperms.data.CoWorld;
 import com.njdaeger.bcm.Configuration;
 import com.njdaeger.bcm.base.ConfigType;
 import com.njdaeger.bcm.base.ISection;

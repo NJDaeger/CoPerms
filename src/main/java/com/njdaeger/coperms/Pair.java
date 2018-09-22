@@ -1,4 +1,4 @@
-package com.coalesce.coperms;
+package com.njdaeger.coperms;
 
 public class Pair<F, S> {
     

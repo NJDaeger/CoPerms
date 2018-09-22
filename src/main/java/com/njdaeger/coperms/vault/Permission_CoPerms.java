@@ -1,6 +1,6 @@
-package com.coalesce.coperms.vault;
+package com.njdaeger.coperms.vault;
 
-import com.coalesce.coperms.CoPerms;
+import com.njdaeger.coperms.CoPerms;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;

@@ -1,6 +1,6 @@
-package com.coalesce.coperms;
+package com.njdaeger.coperms;
 
-import com.coalesce.coperms.data.CoUser;
+import com.njdaeger.coperms.data.CoUser;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissibleBase;

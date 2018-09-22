@@ -1,6 +1,6 @@
-package com.coalesce.coperms.data;
+package com.njdaeger.coperms.data;
 
-import com.coalesce.coperms.CoPerms;
+import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.bcm.base.ISection;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

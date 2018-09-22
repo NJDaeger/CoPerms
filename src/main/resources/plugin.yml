@@ -1,5 +1,5 @@
 name: ${project.artifactId}
 version: ${project.version}
-main: com.coalesce.coperms.CoPerms
+main: CoPerms
 author: NJDaeger
 softdepend: [Vault]

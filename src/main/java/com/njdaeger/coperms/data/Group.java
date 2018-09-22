@@ -1,10 +1,10 @@
-package com.coalesce.coperms.data;
+package com.njdaeger.coperms.data;
 
-import com.coalesce.coperms.DataLoader;
-import com.coalesce.coperms.configuration.GroupDataFile;
-import com.coalesce.coperms.configuration.UserDataFile;
-import com.coalesce.coperms.exceptions.GroupInheritMissing;
-import com.coalesce.coperms.exceptions.SuperGroupMissing;
+import com.njdaeger.coperms.DataLoader;
+import com.njdaeger.coperms.configuration.GroupDataFile;
+import com.njdaeger.coperms.configuration.UserDataFile;
+import com.njdaeger.coperms.exceptions.GroupInheritMissing;
+import com.njdaeger.coperms.exceptions.SuperGroupMissing;
 import com.njdaeger.bcm.base.ISection;
 
 import java.util.HashSet;

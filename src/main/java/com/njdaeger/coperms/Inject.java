@@ -1,4 +1,4 @@
-package com.coalesce.coperms;
+package com.njdaeger.coperms;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

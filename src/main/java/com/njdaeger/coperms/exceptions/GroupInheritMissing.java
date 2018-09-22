@@ -1,4 +1,4 @@
-package com.coalesce.coperms.exceptions;
+package com.njdaeger.coperms.exceptions;
 
 public class GroupInheritMissing extends RuntimeException {
 

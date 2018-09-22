@@ -1,6 +1,6 @@
-package com.coalesce.coperms.configuration;
+package com.njdaeger.coperms.configuration;
 
-import com.coalesce.coperms.CoPerms;
+import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.bcm.Configuration;
 import com.njdaeger.bcm.base.ConfigType;
 import org.bukkit.Bukkit;

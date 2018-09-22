@@ -1,9 +1,9 @@
-package com.coalesce.coperms;
+package com.njdaeger.coperms;
 
-import com.coalesce.coperms.data.CoUser;
-import com.coalesce.coperms.data.CoWorld;
-import com.coalesce.coperms.data.Group;
-import com.coalesce.coperms.data.SuperGroup;
+import com.njdaeger.coperms.data.CoUser;
+import com.njdaeger.coperms.data.CoWorld;
+import com.njdaeger.coperms.data.Group;
+import com.njdaeger.coperms.data.SuperGroup;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 

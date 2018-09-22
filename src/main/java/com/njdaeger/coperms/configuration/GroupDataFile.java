@@ -1,9 +1,9 @@
-package com.coalesce.coperms.configuration;
+package com.njdaeger.coperms.configuration;
 
-import com.coalesce.coperms.CoPerms;
-import com.coalesce.coperms.DataLoader;
-import com.coalesce.coperms.data.CoWorld;
-import com.coalesce.coperms.data.Group;
+import com.njdaeger.coperms.CoPerms;
+import com.njdaeger.coperms.DataLoader;
+import com.njdaeger.coperms.data.CoWorld;
+import com.njdaeger.coperms.data.Group;
 import com.njdaeger.bcm.Configuration;
 import com.njdaeger.bcm.base.ConfigType;
 import org.bukkit.World;

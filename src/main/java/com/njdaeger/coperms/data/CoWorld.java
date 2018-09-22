@@ -1,7 +1,7 @@
-package com.coalesce.coperms.data;
+package com.njdaeger.coperms.data;
 
-import com.coalesce.coperms.configuration.GroupDataFile;
-import com.coalesce.coperms.configuration.UserDataFile;
+import com.njdaeger.coperms.configuration.GroupDataFile;
+import com.njdaeger.coperms.configuration.UserDataFile;
 import org.bukkit.World;
 
 import java.util.HashMap;

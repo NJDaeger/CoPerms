@@ -1,11 +1,11 @@
-package com.coalesce.coperms;
+package com.njdaeger.coperms;
 
-import com.coalesce.coperms.commands.PermissionCommands;
-import com.coalesce.coperms.commands.UserCommands;
-import com.coalesce.coperms.configuration.GroupDataFile;
-import com.coalesce.coperms.configuration.UserDataFile;
-import com.coalesce.coperms.data.CoWorld;
-import com.coalesce.coperms.data.SuperGroup;
+import com.njdaeger.coperms.commands.PermissionCommands;
+import com.njdaeger.coperms.commands.UserCommands;
+import com.njdaeger.coperms.configuration.GroupDataFile;
+import com.njdaeger.coperms.configuration.UserDataFile;
+import com.njdaeger.coperms.data.CoWorld;
+import com.njdaeger.coperms.data.SuperGroup;
 import com.njdaeger.bcm.base.ISection;
 import org.bukkit.Bukkit;
 import org.bukkit.World;

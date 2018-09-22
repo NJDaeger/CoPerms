@@ -1,4 +1,4 @@
-package com.coalesce.coperms.data;
+package com.njdaeger.coperms.data;
 
 import com.njdaeger.bcm.base.ISection;
 

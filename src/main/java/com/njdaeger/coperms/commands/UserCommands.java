@@ -1,10 +1,10 @@
-package com.coalesce.coperms.commands;
+package com.njdaeger.coperms.commands;
 
-import com.coalesce.coperms.CoPerms;
-import com.coalesce.coperms.DataHolder;
-import com.coalesce.coperms.data.CoUser;
-import com.coalesce.coperms.data.CoWorld;
-import com.coalesce.coperms.data.Group;
+import com.njdaeger.coperms.CoPerms;
+import com.njdaeger.coperms.DataHolder;
+import com.njdaeger.coperms.data.CoUser;
+import com.njdaeger.coperms.data.CoWorld;
+import com.njdaeger.coperms.data.Group;
 import com.njdaeger.bci.base.BCICommand;
 import com.njdaeger.bci.defaults.BCIBuilder;
 import com.njdaeger.bci.defaults.CommandContext;
