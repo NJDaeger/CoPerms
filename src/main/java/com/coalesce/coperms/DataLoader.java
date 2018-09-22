@@ -6,8 +6,7 @@ import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.SuperGroup;
-import com.coalesce.core.CoModule;
-import com.coalesce.core.config.base.ISection;
+import com.njdaeger.bcm.base.ISection;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -18,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public final class DataLoader extends CoModule {
+public final class DataLoader {
     
     private final Map<String, GroupDataFile> groupDataFiles;
     private final Map<String, UserDataFile> userDataFiles;
@@ -37,8 +36,6 @@ public final class DataLoader extends CoModule {
      * @param plugin The plugin that's creating this module
      */
     public DataLoader(CoPerms plugin) {
-        super(plugin, "Data Loader");
-        
         this.mirrors = plugin.getPermsConfig().getSection("mirrors");
         this.def = Bukkit.getWorlds().get(0).getName();
         this.groupDataFiles = new HashMap<>();
@@ -51,9 +48,8 @@ public final class DataLoader extends CoModule {
     }
 
     //All other worlds needs to be any worlds that weren't specified in the configuration.
-
-    @Override
-    public void onEnable() {
+    
+    public void enable() {
         plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName().toLowerCase(), g));
         Bukkit.getWorlds().forEach(this::loadData);
         queue.forEach(this::loadOtherWorlds);
@@ -71,9 +67,8 @@ public final class DataLoader extends CoModule {
             });
         }
     }
-
-    @Override
-    public void onDisable() {
+    
+    public void disable() {
         if (!Bukkit.getOnlinePlayers().isEmpty()) {
             Bukkit.getOnlinePlayers().forEach(p -> dataHolder.unloadUser(p.getUniqueId()));
         }

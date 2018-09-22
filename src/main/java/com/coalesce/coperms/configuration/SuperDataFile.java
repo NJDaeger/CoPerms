@@ -2,18 +2,19 @@ package com.coalesce.coperms.configuration;
 
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.data.SuperGroup;
-import com.coalesce.core.config.YmlConfig;
+import com.njdaeger.bcm.Configuration;
+import com.njdaeger.bcm.base.ConfigType;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class SuperDataFile extends YmlConfig {
+public final class SuperDataFile extends Configuration {
 
     private final Set<SuperGroup> superGroups;
 
     public SuperDataFile(CoPerms plugin) {
-        super("supergroups", plugin);
+        super(plugin, ConfigType.YML, "supergroups");
         this.superGroups = new HashSet<>();
 
         if (!contains("super", false)) {

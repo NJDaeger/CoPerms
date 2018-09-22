@@ -1,15 +1,16 @@
 package com.coalesce.coperms.configuration;
 
 import com.coalesce.coperms.CoPerms;
-import com.coalesce.core.config.YmlConfig;
+import com.njdaeger.bcm.Configuration;
+import com.njdaeger.bcm.base.ConfigType;
 import org.bukkit.Bukkit;
 
 import java.util.Arrays;
 
-public final class CoPermsConfig extends YmlConfig {
+public final class CoPermsConfig extends Configuration {
 
     public CoPermsConfig(CoPerms plugin) {
-        super("config", plugin);
+        super(plugin, ConfigType.YML, "config");
 
         addEntry("allow-manual-promotion", false);
         addEntry("operator-overrides", true);

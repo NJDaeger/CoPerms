@@ -1,8 +1,9 @@
 package com.coalesce.coperms.data;
 
 import com.coalesce.coperms.CoPerms;
-import com.coalesce.core.config.base.ISection;
+import com.njdaeger.bcm.base.ISection;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 
 import java.util.HashSet;
 import java.util.List;
@@ -238,7 +239,7 @@ public final class CoUser {
      * @param message The message to send
      */
     public void pluginMessage(String message) {
-        if (isOnline()) Bukkit.getPlayer(uuid).sendMessage(plugin.getCoFormatter().format(message));
+        if (isOnline()) Bukkit.getPlayer(uuid).sendMessage(ChatColor.GRAY + "[" + ChatColor.DARK_AQUA + plugin.getName() + ChatColor.GRAY + "] " + ChatColor.RESET + message);
     }
 
     /**

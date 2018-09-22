@@ -5,7 +5,7 @@ import com.coalesce.coperms.configuration.GroupDataFile;
 import com.coalesce.coperms.configuration.UserDataFile;
 import com.coalesce.coperms.exceptions.GroupInheritMissing;
 import com.coalesce.coperms.exceptions.SuperGroupMissing;
-import com.coalesce.core.config.base.ISection;
+import com.njdaeger.bcm.base.ISection;
 
 import java.util.HashSet;
 import java.util.List;

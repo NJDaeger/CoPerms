@@ -4,7 +4,8 @@ import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.DataLoader;
 import com.coalesce.coperms.data.CoWorld;
 import com.coalesce.coperms.data.Group;
-import com.coalesce.core.config.YmlConfig;
+import com.njdaeger.bcm.Configuration;
+import com.njdaeger.bcm.base.ConfigType;
 import org.bukkit.World;
 
 import java.io.File;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public final class GroupDataFile extends YmlConfig {
+public final class GroupDataFile extends Configuration {
 
     
     private final Group defaultGroup;
@@ -32,7 +33,7 @@ public final class GroupDataFile extends YmlConfig {
      * @param world The world the datafile was originally created with.
      */
     public GroupDataFile(CoPerms plugin, DataLoader loader, UserDataFile userDataFile, World world) {
-        super("worlds" + File.separator + world.getName() + File.separator + "groups", plugin);
+        super(plugin, ConfigType.YML, "worlds" + File.separator + world.getName() + File.separator + "groups");
         
         this.groups = new HashMap<>();
         this.groupIds = new HashMap<>();

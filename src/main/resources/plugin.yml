@@ -2,5 +2,4 @@ name: ${project.artifactId}
 version: ${project.version}
 main: com.coalesce.coperms.CoPerms
 author: NJDaeger
-depend: [CoalesceCore]
 softdepend: [Vault]

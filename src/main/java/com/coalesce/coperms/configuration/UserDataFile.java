@@ -3,8 +3,9 @@ package com.coalesce.coperms.configuration;
 import com.coalesce.coperms.CoPerms;
 import com.coalesce.coperms.data.CoUser;
 import com.coalesce.coperms.data.CoWorld;
-import com.coalesce.core.config.YmlConfig;
-import com.coalesce.core.config.base.ISection;
+import com.njdaeger.bcm.Configuration;
+import com.njdaeger.bcm.base.ConfigType;
+import com.njdaeger.bcm.base.ISection;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -17,7 +18,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public final class UserDataFile extends YmlConfig {
+public final class UserDataFile extends Configuration {
 
     private final List<CoWorld> worlds;
     private final Set<UUID> users;
@@ -25,7 +26,7 @@ public final class UserDataFile extends YmlConfig {
     private final World world;
 
     public UserDataFile(CoPerms plugin, World world) {
-        super("worlds" + File.separator + world.getName() + File.separator + "users", plugin);
+        super(plugin, ConfigType.YML, "worlds" + File.separator + world.getName() + File.separator + "users");
         
         this.worlds = new ArrayList<>();
         this.users = getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet());
