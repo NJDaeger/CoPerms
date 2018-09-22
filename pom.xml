@@ -61,7 +61,84 @@
             </resource>
         </resources>
 
+
+
+
         <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <!--Jar Generation-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <outputDirectory>jars/</outputDirectory>
+                </configuration>
+            </plugin>
+
+            <!--Source Generation-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputDirectory>jars/</outputDirectory>
+                </configuration>
+            </plugin>
+
+            <!--Javadoc Generation-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <outputDirectory>docs/</outputDirectory>
+                    <jarOutputDirectory>jars/</jarOutputDirectory>
+                    <!--<doclint>none</doclint>-->
+                </configuration>
+            </plugin>
+
+            <!--Clean-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>default-clean</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>docs/</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+
             <!--Shade Dependencies-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -79,17 +156,21 @@
                     <relocations>
                         <relocation>
                             <pattern>com.njdaeger.bci</pattern>
-                            <shadedPattern>com.coalesce.coperms.libs.bci</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>com.njdaeger.btu</pattern>
-                            <shadedPattern>com.coalesce.coperms.libs.btu</shadedPattern>
+                            <shadedPattern>com.njdaeger.coperms.libs.bci</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.njdaeger.bcm</pattern>
-                            <shadedPattern>com.coalesce.coperms.libs.bcm</shadedPattern>
+                            <shadedPattern>com.njdaeger.coperms.libs.bcm</shadedPattern>
                         </relocation>
                     </relocations>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
         </plugins>
