@@ -19,7 +19,7 @@ public final class CoWorld {
     private GroupDataFile groupData;
     private final Map<UUID, CoUser> users;
 
-    public CoWorld(World world) {
+    public CoWorld(World world, UserDataFile userData, GroupDataFile groupData) {
         this.world = world;
         this.users = new HashMap<>();
     }
@@ -213,13 +213,5 @@ public final class CoWorld {
             return;
         }
         this.users.remove(user.getUserID());
-    }
-    
-    public void load(UserDataFile userData, GroupDataFile groupData) {
-        this.userData = userData;
-        this.groupData = groupData;
-        
-        groupData.addWorld(this);
-        userData.addWorld(this);
     }
 }

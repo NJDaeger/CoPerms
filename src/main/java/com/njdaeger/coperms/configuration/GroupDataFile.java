@@ -85,13 +85,4 @@ public final class GroupDataFile extends Configuration {
     public Group getDefaultGroup() {
         return defaultGroup;
     }
-    
-    public List<CoWorld> getWorlds() {
-        return worlds;
-    }
-    
-    public void addWorld(CoWorld world) {
-        worlds.add(world);
-    }
-    
 }

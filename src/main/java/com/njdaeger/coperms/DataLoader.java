@@ -115,12 +115,7 @@ public final class DataLoader {
     }
     
     private void loadWorlds() {
-        loaded.forEach(world -> {
-            CoWorld cw = new CoWorld(world);
-            cw.load(userDataFiles.get(world.getName()), groupDataFiles.get(world.getName()));
-            worlds.put(world.getName(), cw);
-        });
-        
+        loaded.forEach(world -> worlds.put(world.getName(), new CoWorld(world, userDataFiles.get(world.getName()), groupDataFiles.get(world.getName()))));
     }
     
     /**

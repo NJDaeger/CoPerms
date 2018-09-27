@@ -286,12 +286,10 @@ public final class CoUser {
         this.suffix = (String)getInfo("suffix");
     
         //Add in all the groups this user is currently in into the groups set.
-        for (CoWorld w : getWorld().getGroupDataFile().getWorlds()) {
-            for (Group g : w.getGroupMap().values()) {
-                if (g.hasUser(uuid)) groups.add(g);
-            }
-            
+        for (Group g : world.getGroupMap().values()) {
+            if (g.hasUser(uuid)) groups.add(g);
         }
+        
         //Finish up permission parsing
         resolvePermissions();
     }
