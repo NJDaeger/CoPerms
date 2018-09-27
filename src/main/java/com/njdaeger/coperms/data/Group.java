@@ -314,7 +314,8 @@ public final class Group {
         this.canBuild = section.getBoolean("info.canBuild");
         this.prefix = section.getString("info.prefix");
         this.suffix = section.getString("info.suffix");
-        userDataFile.getSection("users").getKeys(false).forEach(k -> users.add(UUID.fromString(k)));
+        
+        if (userDataFile.hasSection("users")) userDataFile.getSection("users").getKeys(false).forEach(k -> users.add(UUID.fromString(k)));
         
     }
 

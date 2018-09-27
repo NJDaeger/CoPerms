@@ -39,7 +39,7 @@ public final class GroupDataFile extends Configuration {
         this.groupIds = new HashMap<>();
         this.worlds = new ArrayList<>();
         
-        if (!contains("groups", false)) {
+        if (!hasSection("groups")) {
             addEntry("groups.default.permissions", Arrays.asList("ttb.generate", "ttb.undo", "ttb.redo"));
             addEntry("groups.default.inherits", Collections.emptyList());
             addEntry("groups.default.info.canBuild", true);

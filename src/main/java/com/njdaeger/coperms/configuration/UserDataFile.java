@@ -12,6 +12,7 @@ import org.bukkit.World;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -29,7 +30,7 @@ public final class UserDataFile extends Configuration {
         super(plugin, ConfigType.YML, "worlds" + File.separator + world.getName() + File.separator + "users");
         
         this.worlds = new ArrayList<>();
-        this.users = getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet());
+        this.users = hasSection("users") ? getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet()) : new HashSet<>();
         this.plugin = plugin;
         this.world = world;
     }

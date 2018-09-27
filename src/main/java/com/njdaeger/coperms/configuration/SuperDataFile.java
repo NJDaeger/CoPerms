@@ -17,7 +17,7 @@ public final class SuperDataFile extends Configuration {
         super(plugin, ConfigType.YML, "supergroups");
         this.superGroups = new HashSet<>();
 
-        if (!contains("super", false)) {
+        if (!hasSection("super")) {
             addEntry("super.default.permissions", Collections.singletonList("*"));
         }
         getSection("super").getKeys(false).forEach(key -> superGroups.add(new SuperGroup(key, getSection("super." + key))));

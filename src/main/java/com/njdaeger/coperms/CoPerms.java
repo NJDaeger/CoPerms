@@ -25,7 +25,6 @@ public final class CoPerms extends JavaPlugin {
         this.supers = new SuperDataFile(this);
         this.commandStore = new CommandStore(this);
         this.dataLoader = new DataLoader(this);
-        dataLoader.enable();
         new Metrics(this);
 
         if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
@@ -35,7 +34,7 @@ public final class CoPerms extends JavaPlugin {
         } else {
             getLogger().warning("Vault is not hooked into CoPerms... Loading anyway...");
         }
-        
+        dataLoader.enable();
     }
 
     @Override
