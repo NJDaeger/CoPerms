@@ -27,7 +27,7 @@ public class DataHolder {
         this.worlds = dataloader.getWorlds();
         this.groups = new HashMap<>();
 
-        worlds.forEach((name, world) -> world.getGroups().forEach(groups::putIfAbsent));
+        worlds.forEach((name, world) -> world.getGroupMap().forEach(groups::putIfAbsent));
     }
 
     /**

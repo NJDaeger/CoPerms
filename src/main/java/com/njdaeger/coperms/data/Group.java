@@ -315,7 +315,7 @@ public final class Group {
         this.prefix = section.getString("info.prefix");
         this.suffix = section.getString("info.suffix");
         
-        if (userDataFile.hasSection("users")) userDataFile.getSection("users").getKeys(false).forEach(k -> users.add(UUID.fromString(k)));
+        if (userDataFile.hasUsers()) users.addAll(userDataFile.getUsers());
         
     }
 

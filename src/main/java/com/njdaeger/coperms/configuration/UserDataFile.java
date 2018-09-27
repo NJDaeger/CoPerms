@@ -1,35 +1,31 @@
 package com.njdaeger.coperms.configuration;
 
-import com.njdaeger.coperms.CoPerms;
-import com.njdaeger.coperms.data.CoUser;
-import com.njdaeger.coperms.data.CoWorld;
 import com.njdaeger.bcm.Configuration;
 import com.njdaeger.bcm.base.ConfigType;
 import com.njdaeger.bcm.base.ISection;
+import com.njdaeger.coperms.CoPerms;
+import com.njdaeger.coperms.data.CoUser;
+import com.njdaeger.coperms.data.CoWorld;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class UserDataFile extends Configuration {
-
-    private final List<CoWorld> worlds;
-    private final Set<UUID> users;
+    
+    private final Set<UUID> users; //Contains all the users online or offline which are held in this user data file.
     private final CoPerms plugin;
-    private final World world;
+    private final World world; //The original world this user file is derived from.
 
     public UserDataFile(CoPerms plugin, World world) {
         super(plugin, ConfigType.YML, "worlds" + File.separator + world.getName() + File.separator + "users");
         
-        this.worlds = new ArrayList<>();
         this.users = hasSection("users") ? getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet()) : new HashSet<>();
         this.plugin = plugin;
         this.world = world;
@@ -58,17 +54,13 @@ public final class UserDataFile extends Configuration {
      */
     public CoUser getUser(CoWorld world, UUID uuid) {
         CoUser user = plugin.getDataHolder().getUser(uuid);
-        if (user != null && world.hasUser(uuid)) {
+        if (user != null && world.hasUser(uuid)) return user;
+        else if (hasUser(uuid) && world.hasUser(uuid)) {
+            user = new CoUser(plugin, uuid, false);
+            user.load(world);
             return user;
         }
-        if (hasUser(uuid)) {
-            if (world.hasUser(uuid)) {
-                user = new CoUser(plugin, uuid, false);
-                user.load(world);
-                return user;
-            }
-        }
-        return null;
+        else return null;
     }
     
     /**
@@ -79,39 +71,52 @@ public final class UserDataFile extends Configuration {
      */
     public CoUser getUser(CoWorld world, String name) {
         CoUser user = plugin.getDataHolder().getUser(name);
-        if (user != null && world.hasUser(name)) {
+        if (!world.hasUser(name)) return null;
+        if (user != null) return user;
+        else if (hasUser(name)) {
+            user = new CoUser(plugin, resolveId(name), false);
+            user.load(world);
             return user;
         }
-        if (hasUser(name)) {
-            if (world.hasUser(name)) {
-                user = new CoUser(plugin, resolveId(name), false);
-                user.load(world);
-                return user;
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Gets a user from this configuration file
-     * @param uuid The id of the user to get
-     * @return The user if they are online, in one of the worlds that uses this file. Otherwise null.
-     */
-    public CoUser getUser(UUID uuid) {
-        CoUser user = plugin.getDataHolder().getUser(uuid);
-        if (user != null && worlds.stream().anyMatch(w -> user.getWorld().equals(w))) return user;
         else return null;
     }
     
     /**
-     * Gets a user from this configuration file
+     * Attempts to get an online user via uuid from this file.
+     * @param uuid The id of the user to get
+     * @return The user if they are online, in one of the worlds that uses this file. Otherwise null.
+     */
+    public CoUser getUser(UUID uuid) {
+        return getUser(uuid, true);
+    }
+    
+    /**
+     * Attempts to get a user whether they are online or offline.
+     * @param uuid The user uuid
+     * @param onlineOnly Whether to search only online players or both online and offline.
+     * @return The user if found in this file, or null otherwise.
+     */
+    public CoUser getUser(UUID uuid, boolean onlineOnly) {
+        CoUser user = plugin.getDataHolder().getUser(uuid);
+        if (user != null) return user.getWorld().getUserDataFile().equals(this) ? user : null;
+        else if (!onlineOnly && hasUser(uuid)) return new CoUser(plugin, uuid, false);
+        else return null;
+    }
+    
+    /**
+     * Attempts to get an online user from this UserData file via their name.
      * @param name The name of the user to get
      * @return The user if they are online, in one of the worlds that uses this file. Otherwise null.
      */
     public CoUser getUser(String name) {
+        return getUser(name, true);
+    }
+    
+    public CoUser getUser(String name, boolean onlineOnly) {
         CoUser user = plugin.getDataHolder().getUser(name);
-        if (user != null && worlds.stream().anyMatch(w -> user.getWorld().equals(w))) return user;
-        return null;
+        if (user != null) return user.getWorld().getUserDataFile().equals(this) ? user : null;
+        else if (!onlineOnly && hasUser(name)) return new CoUser(plugin, resolveId(name), false);
+        else return null;
     }
     
     /**
@@ -141,6 +146,14 @@ public final class UserDataFile extends Configuration {
     }
     
     /**
+     * Whether this user file has any users.
+     * @return True if the user file has users specified, false otherwise.
+     */
+    public boolean hasUsers() {
+        return users.isEmpty();
+    }
+    
+    /**
      * Gets a uuid from a username
      * @param name The name of the user to lookup
      * @return The UUID if the user exists in this file.
@@ -152,14 +165,6 @@ public final class UserDataFile extends Configuration {
             if (idSection.getSection(uuid).getString("username").equalsIgnoreCase(name)) return UUID.fromString(uuid);
         }
         return null;
-    }
-    
-    public List<CoWorld> getWorlds() {
-        return worlds;
-    }
-    
-    public void addWorld(CoWorld world) {
-        worlds.add(world);
     }
     
 }

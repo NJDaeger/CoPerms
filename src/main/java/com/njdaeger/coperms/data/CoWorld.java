@@ -4,7 +4,9 @@ import com.njdaeger.coperms.configuration.GroupDataFile;
 import com.njdaeger.coperms.configuration.UserDataFile;
 import org.bukkit.World;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -146,11 +148,19 @@ public final class CoWorld {
     }
     
     /**
+     * Gets a list of all the groups from this world.
+     * @return All the groups in this world.
+     */
+    public List<Group> getGroups() {
+        return new ArrayList<>(getGroupMap().values());
+    }
+    
+    /**
      * Gets a map of all the groups in this world
      *
      * @return The group map
      */
-    public Map<String, Group> getGroups() {
+    public Map<String, Group> getGroupMap() {
         return groupData.getGroupMap();
     }
 
@@ -163,6 +173,20 @@ public final class CoWorld {
         return groupData.getDefaultGroup();
     }
 
+    public void addUser(CoUser user) {
+        /*
+        
+        We need to do the following:
+        - Set the users world to this world.
+        -
+        
+         */
+    }
+    
+    public void removeUser(CoUser user) {
+    
+    }
+    
     /**
      * Loads a user to this world.
      *

@@ -287,7 +287,7 @@ public final class CoUser {
     
         //Add in all the groups this user is currently in into the groups set.
         for (CoWorld w : getWorld().getGroupDataFile().getWorlds()) {
-            for (Group g : w.getGroups().values()) {
+            for (Group g : w.getGroupMap().values()) {
                 if (g.hasUser(uuid)) groups.add(g);
             }
             
