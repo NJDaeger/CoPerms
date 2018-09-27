@@ -129,17 +129,12 @@ public final class DataLoader {
      * @param world The world to load the data from.
      */
     private void loadData(World world) {
-        System.out.println(0);
-        System.out.println(mirrors.getSections());
         //Mirrors must contain the default world
-        if (mirrors.hasSection(world.getName())) {
-    
-            System.out.println(1);
+        if (mirrors.contains(world.getName(), true)) {
             
             List<String> mirror = mirrors.getStringList(world.getName());
             //if the world in mirrors has both the groups and users string, then load the datafiles.
             if (mirror.contains("groups") && mirror.contains("users")) {
-                System.out.println(2);
                 UserDataFile uf = new UserDataFile(plugin, world);
                 userDataFiles.put(world.getName(), uf);
                 groupDataFiles.put(world.getName(), new GroupDataFile(plugin, this, uf, world));
@@ -154,7 +149,6 @@ public final class DataLoader {
                     }
                     userDataFiles.put(world.getName(), userDataFiles.get(def));
                     groupDataFiles.put(world.getName(), groupDataFiles.get(def));
-                    System.out.println(3);
                     loaded.add(world);
                     return;
                 }
@@ -180,7 +174,6 @@ public final class DataLoader {
         //All other worlds will get their data from the default world.
         userDataFiles.put(world.getName(), userDataFiles.get(def));
         groupDataFiles.put(world.getName(), groupDataFiles.get(def));
-        System.out.println(4);
         loaded.add(world);
     }
 
@@ -190,7 +183,6 @@ public final class DataLoader {
 
             //If even one key matches a loaded world name, then the loop stops and both datafiles are used from the found world
             if (loaded.contains(Bukkit.getWorld(key))) {
-                System.out.println(5);
                 userDataFiles.put(world.getName(), userDataFiles.get(key));
                 groupDataFiles.put(world.getName(), groupDataFiles.get(key));
                 return;
@@ -198,13 +190,11 @@ public final class DataLoader {
 
             //If a key equals "users" then it creates a new userfile for this world
             if (key.equalsIgnoreCase("users")) {
-                System.out.println(6);
                 userDataFiles.put(world.getName(), new UserDataFile(plugin, world));
             }
     
             //If a key equals "groups" then it creates a new groupfile for this world
             if (key.equalsIgnoreCase("groups")) {
-                System.out.println(7);
                 groupDataFiles.put(world.getName(), new GroupDataFile(plugin, this, userDataFiles.get(world.getName()), world));
             }
 
@@ -217,21 +207,17 @@ public final class DataLoader {
 
                 //Gets the user file from the specified world
                 if (s[1].equalsIgnoreCase("users")) {
-                    System.out.println(8);
                     userDataFiles.put(world.getName(), userDataFiles.get(s[0]));
                 }
 
                 //Gets the group file from the specified world
                 if (s[1].equalsIgnoreCase("groups")) {
-                    System.out.println(9);
                     groupDataFiles.put(world.getName(), groupDataFiles.get(s[0]));
                 }
 
             }
         });
-
         //We need to load something, so we load the default worlds data.
-        System.out.println(10);
         userDataFiles.putIfAbsent(world.getName(), userDataFiles.get(def));
         groupDataFiles.putIfAbsent(world.getName(), groupDataFiles.get(def));
         loaded.add(world);
