@@ -1,7 +1,6 @@
 package com.njdaeger.coperms.groups;
 
 import com.njdaeger.bcm.base.ISection;
-import com.njdaeger.coperms.groups.AbstractGroup;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -11,10 +11,7 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 
-import java.util.HashSet;
-import java.util.Set;
-
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings("all")
 public final class Permission_CoPerms extends Permission {
 
     private CoPerms coperms;

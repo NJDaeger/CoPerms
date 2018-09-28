@@ -10,7 +10,7 @@ public class CoPermissible extends PermissibleBase {
 
     private final CoUser user;
 
-    public CoPermissible(Player player) {
+    CoPermissible(Player player) {
         super(player);
         this.user = CoPerms.getPlugin(CoPerms.class).getDataHolder().getUser(player.getUniqueId());
     }

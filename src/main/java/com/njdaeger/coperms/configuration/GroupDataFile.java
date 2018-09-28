@@ -67,15 +67,29 @@ public final class GroupDataFile extends Configuration {
         return groups.values();
     }
     
+    /**
+     * Get a group via its name.
+     * @param name The name of the group to look for
+     * @return The group if found, or else null.
+     */
     public Group getGroup(String name) {
         return groups.get(name.toLowerCase());
     }
     
+    /**
+     * Get a group via its group id
+     * @param id The group id
+     * @return The group if found, or else null.
+     */
     public Group getGroup(int id) {
         if (groupIds.get(id) == null) return null;
         return getGroup(groupIds.get(id));
     }
     
+    /**
+     * Get the default group of this particular group file.
+     * @return The default group
+     */
     public Group getDefaultGroup() {
         return defaultGroup;
     }

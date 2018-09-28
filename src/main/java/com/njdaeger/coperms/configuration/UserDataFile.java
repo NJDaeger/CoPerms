@@ -6,6 +6,7 @@ import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.data.CoWorld;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -47,42 +48,47 @@ public final class UserDataFile extends Configuration {
     }
     
     /**
-     * Gets a user from this file in the specified world. Can be offline.
+     * Get a user from this file in the specified world. User can be online or offline.
+     *
      * @param world The world to get the user from
      * @param uuid The id of the user
-     * @return The user (online or offline) if the world has had the user and this file has the user. Null otherwise
+     * @return The user if they have been in the specified world and the world's user data file is this specific file. Null otherwise.
      */
     public CoUser getUser(CoWorld world, UUID uuid) {
-        CoUser user = plugin.getDataHolder().getUser(uuid);
-        if (user != null && world.hasUser(uuid)) return user;
-        else if (hasUser(uuid) && world.hasUser(uuid)) {
-            user = new CoUser(plugin, uuid, false);
+        Validate.notNull(world, "World cannot be null");
+        Validate.notNull(uuid, "UUID cannot be null");
+        if (!hasUser(uuid) || !world.getUserDataFile().equals(this)) return null;
+        else if (world.hasUser(uuid, true)) return world.getUser(uuid);
+        else {
+            CoUser user = new CoUser(plugin, uuid, false);
             user.load(world);
             return user;
         }
-        else return null;
+        
     }
     
     /**
-     * Gets a user from this file in the specified world. Can be offline.
+     * Get a user from this file in the specified world. User can be online or offline.
+     *
      * @param world The world to get the user from
      * @param name The name of the user
-     * @return The user (online or offline) if the world has had the user and this file has the user. Null otherwise
+     * @return The user if they have been in the specified world and the world's user data file is this specific file. Null otherwise.
      */
     public CoUser getUser(CoWorld world, String name) {
-        CoUser user = plugin.getDataHolder().getUser(name);
-        if (!world.hasUser(name)) return null;
-        if (user != null) return user;
-        else if (hasUser(name)) {
-            user = new CoUser(plugin, resolveId(name), false);
+        Validate.notNull(world, "World cannot be null");
+        Validate.notNull(name, "Name cannot be null");
+        if (!hasUser(name) || !world.getUserDataFile().equals(this)) return null;
+        else if (world.hasUser(name, true)) return world.getUser(name);
+        else {
+            CoUser user = new CoUser(plugin, resolveId(name), false);
             user.load(world);
             return user;
         }
-        else return null;
     }
     
     /**
      * Attempts to get an online user via uuid from this file.
+     *
      * @param uuid The id of the user to get
      * @return The user if they are online, in one of the worlds that uses this file. Otherwise null.
      */
@@ -92,6 +98,7 @@ public final class UserDataFile extends Configuration {
     
     /**
      * Attempts to get a user whether they are online or offline.
+     *
      * @param uuid The user uuid
      * @param onlineOnly Whether to search only online players or both online and offline.
      * @return The user if found in this file, or null otherwise.
@@ -112,6 +119,12 @@ public final class UserDataFile extends Configuration {
         return getUser(name, true);
     }
     
+    /**
+     * Attempts to get an online or offline user via name from this file.
+     * @param name The name of the user
+     * @param onlineOnly Whether to search online users only
+     * @return The user if found in this file, or null otherwise
+     */
     public CoUser getUser(String name, boolean onlineOnly) {
         CoUser user = plugin.getDataHolder().getUser(name);
         if (user != null) return user.getWorld().getUserDataFile().equals(this) ? user : null;

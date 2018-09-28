@@ -8,15 +8,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
+@SuppressWarnings("unused")
 public final class DataListener implements Listener {
-
-    private final CoPerms plugin;
+    
     private final DataHolder holder;
 
-    public DataListener(DataHolder holder, CoPerms plugin) {
+    DataListener(DataHolder holder, CoPerms plugin) {
         this.holder = holder;
-        this.plugin = plugin;
-    
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 

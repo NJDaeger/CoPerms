@@ -62,47 +62,69 @@ public final class CoWorld {
     public GroupDataFile getGroupDataFile() {
         return groupData;
     }
-
+    
     /**
-     * Gets a user from this world
+     * Gets an online user from this world.
      *
      * @param uuid The user to find
-     * @return The user whether they
+     * @return The user if the world has the user and if they're online. Null otherwise.
      */
     public CoUser getUser(UUID uuid) {
-        return userData.getUser(this, uuid);
+        return hasUser(uuid, true) ? users.get(uuid) : null;
     }
 
     /**
-     * Gets a user via their name
+     * Gets an online user from this world.
      *
      * @param name The name of the user
-     * @return The user online or not
+     * @return The user if the world has the user and if they're online. Null otherwise.
      */
     public CoUser getUser(String name) {
-        return userData.getUser(this, name);
+        return hasUser(name, true) ? users.values().stream().filter(u -> u.getName().equalsIgnoreCase(name)).findFirst().orElse(null) : null;
     }
 
     /**
-     * Checks if the user data file of this world has a user in it.
+     * Check if this world has a user via uuid. The user can be online or offline.
      *
      * @param uuid The user to look for
-     * @return True if the user has been in this world, false otherwise.
+     * @return True if the user ir or has been in this world, false otherwise.
      */
     public boolean hasUser(UUID uuid) {
-        return userData.hasUser(uuid);
+        return hasUser(uuid, true);
     }
-
+    
     /**
-     * Checks if the user data file of this world has a user in it.
+     * Check if this world has a user via uuid.
+     *
+     * @param uuid The user to look for
+     * @param onlineOnly Whether to search online users only
+     * @return True if the user exists (search is online only if specified)
+     */
+    public boolean hasUser(UUID uuid, boolean onlineOnly) {
+        return onlineOnly ? users.containsKey(uuid) : userData.hasUser(uuid);
+    }
+    
+    /**
+     * Check if this world has a user via username. The user can be online or offline.
      *
      * @param name The user to look for
      * @return True if the user has been in this world, false otherwise.
      */
     public boolean hasUser(String name) {
-        return userData.hasUser(name);
+        return hasUser(name, true);
     }
-
+    
+    /**
+     * Check if this world has a user via username.
+     *
+     * @param name The user to look for
+     * @param onlineOnly Whether to search for online users only
+     * @return True if the user exists (search is online only if specified)
+     */
+    public boolean hasUser(String name, boolean onlineOnly) {
+        return onlineOnly ? users.values().stream().anyMatch(u -> u.getName().equalsIgnoreCase(name)) : userData.hasUser(name);
+    }
+    
     /**
      * Gets a map of all the users in this world
      *
@@ -113,7 +135,7 @@ public final class CoWorld {
     }
 
     /**
-     * Gets all the users that exist in the userdata file
+     * Gets all the users that exist in this worlds userdata file
      *
      * @return All the users. Online or offline
      */
@@ -181,6 +203,7 @@ public final class CoWorld {
      * @param user The user to load
      */
     public void addUser(CoUser user) {
+        //The user data file is a database type of file. Data can only be written and read. Not deleted. We load the user into the file
         userData.loadUser(user.getUserID());
         users.put(user.getUserID(), user);
         user.load(this);

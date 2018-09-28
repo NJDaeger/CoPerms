@@ -22,7 +22,11 @@ public final class SuperDataFile extends Configuration {
         }
         getSection("super").getKeys(false).forEach(key -> superGroups.add(new SuperGroup(key, getSection("super." + key))));
     }
-
+    
+    /**
+     * Get a set of all the current supergroups.
+     * @return A set of all the supergroups
+     */
     public Set<SuperGroup> getSuperGroups() {
         return superGroups;
     }

@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-//@SuppressWarnings({"unused", "UnusedReturnValue", "WeakerAccess"})
+@SuppressWarnings({"unused", "UnusedReturnValue", "WeakerAccess"})
 public class DataHolder {
 
     private final CoPerms plugin;
@@ -20,7 +20,7 @@ public class DataHolder {
     private final Map<String, CoWorld> worlds;
     private final Map<String, SuperGroup> supers;
 
-    public DataHolder(DataLoader dataloader, CoPerms plugin) {
+    DataHolder(DataLoader dataloader, CoPerms plugin) {
         this.plugin = plugin;
         this.users = new HashMap<>();
         this.supers = dataloader.getSuperGroups();
@@ -98,9 +98,6 @@ public class DataHolder {
      * @return The user
      */
     public CoUser getUser(UUID uuid) {
-        if (!users.containsKey(uuid)) {
-            return null;
-        }
         return users.get(uuid);
     }
 
@@ -112,7 +109,7 @@ public class DataHolder {
      */
     public CoUser getUser(String name) {
         if (Bukkit.getPlayer(name) == null) return null;
-        return users.get(Bukkit.getPlayer(name).getUniqueId());
+        else return users.get(Bukkit.getPlayer(name).getUniqueId());
     }
 
     /**

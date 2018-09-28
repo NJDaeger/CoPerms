@@ -11,6 +11,7 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 
+@SuppressWarnings("all")
 public final class Chat_CoPerms extends Chat {
     
     private CoPerms coperms;
