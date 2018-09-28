@@ -2,6 +2,7 @@ package com.njdaeger.coperms.data;
 
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.bcm.base.ISection;
+import com.njdaeger.coperms.groups.Group;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
@@ -23,7 +24,6 @@ public final class CoUser {
     private ISection userSection;
     private final CoPerms plugin;
     private final boolean isOnline;
-    private final Set<Group> groups;
     private final Set<String> wildcards;
     private final Set<String> negations;
     private final Set<String> permissions;
@@ -34,7 +34,6 @@ public final class CoUser {
         this.permissions = new HashSet<>();
         this.wildcards = new HashSet<>();
         this.negations = new HashSet<>();
-        this.groups = new HashSet<>();
         this.isOnline = isOnline;
         this.plugin = plugin;
         this.uuid = userID;
@@ -137,15 +136,6 @@ public final class CoUser {
     }
 
     /**
-     * Gets all the groups the user is in from every world
-     *
-     * @return All the user groups
-     */
-    public Set<Group> getGroups() {
-        return groups;
-    }
-
-    /**
      * Sets the group of a user
      *
      * @param world The world to set the group of the user in
@@ -155,12 +145,8 @@ public final class CoUser {
     public boolean setGroup(CoWorld world, String name) {
         if (world.getGroup(name) == null) return false;
         
-        if (group != null) {
-            this.group.removeUser(uuid);
-            this.groups.remove(group);
-        }
+        if (group != null) this.group.removeUser(uuid);
         this.group = world.getGroup(name);
-        this.groups.add(group);
         this.group.addUser(uuid);
         
         resolvePermissions();
@@ -284,11 +270,6 @@ public final class CoUser {
         //Get the prefix and suffix. The info may be null.
         this.prefix = (String)getInfo("prefix");
         this.suffix = (String)getInfo("suffix");
-    
-        //Add in all the groups this user is currently in into the groups set.
-        for (Group g : world.getGroupMap().values()) {
-            if (g.hasUser(uuid)) groups.add(g);
-        }
         
         //Finish up permission parsing
         resolvePermissions();

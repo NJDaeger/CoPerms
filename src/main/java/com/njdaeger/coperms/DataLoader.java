@@ -5,7 +5,7 @@ import com.njdaeger.coperms.commands.UserCommands;
 import com.njdaeger.coperms.configuration.GroupDataFile;
 import com.njdaeger.coperms.configuration.UserDataFile;
 import com.njdaeger.coperms.data.CoWorld;
-import com.njdaeger.coperms.data.SuperGroup;
+import com.njdaeger.coperms.groups.SuperGroup;
 import com.njdaeger.bcm.base.ISection;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
 public final class DataLoader {
     
     private final Map<String, GroupDataFile> groupDataFiles;
@@ -35,7 +34,7 @@ public final class DataLoader {
      *
      * @param plugin The plugin that's creating this module
      */
-    public DataLoader(CoPerms plugin) {
+    DataLoader(CoPerms plugin) {
         this.mirrors = plugin.getPermsConfig().getSection("mirrors");
         this.def = Bukkit.getWorlds().get(0).getName();
         this.groupDataFiles = new HashMap<>();
@@ -49,13 +48,13 @@ public final class DataLoader {
 
     //All other worlds needs to be any worlds that weren't specified in the configuration.
     
-    public void enable() {
+    void enable() {
+        this.dataHolder = new DataHolder(this, plugin);
         plugin.getSuperDataFile().getSuperGroups().forEach(g -> supers.put(g.getName().toLowerCase(), g));
         Bukkit.getWorlds().forEach(this::loadData);
         queue.forEach(this::loadOtherWorlds);
         loadWorlds();
-
-        this.dataHolder = new DataHolder(this, plugin);
+        
         new DataListener(dataHolder, plugin);
         new UserCommands(plugin, dataHolder);
         new PermissionCommands(plugin, dataHolder);
@@ -68,12 +67,20 @@ public final class DataLoader {
         }
     }
     
-    public void disable() {
+    void disable() {
         if (!Bukkit.getOnlinePlayers().isEmpty()) {
             Bukkit.getOnlinePlayers().forEach(p -> dataHolder.unloadUser(p.getUniqueId()));
         }
     }
-
+    
+    /**
+     * Get the CoPerms Plugin
+     * @return The CoPerms plugin
+     */
+    public CoPerms getPlugin() {
+        return plugin;
+    }
+    
     /**
      * Gets the data holder for the plugin.
      *
@@ -93,24 +100,11 @@ public final class DataLoader {
     }
 
     /**
-     * Gets a SuperGroup if exists
-     *
-     * @param name The name of the SuperGroup
-     * @return The SuperGroup
-     */
-    public SuperGroup getSuperGroup(String name) {
-        if (!supers.containsKey(name)) {
-            return null;
-        }
-        return supers.get(name.toLowerCase());
-    }
-
-    /**
      * Gets a list of all the SuperGroups
      *
      * @return The server SuperGroups
      */
-    public Map<String, SuperGroup> getSuperGroups() {
+    Map<String, SuperGroup> getSuperGroups() {
         return supers;
     }
     

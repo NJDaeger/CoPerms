@@ -2,6 +2,7 @@ package com.njdaeger.coperms.data;
 
 import com.njdaeger.coperms.configuration.GroupDataFile;
 import com.njdaeger.coperms.configuration.UserDataFile;
+import com.njdaeger.coperms.groups.Group;
 import org.bukkit.World;
 
 import java.util.ArrayList;
@@ -15,13 +16,15 @@ import java.util.UUID;
 public final class CoWorld {
 
     private final World world;
-    private UserDataFile userData;
-    private GroupDataFile groupData;
+    private final UserDataFile userData;
+    private final GroupDataFile groupData;
     private final Map<UUID, CoUser> users;
 
     public CoWorld(World world, UserDataFile userData, GroupDataFile groupData) {
         this.world = world;
         this.users = new HashMap<>();
+        this.userData = userData;
+        this.groupData = groupData;
     }
 
     /**
@@ -172,46 +175,23 @@ public final class CoWorld {
     public Group getDefaultGroup() {
         return groupData.getDefaultGroup();
     }
-
-    public void addUser(CoUser user) {
-        /*
-        
-        We need to do the following:
-        - Set the users world to this world.
-        -
-        
-         */
-    }
-    
-    public void removeUser(CoUser user) {
-    
-    }
     
     /**
-     * Loads a user to this world.
-     *
-     * @param user The user to load.
-     *             <p>
-     *             <p>FOR INTERNAL USE ONLY</p>
+     * Loads a user into this world
+     * @param user The user to load
      */
-    public void loadUser(CoUser user) {
-        this.userData.loadUser(user.getUserID());
-        this.users.put(user.getUserID(), user);
+    public void addUser(CoUser user) {
+        userData.loadUser(user.getUserID());
+        users.put(user.getUserID(), user);
         user.load(this);
     }
-
+    
     /**
-     * Unloads a user from this world.
-     *
+     * Unloads a user from this world
      * @param user The user to unload
-     *             <p>
-     *             <p>FOR INTERNAL USE ONLY</p>
      */
-    public void unloadUser(CoUser user) {
+    public void removeUser(CoUser user) {
+        users.remove(user.getUserID());
         user.unload();
-        if (!users.containsKey(user.getUserID())) {
-            return;
-        }
-        this.users.remove(user.getUserID());
     }
 }

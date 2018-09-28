@@ -30,6 +30,7 @@ import java.util.zip.GZIPOutputStream;
  * <p>
  * Check out https://bStats.org/ to learn more about bStats!
  */
+@SuppressWarnings("all")
 public class Metrics {
 
     static {

@@ -2,8 +2,8 @@ package com.njdaeger.coperms;
 
 import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.data.CoWorld;
-import com.njdaeger.coperms.data.Group;
-import com.njdaeger.coperms.data.SuperGroup;
+import com.njdaeger.coperms.groups.Group;
+import com.njdaeger.coperms.groups.SuperGroup;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@SuppressWarnings({"unused", "UnusedReturnValue", "WeakerAccess"})
+//@SuppressWarnings({"unused", "UnusedReturnValue", "WeakerAccess"})
 public class DataHolder {
 
     private final CoPerms plugin;
@@ -213,21 +213,19 @@ public class DataHolder {
      *
      * @param world  The world to load the user into
      * @param userID The user to load
-     * @return The loaded user
      */
 
     //This should only ever load a user that is online.
-    public CoUser loadUser(World world, UUID userID) {
+    void loadUser(World world, UUID userID) {
         CoUser user = getUser(userID);
         if (user != null) {
-            getWorld(world).unloadUser(user);
+            getWorld(world).removeUser(user);
             user.load(getWorld(world));
-            return getUser(userID);
+            return;
         }
         user = new CoUser(plugin, userID, true);
         this.users.put(userID, user);
-        getWorld(world).loadUser(user);
-        return user;
+        getWorld(world).addUser(user);
     }
 
     /**
@@ -237,10 +235,10 @@ public class DataHolder {
      */
 
     //This should only ever unload a user that is online
-    public void unloadUser(UUID userID) {
+    void unloadUser(UUID userID) {
         CoUser user = getUser(userID);
         if (user == null) return;
-        user.getWorld().unloadUser(user);
+        user.getWorld().removeUser(user);
         this.users.remove(userID);
     }
 

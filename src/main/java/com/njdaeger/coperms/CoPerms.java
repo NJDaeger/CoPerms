@@ -2,7 +2,7 @@ package com.njdaeger.coperms;
 
 import com.njdaeger.coperms.configuration.CoPermsConfig;
 import com.njdaeger.coperms.configuration.SuperDataFile;
-import com.njdaeger.coperms.data.Group;
+import com.njdaeger.coperms.groups.Group;
 import com.njdaeger.coperms.vault.Chat_CoPerms;
 import com.njdaeger.coperms.vault.Permission_CoPerms;
 import com.njdaeger.bci.defaults.CommandStore;

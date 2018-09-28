@@ -1,25 +1,27 @@
-package com.njdaeger.coperms.data;
+package com.njdaeger.coperms.groups;
 
+import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.DataLoader;
 import com.njdaeger.coperms.configuration.GroupDataFile;
 import com.njdaeger.coperms.configuration.UserDataFile;
-import com.njdaeger.coperms.exceptions.GroupInheritMissing;
-import com.njdaeger.coperms.exceptions.SuperGroupMissing;
-import com.njdaeger.bcm.base.ISection;
+import com.njdaeger.coperms.data.CoUser;
+import com.njdaeger.coperms.exceptions.InheritanceParseException;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-@SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue"})
-public final class Group {
+//@SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue"})
+public final class Group extends AbstractGroup {
     
     private final GroupDataFile groupDataFile;
     private final UserDataFile userDataFile;
+    private List<AbstractGroup> inherited;
     private Set<String> groupPermissions;
     private final ISection infoSection;
-    private List<String> inheritance;
+    private boolean inheritanceLoaded;
     private Set<String> permissions;
     private final DataLoader loader;
     private final boolean isDefault;
@@ -36,6 +38,7 @@ public final class Group {
         this.section = groupDataFile.getSection("groups." + name);
         this.rankID = section.getInt("info.rankid");
         this.infoSection = section.getSection("info");
+        this.inherited = new ArrayList<>();
         this.groupDataFile = groupDataFile;
         this.permissions = new HashSet<>();
         this.userDataFile = userDataFile;
@@ -43,17 +46,26 @@ public final class Group {
         this.users = new HashSet<>();
         this.loader = loader;
         this.name = name;
+    
+        this.groupPermissions = new HashSet<>(section.getStringList("permissions"));
+        this.canBuild = section.getBoolean("info.canBuild");
+        this.prefix = section.getString("info.prefix");
+        this.suffix = section.getString("info.suffix");
+    
+        if (userDataFile.hasUsers()) users.addAll(userDataFile.getUsers());
+        
     }
 
-    /**
-     * Gets the name of this group
-     *
-     * @return The group name
-     */
+    @Override
     public String getName() {
         return name;
     }
-
+    
+    @Override
+    public Set<String> getPermissions() {
+        return permissions;
+    }
+    
     /**
      * Gets the group prefix
      *
@@ -107,7 +119,7 @@ public final class Group {
      * @return The value of the node, null if it doesn't exist.
      */
     public Object getInfo(String node) {
-        if (!infoSection.contains(node)) return null;
+        if (!infoSection.contains(node, true)) return null;
         else return infoSection.getValue(node);
     }
 
@@ -136,15 +148,6 @@ public final class Group {
      */
     public boolean isDefault() {
         return isDefault;
-    }
-
-    /**
-     * Gets all the permissions of this group. (including inherited permissions)
-     *
-     * @return The group permissions
-     */
-    public Set<String> getPermissions() {
-        return permissions;
     }
 
     /**
@@ -216,7 +219,7 @@ public final class Group {
     public boolean addPermission(String permission) {
         boolean ret;
         ret = groupPermissions.add(permission);
-        loadInheritanceTree();
+        loadInheritance();
         reloadUsers();
         return ret;
     }
@@ -229,68 +232,85 @@ public final class Group {
      */
     public boolean removePermission(String permission) {
         boolean ret = groupPermissions.remove(permission);
-        loadInheritanceTree();
+        loadInheritance();
         reloadUsers();
         return ret;
     }
-
+    
     /**
      * Adds an inherited group to a group
      *
      * @param group The group to add to the inheritance tree
      * @return True if successfully added
      */
-    public boolean addInheritance(String group) {
-        boolean ret = inheritance.add(group);
-        loadInheritanceTree();
-        reloadUsers();
+    public boolean addInheritance(AbstractGroup group) {
+        boolean ret = inherited.add(group);
+        if (ret) {
+            loadInheritance();
+            reloadUsers();
+        }
         return ret;
     }
-
+    
     /**
      * Removes an inherited group from a group
      *
      * @param group The group to remove from the inheritance tree
      * @return True if successfully removed
      */
-    public boolean removeInheritance(String group) {
-        boolean ret = inheritance.remove(group);
-        loadInheritanceTree();
-        reloadUsers();
+    public boolean removeInheritance(AbstractGroup group) {
+        boolean ret = inherited.remove(group);
+        if (ret) {
+            loadInheritance();
+            reloadUsers();
+        }
         return ret;
     }
-
+    
     /**
-     * Gets the inheritance list of the group
-     *
-     * @return The list of inherited groups
+     * Get a list of all the groups which this group inherits its permissions from.
+     * @return A list of groups this groups permissions are inherited from.
      */
-    public List<String> getInheritancetree() {
-        return inheritance;
+    public List<AbstractGroup> getInheritedGroups() {
+        return inherited;
     }
-
-    public void loadInheritanceTree() {
+    
+    public void loadInheritance() {
+        
+        this.inheritanceLoaded = true;
+        //We create a queue list of all the known groups which are inherited.
+        List<String> queueList = section.getStringList("inherits");
+        
+        //We go through the list of known groups
+        for (String key : section.getStringList("inherits")) {
+            //If the group is a super group, we know they cannot inherit from something, so we automatically skip them
+            //We check if the queue list contains the group or not, if it does we skip it. Otherwise its added to the queue
+            if (!key.startsWith("s:")) groupDataFile.getGroup(key).section.getStringList("inherits").stream().filter(k -> !queueList.contains(k)).forEach(queueList::add);
+            
+        }
+        
+        //We go through the queue now loading all the permissions from the groups.
+        queueList.forEach(key -> {
+            //Its a super group specified if the key starts with 's:'
+            if (key.startsWith("s:")) {
+                //Always split at the colon and get the right side because that is where the group name is
+                SuperGroup group = loader.getPlugin().getDataHolder().getSuperGroup(key.split(":")[1]);
+                if (group == null) throw new InheritanceParseException(key, name);
+                else inherited.add(group);
+            }
+            else {
+                Group group = groupDataFile.getGroup(key);
+                if (group == null) throw new InheritanceParseException(key, name);
+                if (!group.inheritanceLoaded) group.loadInheritance();
+                else inherited.add(group);
+            }
+        });
         permissions.clear();
         permissions.addAll(groupPermissions);
-        inheritance.forEach(key -> {
-            if (key.startsWith("s:")) {
-                SuperGroup sg = loader.getSuperGroup(key.split("s:")[1]);
-                if (sg == null) {
-                    throw new SuperGroupMissing();
-                } else {
-                    permissions.addAll(sg.getPermissions());
-                }
-            } else {
-                if (groupDataFile.getGroup(key) == null) {
-                    throw new GroupInheritMissing(key);
-                }
-                groupDataFile.getGroup(key).loadInheritanceTree();
-                permissions.addAll(groupDataFile.getGroup(key).getPermissions());
-            }
-
-        });
+        //Adding all the permissions from the inherited groups
+        inherited.forEach(g -> permissions.addAll(g.getPermissions()));
     }
-
+    
     private void reloadUsers() {
         users.forEach(u -> {
             CoUser user = getUser(u);
@@ -300,23 +320,10 @@ public final class Group {
     
     public void unload() {
         section.setEntry("permissions", groupPermissions.toArray(new String[0]));
-        section.setEntry("inherits", inheritance.toArray(new String[0]));
+        section.setEntry("inherits", inherited.stream().map(AbstractGroup::getName).toArray(String[]::new));
         addInfo("canBuild", canBuild);
         addInfo("rankid", rankID);
         addInfo("prefix", prefix);
         addInfo("suffix", suffix);
     }
-    
-    public void load() {
-        
-        this.groupPermissions = new HashSet<>(section.getStringList("permissions"));
-        this.inheritance = section.getStringList("inherits");
-        this.canBuild = section.getBoolean("info.canBuild");
-        this.prefix = section.getString("info.prefix");
-        this.suffix = section.getString("info.suffix");
-        
-        if (userDataFile.hasUsers()) users.addAll(userDataFile.getUsers());
-        
-    }
-
 }

@@ -1,12 +1,13 @@
-package com.njdaeger.coperms.data;
+package com.njdaeger.coperms.groups;
 
 import com.njdaeger.bcm.base.ISection;
+import com.njdaeger.coperms.groups.AbstractGroup;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @SuppressWarnings("WeakerAccess")
-public final class SuperGroup {
+public final class SuperGroup extends AbstractGroup {
 
     private final String name;
     private final Set<String> permissions;
@@ -16,20 +17,12 @@ public final class SuperGroup {
         this.name = name;
     }
 
-    /**
-     * Gets the name of the SuperGroup
-     *
-     * @return The super group name.
-     */
+    @Override
     public String getName() {
         return name;
     }
 
-    /**
-     * Gets the list of permissions in this super group
-     *
-     * @return The super group permissions
-     */
+    @Override
     public Set<String> getPermissions() {
         return permissions;
     }

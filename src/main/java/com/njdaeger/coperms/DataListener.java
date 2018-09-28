@@ -34,14 +34,14 @@ public final class DataListener implements Listener {
     @EventHandler
     public void onTeleport(PlayerTeleportEvent e) {
         if (e.getFrom().getWorld() != e.getTo().getWorld()) {
-            holder.getWorld(e.getFrom().getWorld()).unloadUser(holder.getUser(e.getPlayer().getUniqueId()));
-            holder.getWorld(e.getTo().getWorld()).loadUser(holder.getUser(e.getPlayer().getUniqueId()));
+            holder.getWorld(e.getFrom().getWorld()).removeUser(holder.getUser(e.getPlayer().getUniqueId()));
+            holder.getWorld(e.getTo().getWorld()).addUser(holder.getUser(e.getPlayer().getUniqueId()));
         }
     }
 
     @EventHandler
     public void onWorldChange(PlayerChangedWorldEvent e) {
-        holder.getWorld(e.getFrom()).unloadUser(holder.getUser(e.getPlayer().getUniqueId()));
-        holder.getWorld(e.getPlayer().getWorld()).loadUser(holder.getUser(e.getPlayer().getUniqueId()));
+        holder.getWorld(e.getFrom()).removeUser(holder.getUser(e.getPlayer().getUniqueId()));
+        holder.getWorld(e.getPlayer().getWorld()).addUser(holder.getUser(e.getPlayer().getUniqueId()));
     }
 }

@@ -5,7 +5,7 @@ import com.njdaeger.coperms.DataHolder;
 import com.njdaeger.coperms.Pair;
 import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.data.CoWorld;
-import com.njdaeger.coperms.data.Group;
+import com.njdaeger.coperms.groups.Group;
 import com.njdaeger.bci.base.BCICommand;
 import com.njdaeger.bci.defaults.BCIBuilder;
 import com.njdaeger.bci.defaults.CommandContext;

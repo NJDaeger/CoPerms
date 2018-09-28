@@ -1,6 +1,7 @@
 package com.njdaeger.coperms.vault;
 
 import com.njdaeger.coperms.CoPerms;
+import com.njdaeger.coperms.groups.AbstractGroup;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -37,7 +38,7 @@ public final class Permission_CoPerms extends Permission {
                 Plugin p = e.getPlugin();
                 if (p.getDescription().getName().equalsIgnoreCase("CoPerms")) {
                     permission.coperms = (CoPerms)p;
-                    System.out.println("[Vault][Permission] CoPerms hooked.");
+                    log.info("[Permission] CoPerms hooked.");
                 }
             }
         }
@@ -47,7 +48,7 @@ public final class Permission_CoPerms extends Permission {
             if (permission.coperms != null) {
                 if (e.getPlugin().getDescription().getName().equalsIgnoreCase("CoPerms")) {
                     permission.coperms = null;
-                    System.out.println("[Vault][Permission] CoPerms un-hooked.");
+                    log.info("[Permission] CoPerms unhooked.");
                 }
             }
         }
@@ -116,9 +117,7 @@ public final class Permission_CoPerms extends Permission {
 
     @Override
     public String[] getPlayerGroups(String world, String player) {
-        Set<String> groups = new HashSet<>();
-        coperms.getDataHolder().getWorld(world).getUser(player).getGroups().forEach(g -> groups.add(g.getName()));
-        return groups.toArray(new String[0]);
+        return coperms.getDataHolder().getWorld(world).getUser(player).getGroup().getInheritedGroups().stream().map(AbstractGroup::getName).toArray(String[]::new);
     }
 
     @Override
@@ -128,9 +127,7 @@ public final class Permission_CoPerms extends Permission {
 
     @Override
     public String[] getGroups() {
-        Set<String> groups = new HashSet<>();
-        coperms.getDataHolder().getGroups().forEach((n, g) -> groups.add(n));
-        return groups.toArray(new String[0]);
+        return coperms.getDataHolder().getGroups().keySet().toArray(new String[0]);
     }
 
     @Override

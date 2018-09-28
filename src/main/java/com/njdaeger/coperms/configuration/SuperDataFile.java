@@ -1,7 +1,7 @@
 package com.njdaeger.coperms.configuration;
 
 import com.njdaeger.coperms.CoPerms;
-import com.njdaeger.coperms.data.SuperGroup;
+import com.njdaeger.coperms.groups.SuperGroup;
 import com.njdaeger.bcm.Configuration;
 import com.njdaeger.bcm.base.ConfigType;
 

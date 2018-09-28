@@ -1,20 +1,17 @@
 package com.njdaeger.coperms.configuration;
 
-import com.njdaeger.coperms.CoPerms;
-import com.njdaeger.coperms.DataLoader;
-import com.njdaeger.coperms.data.CoWorld;
-import com.njdaeger.coperms.data.Group;
 import com.njdaeger.bcm.Configuration;
 import com.njdaeger.bcm.base.ConfigType;
+import com.njdaeger.coperms.CoPerms;
+import com.njdaeger.coperms.DataLoader;
+import com.njdaeger.coperms.groups.Group;
 import org.bukkit.World;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
@@ -22,7 +19,6 @@ public final class GroupDataFile extends Configuration {
 
     
     private final Group defaultGroup;
-    private final List<CoWorld> worlds;
     private final Map<String, Group> groups;
     private final Map<Integer, String> groupIds;
     
@@ -37,7 +33,6 @@ public final class GroupDataFile extends Configuration {
         
         this.groups = new HashMap<>();
         this.groupIds = new HashMap<>();
-        this.worlds = new ArrayList<>();
         
         if (!hasSection("groups")) {
             addEntry("groups.default.permissions", Arrays.asList("ttb.generate", "ttb.undo", "ttb.redo"));
@@ -49,8 +44,7 @@ public final class GroupDataFile extends Configuration {
         }
         
         getSection("groups").getKeys(false).forEach(k -> groups.put(k.toLowerCase(), new Group(this, userDataFile, k, loader)));
-        groups.values().forEach(Group::load);
-        groups.values().forEach(Group::loadInheritanceTree);
+        groups.values().forEach(Group::loadInheritance);
         groups.values().forEach(g -> groupIds.put(g.getRankID(), g.getName()));
         
         int[] arr = groupIds.keySet().stream().mapToInt(Integer::intValue).toArray();
