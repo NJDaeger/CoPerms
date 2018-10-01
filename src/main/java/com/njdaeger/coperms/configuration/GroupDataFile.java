@@ -5,7 +5,9 @@ import com.njdaeger.bcm.base.ConfigType;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.DataLoader;
 import com.njdaeger.coperms.groups.Group;
+import org.apache.commons.lang.Validate;
 import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Arrays;
@@ -72,7 +74,8 @@ public final class GroupDataFile extends Configuration {
      * @param name The name of the group to look for
      * @return The group if found, or else null.
      */
-    public Group getGroup(String name) {
+    public Group getGroup(@NotNull String name) {
+        Validate.notNull(name, "Name cannot be null");
         return groups.get(name.toLowerCase());
     }
     
@@ -82,6 +85,7 @@ public final class GroupDataFile extends Configuration {
      * @return The group if found, or else null.
      */
     public Group getGroup(int id) {
+        Validate.isTrue(id >= 0, "Group ID must be greater than or equal to 0. Given: ", id);
         if (groupIds.get(id) == null) return null;
         return getGroup(groupIds.get(id));
     }

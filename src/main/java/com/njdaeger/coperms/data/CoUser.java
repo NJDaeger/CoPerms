@@ -1,10 +1,13 @@
 package com.njdaeger.coperms.data;
 
-import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.bcm.base.ISection;
+import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.groups.Group;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.List;
@@ -80,7 +83,7 @@ public final class CoUser {
      *
      * @param prefix The user prefix
      */
-    public void setPrefix(String prefix) {
+    public void setPrefix(@Nullable String prefix) {
         this.prefix = prefix;
     }
 
@@ -98,7 +101,7 @@ public final class CoUser {
      *
      * @param suffix The user suffix
      */
-    public void setSuffix(String suffix) {
+    public void setSuffix(@Nullable String suffix) {
         this.suffix = suffix;
     }
 
@@ -108,7 +111,8 @@ public final class CoUser {
      * @param node  The node to add
      * @param value The value to set the node
      */
-    public void addInfo(String node, Object value) {
+    public void addInfo(@NotNull String node, @Nullable Object value) {
+        Validate.notNull(node, "Node cannot be null");
         if (userInfo == null) {
             userSection.setEntry("info." + node, value);
             userInfo = userSection.getSection("info");
@@ -122,7 +126,8 @@ public final class CoUser {
      * @param node The node path to get
      * @return The value of the node, null if it doesn't exist.
      */
-    public Object getInfo(String node) {
+    public Object getInfo(@NotNull String node) {
+        Validate.notNull(node, "Node cannot be null");
         if (userInfo == null || userInfo.getValue(node) == null) return null;
         else return userInfo.getValue(node);
     }
@@ -142,7 +147,9 @@ public final class CoUser {
      * @param name  The name of the group
      * @return Whether the user was added or not.
      */
-    public boolean setGroup(CoWorld world, String name) {
+    public boolean setGroup(@NotNull CoWorld world, @NotNull String name) {
+        Validate.notNull(world, "World cannot be null");
+        Validate.notNull(name, "Name cannot be null");
         if (world.getGroup(name) == null) return false;
         
         if (group != null) this.group.removeUser(uuid);
@@ -201,21 +208,23 @@ public final class CoUser {
     /**
      * Checks if the user has a permission or not.
      *
-     * @param node The node to check
+     * @param permission The permission to check
      * @return True if the user has the permission, false otherwise.
      */
-    public boolean hasPermission(String node) {
-        return permissions.contains(node);
+    public boolean hasPermission(@NotNull String permission) {
+        Validate.notNull(permission, "Permission cannot be null");
+        return permissions.contains(permission);
     }
 
     /**
      * Adds a permission to the users permissions.
      *
-     * @param node The permission to add
+     * @param permission The permission to add
      * @return If the permission was added or not.
      */
-    public boolean addPermission(String node) {
-        boolean ret = getUserPermissions().add(node);
+    public boolean addPermission(@NotNull String permission) {
+        Validate.notNull(permission, "Permission cannot be null");
+        boolean ret = getUserPermissions().add(permission);
         resolvePermissions();
         return ret;
     }
@@ -224,18 +233,19 @@ public final class CoUser {
      * Sends a formatted plugin message to the represented player
      * @param message The message to send
      */
-    public void pluginMessage(String message) {
+    public void pluginMessage(@Nullable String message) {
         if (isOnline()) Bukkit.getPlayer(uuid).sendMessage(ChatColor.GRAY + "[" + ChatColor.DARK_AQUA + plugin.getName() + ChatColor.GRAY + "] " + ChatColor.RESET + message);
     }
 
     /**
      * Removes a permission from the users permissions.
      *
-     * @param node The permission to add
+     * @param permission The permission to add
      * @return If the permission was removed or not.
      */
-    public boolean removePermission(String node) {
-        boolean ret = userPermissions.remove(node);
+    public boolean removePermission(@NotNull String permission) {
+        Validate.notNull(permission, "Permission cannot be null");
+        boolean ret = userPermissions.remove(permission);
         resolvePermissions();
         return ret;
     }
@@ -245,7 +255,8 @@ public final class CoUser {
      *
      * @param world The world to load the user into
      */
-    public void load(CoWorld world) {
+    public void load(@NotNull CoWorld world) {
+        Validate.notNull(world, "World cannot be null");
         this.world = world;
         
         //Set the user section in this CoUser object

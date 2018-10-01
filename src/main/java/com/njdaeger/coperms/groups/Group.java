@@ -6,6 +6,9 @@ import com.njdaeger.coperms.configuration.GroupDataFile;
 import com.njdaeger.coperms.configuration.UserDataFile;
 import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.exceptions.InheritanceParseException;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -80,7 +83,7 @@ public final class Group extends AbstractGroup {
      *
      * @param prefix The new group prefix
      */
-    public void setPrefix(String prefix) {
+    public void setPrefix(@Nullable String prefix) {
         this.prefix = prefix;
     }
 
@@ -98,7 +101,7 @@ public final class Group extends AbstractGroup {
      *
      * @param suffix The new suffix
      */
-    public void setSuffix(String suffix) {
+    public void setSuffix(@Nullable String suffix) {
         this.suffix = suffix;
     }
 
@@ -108,7 +111,8 @@ public final class Group extends AbstractGroup {
      * @param node  The node to add
      * @param value The value to set the node
      */
-    public void addInfo(String node, Object value) {
+    public void addInfo(@NotNull String node, @Nullable Object value) {
+        Validate.notNull(node, "Node cannot be null");
         infoSection.setEntry(node, value);
     }
 
@@ -118,7 +122,8 @@ public final class Group extends AbstractGroup {
      * @param node The node path to get
      * @return The value of the node, null if it doesn't exist.
      */
-    public Object getInfo(String node) {
+    public Object getInfo(@NotNull String node) {
+        Validate.notNull(node, "Node cannot be null");
         if (!infoSection.contains(node, true)) return null;
         else return infoSection.getValue(node);
     }
@@ -162,29 +167,32 @@ public final class Group extends AbstractGroup {
     /**
      * Adds a user to this group
      *
-     * @param user The user to add
+     * @param uuid The user to add
      */
-    public boolean addUser(UUID user) {
-        return users.add(user);
+    public boolean addUser(@NotNull UUID uuid) {
+        Validate.notNull(uuid, "UUID cannot be null");
+        return users.add(uuid);
     }
 
     /**
      * Removes a user from this group
      *
-     * @param user The user to remove
+     * @param uuid The user to remove
      */
-    public boolean removeUser(UUID user) {
-        return users.remove(user);
+    public boolean removeUser(@NotNull UUID uuid) {
+        Validate.notNull(uuid, "UUID cannot be null");
+        return users.remove(uuid);
     }
 
     /**
      * Checks if this group has a user in it
      *
-     * @param user The user to look for
+     * @param uuid The user to look for
      * @return True if the user is currently in it, false otherwise
      */
-    public boolean hasUser(UUID user) {
-        return users.contains(user);
+    public boolean hasUser(@NotNull UUID uuid) {
+        Validate.notNull(uuid, "UUID cannot be null");
+        return users.contains(uuid);
     }
 
     /**
@@ -193,7 +201,8 @@ public final class Group extends AbstractGroup {
      * @param uuid The user to get
      * @return The user if online.
      */
-    public CoUser getUser(UUID uuid) {
+    public CoUser getUser(@NotNull UUID uuid) {
+        Validate.notNull(uuid, "UUID cannot be null");
         if (hasUser(uuid)) {
             return userDataFile.getUser(uuid);
         }
@@ -206,7 +215,8 @@ public final class Group extends AbstractGroup {
      * @param permission The permission to look for
      * @return True if the group has the permission, false otherwise
      */
-    public boolean hasPermission(String permission) {
+    public boolean hasPermission(@NotNull String permission) {
+        Validate.notNull(permission, "Permission cannot be null");
         return permissions.contains(permission);
     }
 
@@ -216,7 +226,8 @@ public final class Group extends AbstractGroup {
      * @param permission The permission to add
      * @return True if it was successfully added.
      */
-    public boolean addPermission(String permission) {
+    public boolean addPermission(@NotNull String permission) {
+        Validate.notNull(permission, "Permission cannot be null");
         boolean ret;
         ret = groupPermissions.add(permission);
         loadInheritance();
@@ -230,7 +241,8 @@ public final class Group extends AbstractGroup {
      * @param permission The permission to remove
      * @return True if the permission was successfully removed.
      */
-    public boolean removePermission(String permission) {
+    public boolean removePermission(@NotNull String permission) {
+        Validate.notNull(permission, "Permission cannot be null");
         boolean ret = groupPermissions.remove(permission);
         loadInheritance();
         reloadUsers();
@@ -243,7 +255,8 @@ public final class Group extends AbstractGroup {
      * @param group The group to add to the inheritance tree
      * @return True if successfully added
      */
-    public boolean addInheritance(AbstractGroup group) {
+    public boolean addInheritance(@NotNull AbstractGroup group) {
+        Validate.notNull(group, "Group cannot be null");
         boolean ret = inherited.add(group);
         if (ret) {
             loadInheritance();
@@ -258,7 +271,8 @@ public final class Group extends AbstractGroup {
      * @param group The group to remove from the inheritance tree
      * @return True if successfully removed
      */
-    public boolean removeInheritance(AbstractGroup group) {
+    public boolean removeInheritance(@NotNull AbstractGroup group) {
+        Validate.notNull(group, "Group cannot be null");
         boolean ret = inherited.remove(group);
         if (ret) {
             loadInheritance();

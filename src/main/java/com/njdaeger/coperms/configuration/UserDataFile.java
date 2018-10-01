@@ -9,6 +9,8 @@ import com.njdaeger.coperms.data.CoWorld;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
@@ -17,7 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public final class UserDataFile extends Configuration {
     
     private final Set<UUID> users; //Contains all the users online or offline which are held in this user data file.
@@ -37,7 +39,8 @@ public final class UserDataFile extends Configuration {
      *
      * @param uuid The user to load
      */
-    public void loadUser(UUID uuid) {
+    public void loadUser(@NotNull UUID uuid) {
+        Validate.notNull(uuid, "UUID cannot be null");
         users.add(uuid);
         String path = "users." + uuid.toString();
         setEntry(path + ".username", Bukkit.getPlayer(uuid).getName());
@@ -54,7 +57,7 @@ public final class UserDataFile extends Configuration {
      * @param uuid The id of the user
      * @return The user if they have been in the specified world and the world's user data file is this specific file. Null otherwise.
      */
-    public CoUser getUser(CoWorld world, UUID uuid) {
+    public CoUser getUser(@NotNull CoWorld world, @NotNull UUID uuid) {
         Validate.notNull(world, "World cannot be null");
         Validate.notNull(uuid, "UUID cannot be null");
         if (!hasUser(uuid) || !world.getUserDataFile().equals(this)) return null;
@@ -74,7 +77,7 @@ public final class UserDataFile extends Configuration {
      * @param name The name of the user
      * @return The user if they have been in the specified world and the world's user data file is this specific file. Null otherwise.
      */
-    public CoUser getUser(CoWorld world, String name) {
+    public CoUser getUser(@NotNull CoWorld world, @NotNull String name) {
         Validate.notNull(world, "World cannot be null");
         Validate.notNull(name, "Name cannot be null");
         if (!hasUser(name) || !world.getUserDataFile().equals(this)) return null;
@@ -92,7 +95,8 @@ public final class UserDataFile extends Configuration {
      * @param uuid The id of the user to get
      * @return The user if they are online, in one of the worlds that uses this file. Otherwise null.
      */
-    public CoUser getUser(UUID uuid) {
+    public CoUser getUser(@NotNull UUID uuid) {
+        Validate.notNull(uuid, "UUID cannot be null");
         return getUser(uuid, true);
     }
     
@@ -103,7 +107,8 @@ public final class UserDataFile extends Configuration {
      * @param onlineOnly Whether to search only online players or both online and offline.
      * @return The user if found in this file, or null otherwise.
      */
-    public CoUser getUser(UUID uuid, boolean onlineOnly) {
+    public CoUser getUser(@NotNull UUID uuid, boolean onlineOnly) {
+        Validate.notNull(uuid, "UUID cannot be null");
         CoUser user = plugin.getDataHolder().getUser(uuid);
         if (user != null) return user.getWorld().getUserDataFile().equals(this) ? user : null;
         else if (!onlineOnly && hasUser(uuid)) return new CoUser(plugin, uuid, false);
@@ -115,7 +120,8 @@ public final class UserDataFile extends Configuration {
      * @param name The name of the user to get
      * @return The user if they are online, in one of the worlds that uses this file. Otherwise null.
      */
-    public CoUser getUser(String name) {
+    public CoUser getUser(@NotNull String name) {
+        Validate.notNull(name, "Name cannot be null");
         return getUser(name, true);
     }
     
@@ -125,7 +131,8 @@ public final class UserDataFile extends Configuration {
      * @param onlineOnly Whether to search online users only
      * @return The user if found in this file, or null otherwise
      */
-    public CoUser getUser(String name, boolean onlineOnly) {
+    public CoUser getUser(@NotNull String name, boolean onlineOnly) {
+        Validate.notNull(name, "Name cannot be null");
         CoUser user = plugin.getDataHolder().getUser(name);
         if (user != null) return user.getWorld().getUserDataFile().equals(this) ? user : null;
         else if (!onlineOnly && hasUser(name)) return new CoUser(plugin, resolveId(name), false);
@@ -137,7 +144,8 @@ public final class UserDataFile extends Configuration {
      * @param uuid The user to look for
      * @return True if the userID is in this datafile.
      */
-    public boolean hasUser(UUID uuid) {
+    public boolean hasUser(@Nullable UUID uuid) {
+        if (uuid == null) return false;
         return users.contains(uuid);
     }
     
@@ -146,7 +154,8 @@ public final class UserDataFile extends Configuration {
      * @param name The user to look for
      * @return True if the username is in this datafile.
      */
-    public boolean hasUser(String name) {
+    public boolean hasUser(@NotNull String name) {
+        Validate.notNull(name, "Name cannot be null");
         return hasUser(resolveId(name));
     }
     
@@ -171,7 +180,8 @@ public final class UserDataFile extends Configuration {
      * @param name The name of the user to lookup
      * @return The UUID if the user exists in this file.
      */
-    public UUID resolveId(String name) {
+    private UUID resolveId(@NotNull String name) {
+        Validate.notNull(name, "Name cannot be null");
         ISection idSection = getSection("users");
         
         for (String uuid : idSection.getKeys(false)) {

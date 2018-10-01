@@ -4,8 +4,10 @@ import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.data.CoWorld;
 import com.njdaeger.coperms.groups.Group;
 import com.njdaeger.coperms.groups.SuperGroup;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,57 +40,99 @@ public class DataHolder {
     public CoWorld getDefaultWorld() {
         return getWorld(Bukkit.getWorlds().get(0));
     }
+    
+    /**
+     * Get an online user from a world
+     *
+     * @param world The world to look for the user in
+     * @param uuid  The user to search for
+     * @return The user if found, or null otherwise.
+     */
+    public CoUser getUser(@NotNull World world, @NotNull UUID uuid) {
+        Validate.notNull(world, "World cannot be null");
+        Validate.notNull(uuid, "UUID cannot be null");
+        return getUser(world, uuid, true);
+    }
+    
+    /**
+     * Get an online or offline user from a world
+     * @param world The world to look for the user in
+     * @param uuid The user to search for
+     * @param onlineOnly Whether to search online users only or not
+     * @return The user if found, or null otherwise.
+     */
+    public CoUser getUser(@NotNull World world, @NotNull UUID uuid, boolean onlineOnly) {
+        Validate.notNull(world, "World cannot be null");
+        Validate.notNull(uuid, "UUID cannot be null");
+        return getWorld(world).getUserDataFile().getUser(uuid, onlineOnly);
+    }
+    
+    /**
+     * Get an online user from a world
+     *
+     * @param world The world to look for the user in
+     * @param name  The user to search for
+     * @return The user if found, or null otherwise
+     */
+    public CoUser getUser(@NotNull World world, @NotNull String name) {
+        Validate.notNull(world, "World cannot be null");
+        Validate.notNull(name, "Name cannot be null");
+        return getUser(world, name, true);
+    }
+    
+    /**
+     * Get an online or offline user from a world
+     *
+     * @param world The world to look for the user in
+     * @param name The name of the user to search for
+     * @param onlineOnly Whether to search online users only or not
+     * @return The user if found, or null otherwise.
+     */
+    public CoUser getUser(@NotNull World world, @NotNull String name, boolean onlineOnly) {
+        Validate.notNull(world, "World cannot be null");
+        Validate.notNull(name, "Name cannot be null");
+        return getWorld(world).getUserDataFile().getUser(name, onlineOnly);
+    }
+    
+    /**
+     * Get an online user from a world
+     *
+     * @param world The name of the world to look for the user in
+     * @param uuid  The user to search for
+     * @return The user if found, null otherwise
+     */
+    public CoUser getUser(@NotNull String world, @NotNull UUID uuid) {
+        Validate.isTrue(Bukkit.getWorld(world) != null, "World cannot be null");
+        Validate.notNull(uuid, "UUID cannot be null");
+        return getUser(world, uuid, true);
+    }
+    
+    /**
+     * Get an online or offline user from a world
+     * @param world The world to look for the user in
+     * @param uuid The user to search for
+     * @param onlineOnly Whether to search online users only or not
+     * @return The user if found, null otherwise
+     */
+    public CoUser getUser(@NotNull String world, @NotNull UUID uuid, boolean onlineOnly) {
+        Validate.isTrue(Bukkit.getWorld(world) != null, "World cannot be null");
+        Validate.notNull(uuid, "UUID cannot be null");
+        return getUser(Bukkit.getWorld(world), uuid, onlineOnly);
+    }
 
     /**
-     * Gets a user from a world user file.
+     * Gets an online user from a world
      *
-     * @param world The world to get the user from.
-     * @param user  The user to get.
+     * @param world The world to look for the user in
+     * @param name  The user to search for
      * @return The user.
      * <p>
      * <p>Note: The user can be offline
      */
-    public CoUser getUser(World world, UUID user) {
-        return getWorld(world).getUser(user);
-    }
-
-    /**
-     * Gets a user from a world user file.
-     *
-     * @param world The world to get the user from.
-     * @param user  The user to get.
-     * @return The user.
-     * <p>
-     * <p>Note: The user can be offline
-     */
-    public CoUser getUser(World world, String user) {
-        return getWorld(world).getUser(user);
-    }
-
-    /**
-     * Gets a user from a world user file
-     *
-     * @param world The world to get the user from
-     * @param user  The user to get.
-     * @return The user.
-     * <p>
-     * <p>Note: the user can be offline
-     */
-    public CoUser getUser(String world, UUID user) {
-        return getWorld(world).getUser(user);
-    }
-
-    /**
-     * Gets a user from a world user file.
-     *
-     * @param world The world to get the user from.
-     * @param user  The user to get.
-     * @return The user.
-     * <p>
-     * <p>Note: The user can be offline
-     */
-    public CoUser getUser(String world, String user) {
-        return getWorld(world).getUser(user);
+    public CoUser getUser(@NotNull String world, @NotNull String name) {
+        Validate.isTrue(Bukkit.getWorld(world) != null, "World cannot be null");
+        Validate.notNull(name, "Name cannot be null");
+        return getWorld(world).getUser(name);
     }
 
     /**
@@ -97,7 +141,8 @@ public class DataHolder {
      * @param uuid The user to get
      * @return The user
      */
-    public CoUser getUser(UUID uuid) {
+    public CoUser getUser(@NotNull UUID uuid) {
+        Validate.notNull(uuid, "UUID cannot be null");
         return users.get(uuid);
     }
 
@@ -107,7 +152,8 @@ public class DataHolder {
      * @param name The name of the user
      * @return the user
      */
-    public CoUser getUser(String name) {
+    public CoUser getUser(@NotNull String name) {
+        Validate.notNull(name, "Name cannot be null");
         if (Bukkit.getPlayer(name) == null) return null;
         else return users.get(Bukkit.getPlayer(name).getUniqueId());
     }
@@ -118,7 +164,8 @@ public class DataHolder {
      * @param world The world to get
      * @return The corresponding CoWorld
      */
-    public CoWorld getWorld(World world) {
+    public CoWorld getWorld(@NotNull World world) {
+        Validate.notNull(world, "World cannot be null");
         return worlds.get(world.getName());
     }
 
@@ -128,7 +175,8 @@ public class DataHolder {
      * @param name The name of the world to get
      * @return The corresponding CoWorld
      */
-    public CoWorld getWorld(String name) {
+    public CoWorld getWorld(@NotNull String name) {
+        Validate.notNull(name, "World cannot be null");
         return worlds.get(name);
     }
 
@@ -157,42 +205,42 @@ public class DataHolder {
      * @param name  The name of the group
      * @return The group if exists
      */
-    public Group getGroup(World world, String name) {
+    public Group getGroup(@NotNull World world, @NotNull String name) {
+        Validate.notNull(world, "World cannot be null");
+        Validate.notNull(name, "Group name cannot be null");
         return getWorld(world).getGroup(name);
     }
 
     /**
-     * Gets a group via name
+     * Get a group via name
      *
      * @param name The name of the group
      * @return The group if exists
+     * @deprecated Undefined behavior. If more than one group has the same name but different worlds it will be undefined behavior
      */
-    public Group getGroup(String name) {
-        if (!groups.containsKey(name)) {
-            return null;
-        }
+    @Deprecated
+    public Group getGroup(@NotNull String name) {
+        Validate.notNull(name, "Group name cannot be null");
         return groups.get(name);
     }
 
     /**
-     * Gets a map of all the groups
+     * Get a map of all the groups and their names.
      *
-     * @return All the groups loaded.
+     * @return A map of all the groups and their names.
      */
     public Map<String, Group> getGroups() {
         return groups;
     }
 
     /**
-     * Gets a SuperGroup if exists
+     * Get a SuperGroup if exists
      *
      * @param name The name of the SuperGroup
      * @return The SuperGroup
      */
-    public SuperGroup getSuperGroup(String name) {
-        if (!supers.containsKey(name)) {
-            return null;
-        }
+    public SuperGroup getSuperGroup(@NotNull String name) {
+        Validate.notNull(name, "Group name cannot be null");
         return supers.get(name.toLowerCase());
     }
 

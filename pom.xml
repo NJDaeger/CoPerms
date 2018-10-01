@@ -47,6 +47,12 @@
             <version>1.7.1</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>annotations</artifactId>
+            <version>12.0</version>
+            <scope>compile</scope>
+        </dependency>
 
     </dependencies>
 
@@ -156,11 +162,15 @@
                     <relocations>
                         <relocation>
                             <pattern>com.njdaeger.bci</pattern>
-                            <shadedPattern>com.njdaeger.coperms.libs.bci</shadedPattern>
+                            <shadedPattern>com.njdaeger.coperms.libs</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.njdaeger.bcm</pattern>
-                            <shadedPattern>com.njdaeger.coperms.libs.bcm</shadedPattern>
+                            <shadedPattern>com.njdaeger.coperms.libs</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.jetbrains.annotations</pattern>
+                            <shadedPattern>com.njdaeger.coperms.libs</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>

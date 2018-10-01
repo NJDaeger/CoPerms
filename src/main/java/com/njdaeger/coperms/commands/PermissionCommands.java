@@ -244,7 +244,7 @@ public final class PermissionCommands {
     //
     //
     //
-    //
+    //TODO make group automatically choose the default world if none is specified
     private void getGroupPermissions(CommandContext context) {
         Group group = holder.getGroup(context.argAt(0).toLowerCase());
         if (group == null) {
