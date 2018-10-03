@@ -224,7 +224,7 @@ public final class CoUser {
      */
     public boolean addPermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = getUserPermissions().add(permission);
+        boolean ret = userPermissions.add(permission);
         resolvePermissions();
         return ret;
     }

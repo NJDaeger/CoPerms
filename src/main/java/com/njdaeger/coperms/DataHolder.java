@@ -10,15 +10,17 @@ import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @SuppressWarnings({"unused", "UnusedReturnValue", "WeakerAccess"})
 public class DataHolder {
 
     private final CoPerms plugin;
     private final Map<UUID, CoUser> users;
-    private final Map<String, Group> groups;
     private final Map<String, CoWorld> worlds;
     private final Map<String, SuperGroup> supers;
 
@@ -27,9 +29,6 @@ public class DataHolder {
         this.users = new HashMap<>();
         this.supers = dataloader.getSuperGroups();
         this.worlds = dataloader.getWorlds();
-        this.groups = new HashMap<>();
-
-        worlds.forEach((name, world) -> world.getGroupMap().forEach(groups::putIfAbsent));
     }
 
     /**
@@ -210,29 +209,27 @@ public class DataHolder {
         Validate.notNull(name, "Group name cannot be null");
         return getWorld(world).getGroup(name);
     }
-
+    
     /**
-     * Get a group via name
-     *
-     * @param name The name of the group
-     * @return The group if exists
-     * @deprecated Undefined behavior. If more than one group has the same name but different worlds it will be undefined behavior
+     * Get a set of all the groups on the server
+     * @return A set of all the groups on the server
      */
-    @Deprecated
-    public Group getGroup(@NotNull String name) {
-        Validate.notNull(name, "Group name cannot be null");
-        return groups.get(name);
-    }
-
-    /**
-     * Get a map of all the groups and their names.
-     *
-     * @return A map of all the groups and their names.
-     */
-    public Map<String, Group> getGroups() {
+    public Set<Group> getGroups() {
+        Set<Group> groups = new HashSet<>();
+        for (CoWorld world : worlds.values()) {
+            groups.addAll(world.getGroups());
+        }
         return groups;
     }
-
+    
+    /**
+     * A set of all the group names on the server
+     * @return All the names of the groups on the server
+     */
+    public Set<String> getGroupNames() {
+        return getGroups().stream().map(Group::getName).collect(Collectors.toSet());
+    }
+    
     /**
      * Get a SuperGroup if exists
      *

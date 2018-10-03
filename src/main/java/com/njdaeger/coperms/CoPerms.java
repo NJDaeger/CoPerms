@@ -39,7 +39,7 @@ public final class CoPerms extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        getDataHolder().getGroups().values().forEach(Group::unload);
+        getDataHolder().getGroups().forEach(Group::unload);
         dataLoader.disable();
     }
 

@@ -1,9 +1,14 @@
 package com.njdaeger.coperms.commands;
 
+import com.njdaeger.bci.base.BCIException;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.DataHolder;
+import com.njdaeger.coperms.commands.flags.WorldParser;
 import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.data.CoWorld;
+import com.njdaeger.coperms.exceptions.GroupNotExistException;
+import com.njdaeger.coperms.exceptions.UserNotExistException;
+import com.njdaeger.coperms.exceptions.WorldNotExistException;
 import com.njdaeger.coperms.groups.Group;
 import com.njdaeger.bci.base.BCICommand;
 import com.njdaeger.bci.defaults.BCIBuilder;
@@ -100,22 +105,19 @@ public final class UserCommands {
     //
     //
 
-    private void promote(CommandContext context) {
-        CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
-        if (world == null) {
-            context.pluginMessage(RED + "The world specified does not exist.");
-            return;
-        }
+    private void promote(CommandContext context) throws BCIException {
+        
+        CoWorld world = context.argAt(1, WorldParser.class, resolveWorld(context));
+        
+        //CoWorld world = holder.getWorld(context.argAt(1)) == null ? resolveWorld(context) : holder.getWorld(context.argAt(1));
+        if (world == null) throw new WorldNotExistException();
+        
         CoUser user = world.getUser(context.argAt(0));
-        if (user == null) {
-            context.pluginMessage(RED + "The user specified does not exist in the world specified");
-            return;
-        }
+        if (user == null) throw new UserNotExistException();
+        
         Group group = world.getGroup(user.getGroup().getRankID() + 1);
-        if (group == null) {
-            context.pluginMessage(RED + "The group specified does not exist in the world specified");
-            return;
-        }
+        if (group == null) throw new GroupNotExistException();
+        
         user.setGroup(world, group.getName());
         context.pluginMessage(AQUA + user.getName() + GRAY + " was promoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
         user.pluginMessage(GRAY + "You were promoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
@@ -132,22 +134,17 @@ public final class UserCommands {
     //
     //
 
-    private void demote(CommandContext context) {
+    private void demote(CommandContext context) throws BCIException {
+        
         CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
-        if (world == null) {
-            context.pluginMessage(RED + "The world specified does not exist.");
-            return;
-        }
+        if (world == null) throw new WorldNotExistException();
+        
         CoUser user = world.getUser(context.argAt(0));
-        if (user == null) {
-            context.pluginMessage(RED + "The user specified does not exist in the world specified");
-            return;
-        }
+        if (user == null) throw new UserNotExistException();
+        
         Group group = world.getGroup(user.getGroup().getRankID() - 1);
-        if (group == null) {
-            context.pluginMessage(RED + "The group specified does not exist in the world specified");
-            return;
-        }
+        if (group == null) throw new GroupNotExistException();
+        
         user.setGroup(world, group.getName());
         context.pluginMessage(AQUA + user.getName() + GRAY + " was demoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
         user.pluginMessage(GRAY + "You were demoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
@@ -164,50 +161,40 @@ public final class UserCommands {
     //
     //
 
-    private void setRank(CommandContext context) {
-        CoWorld world = holder.getWorld(context.argAt(2)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(2));
-        if (world == null) {
-            context.pluginMessage(RED + "The world specified does not exist.");
-            return;
-        }
+    private void setRank(CommandContext context) throws BCIException {
+        
+        CoWorld world = (!context.hasArgAt(2) || holder.getWorld(context.argAt(2)) == null) ? holder.getDefaultWorld() : holder.getWorld(context.argAt(2));
+        if (world == null) throw new WorldNotExistException();
+        
         CoUser user = world.getUser(context.argAt(0));
-        if (user == null) {
-            context.pluginMessage(RED + "The user specified does not exist in the world specified");
-            return;
-        }
+        if (user == null) throw new UserNotExistException();
+        
         Group group = world.getGroup(context.argAt(1));
-        if (group == null) {
-            context.pluginMessage(RED + "The group specified does not exist in the world specified");
-            return;
-        }
+        if (group == null) throw new GroupNotExistException();
+        
         user.setGroup(world, group.getName());
         context.pluginMessage(AQUA + user.getName() + GRAY + " was added to group " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
         user.pluginMessage(GRAY + "You were added to group " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
     }
 
     private void setRankTab(TabContext context) {
-        Set<String> groups = holder.getGroups().keySet();
-        Set<String> worlds = holder.getWorlds().keySet();
         context.playerCompletionAt(0);
-        context.completionAt(1, groups.toArray(new String[0]));
-        context.completionAt(2, worlds.toArray(new String[0]));
+        context.completionAt(1, holder.getGroupNames().toArray(new String[0]));
+        context.completionAt(2, holder.getWorlds().keySet().toArray(new String[0]));
     }
 
     //
     //
     //
     //
-    private void setPrefix(CommandContext context) {
+    private void setPrefix(CommandContext context) throws BCIException {
+        
         CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
-        if (user == null) {
-            context.pluginMessage(RED + "The user specified does not exist in the world specified");
-            return;
-        }
-        if (!context.getSender().hasPermission("coperms.variables.prefix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) {
-            context.pluginMessage(RED + "You do not have permission for this command! Required Permission: " + GRAY + "coperms.variables.prefix.other");
-            return;
-        }
-        if (context.getArgs().size() < 2) {
+        if (user == null) throw new UserNotExistException();
+        
+        if (!context.hasPermission("coperms.variables.prefix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) context.noPermission();
+        
+        if (context.getLength() < 2) {
             user.setPrefix(null);
             context.pluginMessage(GRAY + "Prefix for " + AQUA + user.getName() + GRAY + " has been disabled.");
             user.pluginMessage(GRAY + "Your prefix has been disabled.");
@@ -226,17 +213,14 @@ public final class UserCommands {
     //
     //
     //
-    private void setSuffix(CommandContext context) {
+    private void setSuffix(CommandContext context) throws BCIException {
+        
         CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
-        if (user == null) {
-            context.pluginMessage(RED + "The user specified does not exist in the world specified");
-            return;
-        }
-        if (!context.getSender().hasPermission("coperms.variables.suffix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) {
-            context.pluginMessage(RED + "You do not have permission for this command! Required Permission: " + GRAY + "coperms.variables.suffix.other");
-            return;
-        }
-        if (context.getArgs().size() < 2) {
+        if (user == null) throw new UserNotExistException();
+        
+        if (!context.hasPermission("coperms.variables.suffix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) context.noPermission();
+
+        if (context.getLength() < 2) {
             user.setSuffix(null);
             context.pluginMessage(GRAY + "Suffix for " + AQUA + user.getName() + GRAY + " has been disabled.");
             user.pluginMessage(GRAY + "Your suffix has been disabled.");
@@ -256,18 +240,15 @@ public final class UserCommands {
     //
     //
 
-    private void setGroupPrefix(CommandContext context) {
+    private void setGroupPrefix(CommandContext context) throws BCIException {
+        
         CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
-        if (world == null) {
-            context.pluginMessage(RED + "The world specified does not exist.");
-            return;
-        }
+        if (world == null) throw new WorldNotExistException();
+        
         Group group = world.getGroup(context.argAt(0));
-        if (group == null) {
-            context.pluginMessage(RED + "The group specified does not exist in the world specified");
-            return;
-        }
-        if (context.getArgs().size() < 3) {
+        if (group == null) throw new GroupNotExistException();
+        
+        if (context.getLength() < 3) {
             group.setPrefix(null);
             context.pluginMessage(GRAY + "Prefix for " + AQUA + group.getName() + GRAY + " has been disabled.");
             return;
@@ -277,10 +258,8 @@ public final class UserCommands {
     }
 
     private void groupVarChange(TabContext context) {
-        Set<String> worlds = holder.getWorlds().keySet();
-        Set<String> groups = holder.getGroups().keySet();
-        context.completionAt(0, groups.toArray(new String[0]));
-        context.completionAt(1, worlds.toArray(new String[0]));
+        context.completionAt(0, holder.getGroupNames().toArray(new String[0]));
+        context.completionAt(1, holder.getWorlds().keySet().toArray(new String[0]));
     }
 
     //
@@ -288,18 +267,15 @@ public final class UserCommands {
     //
     //
 
-    private void setGroupSuffix(CommandContext context) {
+    private void setGroupSuffix(CommandContext context) throws BCIException {
+        
         CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
-        if (world == null) {
-            context.pluginMessage(RED + "The world specified does not exist.");
-            return;
-        }
+        if (world == null) throw new WorldNotExistException();
+        
         Group group = world.getGroup(context.argAt(0));
-        if (group == null) {
-            context.pluginMessage(RED + "The group specified does not exist in the world specified");
-            return;
-        }
-        if (context.getArgs().size() < 3) {
+        if (group == null) throw new GroupNotExistException();
+        
+        if (context.getLength() < 3) {
             group.setSuffix(null);
             context.pluginMessage(GRAY + "Suffix for " + AQUA + group.getName() + GRAY + " has been disabled.");
             return;
@@ -310,6 +286,11 @@ public final class UserCommands {
     
     private String translate(String message) {
         return translateAlternateColorCodes('&', message);
+    }
+    
+    private CoWorld resolveWorld(CommandContext context) {
+        if (!context.isLocatable()) return holder.getDefaultWorld();
+        else return holder.getWorld(context.getLocation().getWorld());
     }
     
 }

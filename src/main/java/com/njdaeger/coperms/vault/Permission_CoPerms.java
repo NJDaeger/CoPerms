@@ -124,7 +124,7 @@ public final class Permission_CoPerms extends Permission {
 
     @Override
     public String[] getGroups() {
-        return coperms.getDataHolder().getGroups().keySet().toArray(new String[0]);
+        return coperms.getDataHolder().getGroupNames().toArray(new String[0]);
     }
 
     @Override
