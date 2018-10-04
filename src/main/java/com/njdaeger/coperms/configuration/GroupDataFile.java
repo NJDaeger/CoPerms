@@ -55,7 +55,19 @@ public final class GroupDataFile extends Configuration {
         this.defaultGroup = getGroup(arr[0]);
         
     }
-
+    
+    public void reloadGroups() {
+        groups.values().forEach(group -> {
+            group.preInheritanceLoad();
+            group.loadInheritance();
+            group.reloadUsers();
+        });
+    }
+    
+    /**
+     * Get a map of all the groups and their names from this file
+     * @return A map of all the groups
+     */
     public Map<String, Group> getGroupMap() {
         return groups;
     }

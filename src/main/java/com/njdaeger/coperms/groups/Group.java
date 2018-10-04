@@ -235,11 +235,7 @@ public final class Group extends AbstractGroup {
     public boolean addPermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
         boolean ret = groupPermissions.add(permission);
-        if (ret) {
-            preInheritanceLoad();
-            loadInheritance();
-            reloadUsers();
-        }
+        if (ret) groupDataFile.reloadGroups();
         return ret;
     }
 
@@ -252,11 +248,7 @@ public final class Group extends AbstractGroup {
     public boolean removePermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
         boolean ret = groupPermissions.remove(permission);
-        if (ret) {
-            preInheritanceLoad();
-            loadInheritance();
-            reloadUsers();
-        }
+        if (ret) groupDataFile.reloadGroups();
         return ret;
     }
     
@@ -269,11 +261,7 @@ public final class Group extends AbstractGroup {
     public boolean addInheritance(@NotNull AbstractGroup group) {
         Validate.notNull(group, "Group cannot be null");
         boolean ret = direct.add(group);
-        if (ret) {
-            preInheritanceLoad();
-            loadInheritance();
-            reloadUsers();
-        }
+        if (ret) groupDataFile.reloadGroups();
         return ret;
     }
     
@@ -286,11 +274,7 @@ public final class Group extends AbstractGroup {
     public boolean removeInheritance(@NotNull AbstractGroup group) {
         Validate.notNull(group, "Group cannot be null");
         boolean ret = direct.remove(group);
-        if (ret) {
-            preInheritanceLoad();
-            loadInheritance();
-            reloadUsers();
-        }
+        if (ret) groupDataFile.reloadGroups();
         return ret;
     }
     
@@ -300,11 +284,6 @@ public final class Group extends AbstractGroup {
      */
     public List<AbstractGroup> getInheritedGroups() {
         return inherited;
-    }
-    
-    //This is called only when the permissions of a group are changed.
-    private void preInheritanceLoad() {
-        inherited.stream().filter(g -> g instanceof Group).forEach(g -> ((Group)g).inheritanceLoaded = false);
     }
     
     public void loadInheritance() {
@@ -320,16 +299,16 @@ public final class Group extends AbstractGroup {
                 SuperGroup group = loader.getPlugin().getDataHolder().getSuperGroup(key.substring(2));
                 if (group == null) loader.getPlugin().getLogger().warning("Cannot inherit supergroup " + key + " for group " + getName() + ". Is it spelled correctly? Does it exist?");
                 else direct.add(group);
+                
             }
             else {
                 Group group = groupDataFile.getGroup(key);
                 if (group == null) loader.getPlugin().getLogger().warning("Cannot inherit group " + key + " for group " + getName() + ". Is it spelled correctly? Does it exist?");
-                direct.add(group);
+                else direct.add(group);
             }
         }
         
         for (AbstractGroup abstractGroup : direct) {
-            
             if (abstractGroup instanceof SuperGroup) inherited.add(abstractGroup);
             else {
                 Group group = (Group)abstractGroup;
@@ -344,13 +323,6 @@ public final class Group extends AbstractGroup {
         
     }
     
-    private void reloadUsers() {
-        users.forEach(u -> {
-            CoUser user = getUser(u);
-            if (user != null) user.resolvePermissions();
-        });
-    }
-    
     public void unload() {
         section.setEntry("permissions", groupPermissions.toArray(new String[0]));
         section.setEntry("inherits", direct.stream().map(group -> {
@@ -361,5 +333,17 @@ public final class Group extends AbstractGroup {
         addInfo("rankid", rankID);
         addInfo("prefix", prefix);
         addInfo("suffix", suffix);
+    }
+    
+    public void reloadUsers() {
+        users.forEach(u -> {
+            CoUser user = getUser(u);
+            if (user != null) user.resolvePermissions();
+        });
+    }
+    
+    //This is called only when the permissions of a group are changed.
+    public void preInheritanceLoad() {
+        inherited.stream().filter(g -> g instanceof Group).forEach(g -> ((Group)g).inheritanceLoaded = false);
     }
 }

@@ -3,6 +3,7 @@ package com.njdaeger.coperms.commands;
 import com.njdaeger.bci.base.BCIException;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.DataHolder;
+import com.njdaeger.coperms.commands.flags.WorldFlag;
 import com.njdaeger.coperms.commands.flags.WorldParser;
 import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.data.CoWorld;
@@ -42,7 +43,7 @@ public final class UserCommands {
                 .completer(this::setRankTab)
                 .aliases("setr", "setgroup")
                 .description("Adds a user to a specified rank")
-                .usage("/setrank <user> <rank> [world]") //Make a list in the UserDataFile for each user that is similar to the group data file that specifies ranks per world
+                .usage("/setrank <user> <rank> [world]")
                 .minArgs(2)
                 .maxArgs(3)
                 .permissions("coperms.ranks.setrank")
@@ -64,7 +65,8 @@ public final class UserCommands {
                 .completer(this::setPrefixTab)
                 .aliases("prefix")
                 .description("Adds or removes a prefix from a user")
-                .usage("/prefix <user> [prefix]")
+                .usage("/prefix <user> w:[world] [prefix]")
+                .flag(new WorldFlag())
                 .minArgs(1)
                 .permissions("coperms.variables.user.prefix")
                 .build();
@@ -73,7 +75,8 @@ public final class UserCommands {
                 .executor(this::setSuffix)
                 .completer(this::setSuffixTab)
                 .description("Adds or removes a suffix from a user")
-                .usage("/suffix <user> [prefix]")
+                .usage("/suffix <user> w:[world] [prefix]")
+                .flag(new WorldFlag())
                 .minArgs(1)
                 .permissions("coperms.variables.user.suffix")
                 .build();
@@ -135,8 +138,8 @@ public final class UserCommands {
     //
 
     private void demote(CommandContext context) throws BCIException {
-        
-        CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
+    
+        CoWorld world = context.argAt(1, WorldParser.class, resolveWorld(context));
         if (world == null) throw new WorldNotExistException();
         
         CoUser user = world.getUser(context.argAt(0));
@@ -163,7 +166,7 @@ public final class UserCommands {
 
     private void setRank(CommandContext context) throws BCIException {
         
-        CoWorld world = (!context.hasArgAt(2) || holder.getWorld(context.argAt(2)) == null) ? holder.getDefaultWorld() : holder.getWorld(context.argAt(2));
+        CoWorld world = context.argAt(2, WorldParser.class, resolveWorld(context));
         if (world == null) throw new WorldNotExistException();
         
         CoUser user = world.getUser(context.argAt(0));
@@ -189,7 +192,10 @@ public final class UserCommands {
     //
     private void setPrefix(CommandContext context) throws BCIException {
         
-        CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
+        CoWorld world = context.hasFlag('w') ? context.getFlag('w').getAs(CoWorld.class) : resolveWorld(context);
+        if (world == null) throw new WorldNotExistException();
+        
+        CoUser user = world.getUserDataFile().getUser(context.argAt(0), false);
         if (user == null) throw new UserNotExistException();
         
         if (!context.hasPermission("coperms.variables.prefix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) context.noPermission();
@@ -207,6 +213,7 @@ public final class UserCommands {
 
     private void setPrefixTab(TabContext context) {
         context.playerCompletionAt(0);
+        context.completionIf(c -> context.getCurrent().startsWith("w:"), holder.getWorlds().keySet().stream().map("w:"::concat).toArray(String[]::new));
     }
 
     //
@@ -214,8 +221,11 @@ public final class UserCommands {
     //
     //
     private void setSuffix(CommandContext context) throws BCIException {
-        
-        CoUser user = holder.getUser((holder.getUser(context.argAt(0)) == null ? holder.getDefaultWorld().getName() : holder.getUser(context.argAt(0)).getWorld().getName()), context.argAt(0));
+    
+        CoWorld world = context.hasFlag('w') ? context.getFlag('w').getAs(CoWorld.class) : resolveWorld(context);
+        if (world == null) throw new WorldNotExistException();
+    
+        CoUser user = world.getUserDataFile().getUser(context.argAt(0), false);
         if (user == null) throw new UserNotExistException();
         
         if (!context.hasPermission("coperms.variables.suffix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) context.noPermission();
@@ -233,6 +243,7 @@ public final class UserCommands {
 
     private void setSuffixTab(TabContext context) {
         context.playerCompletionAt(0);
+        context.completionIf(c -> context.getCurrent().startsWith("w:"), holder.getWorlds().keySet().stream().map("w:"::concat).toArray(String[]::new));
     }
 
     //
@@ -241,8 +252,8 @@ public final class UserCommands {
     //
 
     private void setGroupPrefix(CommandContext context) throws BCIException {
-        
-        CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
+    
+        CoWorld world = context.argAt(1, WorldParser.class, resolveWorld(context));
         if (world == null) throw new WorldNotExistException();
         
         Group group = world.getGroup(context.argAt(0));
@@ -268,8 +279,8 @@ public final class UserCommands {
     //
 
     private void setGroupSuffix(CommandContext context) throws BCIException {
-        
-        CoWorld world = holder.getWorld(context.argAt(1)) == null ? holder.getDefaultWorld() : holder.getWorld(context.argAt(1));
+    
+        CoWorld world = context.argAt(1, WorldParser.class, resolveWorld(context));
         if (world == null) throw new WorldNotExistException();
         
         Group group = world.getGroup(context.argAt(0));

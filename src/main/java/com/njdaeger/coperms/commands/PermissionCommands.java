@@ -1,6 +1,10 @@
 package com.njdaeger.coperms.commands;
 
+import com.njdaeger.bci.base.BCICommand;
 import com.njdaeger.bci.base.BCIException;
+import com.njdaeger.bci.defaults.BCIBuilder;
+import com.njdaeger.bci.defaults.CommandContext;
+import com.njdaeger.bci.defaults.TabContext;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.DataHolder;
 import com.njdaeger.coperms.Pair;
@@ -11,15 +15,10 @@ import com.njdaeger.coperms.exceptions.GroupNotExistException;
 import com.njdaeger.coperms.exceptions.UserNotExistException;
 import com.njdaeger.coperms.exceptions.WorldNotExistException;
 import com.njdaeger.coperms.groups.Group;
-import com.njdaeger.bci.base.BCICommand;
-import com.njdaeger.bci.defaults.BCIBuilder;
-import com.njdaeger.bci.defaults.CommandContext;
-import com.njdaeger.bci.defaults.TabContext;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.bukkit.ChatColor.*;
 
