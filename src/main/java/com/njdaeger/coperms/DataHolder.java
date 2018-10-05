@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings({"unused", "UnusedReturnValue", "WeakerAccess"})
 public class DataHolder {
-
+    
     private final CoPerms plugin;
     private final Map<UUID, CoUser> users;
     private final Map<String, CoWorld> worlds;
@@ -249,7 +249,7 @@ public class DataHolder {
     public Map<String, SuperGroup> getSuperGroups() {
         return supers;
     }
-
+    
     /**
      * Loads a user into a world
      *

@@ -116,10 +116,6 @@ public final class PermissionCommands {
         }
     }
 
-    //
-    //
-    //
-    //
     private void removeUserPermission(CommandContext context) throws BCIException {
         
         CoWorld world = context.hasFlag('w') ? context.getFlag('w').getAs(CoWorld.class) : resolveWorld(context);

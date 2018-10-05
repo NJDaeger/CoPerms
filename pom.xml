@@ -47,6 +47,7 @@
             <version>1.7.1</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>com.intellij</groupId>
             <artifactId>annotations</artifactId>
@@ -71,16 +72,6 @@
 
 
         <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
 
             <!--Jar Generation-->
             <plugin>
@@ -162,15 +153,15 @@
                     <relocations>
                         <relocation>
                             <pattern>com.njdaeger.bci</pattern>
-                            <shadedPattern>com.njdaeger.coperms.libs</shadedPattern>
+                            <shadedPattern>com.njdaeger.coperms.libs.bci</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.njdaeger.bcm</pattern>
-                            <shadedPattern>com.njdaeger.coperms.libs</shadedPattern>
+                            <shadedPattern>com.njdaeger.coperms.libs.bcm</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.jetbrains.annotations</pattern>
-                            <shadedPattern>com.njdaeger.coperms.libs</shadedPattern>
+                            <shadedPattern>com.njdaeger.coperms.libs.annotations</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>

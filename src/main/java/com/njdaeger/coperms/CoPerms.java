@@ -1,11 +1,11 @@
 package com.njdaeger.coperms;
 
+import com.njdaeger.bci.defaults.CommandStore;
 import com.njdaeger.coperms.configuration.CoPermsConfig;
 import com.njdaeger.coperms.configuration.SuperDataFile;
 import com.njdaeger.coperms.groups.Group;
 import com.njdaeger.coperms.vault.Chat_CoPerms;
 import com.njdaeger.coperms.vault.Permission_CoPerms;
-import com.njdaeger.bci.defaults.CommandStore;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
