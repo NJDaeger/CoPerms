@@ -192,7 +192,7 @@ public final class UserCommands {
     //
     private void setPrefix(CommandContext context) throws BCIException {
         
-        CoWorld world = context.hasFlag('w') ? context.getFlag('w').getAs(CoWorld.class) : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         CoUser user = world.getUserDataFile().getUser(context.argAt(0), false);
@@ -222,7 +222,7 @@ public final class UserCommands {
     //
     private void setSuffix(CommandContext context) throws BCIException {
     
-        CoWorld world = context.hasFlag('w') ? context.getFlag('w').getAs(CoWorld.class) : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
     
         CoUser user = world.getUserDataFile().getUser(context.argAt(0), false);

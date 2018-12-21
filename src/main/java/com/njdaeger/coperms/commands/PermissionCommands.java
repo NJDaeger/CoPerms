@@ -101,7 +101,7 @@ public final class PermissionCommands {
     //
     private void addUserPermission(CommandContext context) throws BCIException {
         
-        CoWorld world = context.hasFlag('w') ? context.getFlag('w').getAs(CoWorld.class) : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
 
         CoUser user = world.getUserDataFile().getUser(context.argAt(0), false);
@@ -118,7 +118,7 @@ public final class PermissionCommands {
 
     private void removeUserPermission(CommandContext context) throws BCIException {
         
-        CoWorld world = context.hasFlag('w') ? context.getFlag('w').getAs(CoWorld.class) : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         CoUser user = world.getUserDataFile().getUser(context.argAt(0), false);
@@ -145,7 +145,7 @@ public final class PermissionCommands {
     
     private void addGroupPermission(CommandContext context) throws BCIException {
         
-        CoWorld world = context.hasFlag('w') ? context.getFlag('w').getAs(CoWorld.class) : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         Group group = world.getGroup(context.argAt(0));
@@ -162,7 +162,7 @@ public final class PermissionCommands {
     
     private void removeGroupPermission(CommandContext context) throws BCIException {
         
-        CoWorld world = context.hasFlag('w') ? context.getFlag('w').getAs(CoWorld.class) : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
     
         Group group = world.getGroup(context.argAt(0));

@@ -5,7 +5,7 @@ import com.njdaeger.bci.flags.AbstractFlag;
 public final class WorldFlag extends AbstractFlag<WorldParser> {
     
     public WorldFlag() {
-        super('w', ':');
+        super("w", ':');
     }
     
     @Override
