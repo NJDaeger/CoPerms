@@ -21,7 +21,7 @@ public final class DataListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         holder.loadUser(e.getPlayer().getWorld(), e.getPlayer().getUniqueId());
-        new Inject(e.getPlayer());
+        Injector.inject(e.getPlayer());
     }
 
     @EventHandler

@@ -62,7 +62,7 @@ public final class DataLoader {
         if (!Bukkit.getOnlinePlayers().isEmpty()) {
             Bukkit.getOnlinePlayers().forEach(p -> {
                 dataHolder.loadUser(p.getWorld(), p.getUniqueId());
-                new Inject(p);
+                Injector.inject(p);
             });
         }
     }

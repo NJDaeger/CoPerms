@@ -330,6 +330,8 @@ public final class CoUser {
      */
     public void resolvePermissions() {
         permissions.clear();
+        wildcards.clear();
+        negations.clear();
         this.permissions.addAll(group.getPermissions());
         this.permissions.addAll(getUserPermissions());
         permissions.forEach(node -> {
