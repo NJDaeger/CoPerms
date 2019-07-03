@@ -115,7 +115,7 @@ public final class UserCommands {
         //CoWorld world = holder.getWorld(context.argAt(1)) == null ? resolveWorld(context) : holder.getWorld(context.argAt(1));
         if (world == null) throw new WorldNotExistException();
         
-        CoUser user = world.getUser(context.argAt(0));
+        CoUser user = world.getUserDeep(context.argAt(0));
         if (user == null) throw new UserNotExistException();
         
         Group group = world.getGroup(user.getGroup().getRankID() + 1);
@@ -142,7 +142,7 @@ public final class UserCommands {
         CoWorld world = context.argAt(1, WorldParser.class, resolveWorld(context));
         if (world == null) throw new WorldNotExistException();
         
-        CoUser user = world.getUser(context.argAt(0));
+        CoUser user = world.getUserDeep(context.argAt(0));
         if (user == null) throw new UserNotExistException();
         
         Group group = world.getGroup(user.getGroup().getRankID() - 1);
@@ -169,7 +169,7 @@ public final class UserCommands {
         CoWorld world = context.argAt(2, WorldParser.class, resolveWorld(context));
         if (world == null) throw new WorldNotExistException();
         
-        CoUser user = world.getUser(context.argAt(0));
+        CoUser user = world.getUserDeep(context.argAt(0));
         if (user == null) throw new UserNotExistException();
         
         Group group = world.getGroup(context.argAt(1));

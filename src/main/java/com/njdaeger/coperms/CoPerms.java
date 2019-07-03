@@ -4,6 +4,7 @@ import com.njdaeger.bci.defaults.CommandStore;
 import com.njdaeger.coperms.configuration.CoPermsConfig;
 import com.njdaeger.coperms.configuration.SuperDataFile;
 import com.njdaeger.coperms.groups.Group;
+import com.njdaeger.coperms.tree.Node;
 import com.njdaeger.coperms.vault.Chat_CoPerms;
 import com.njdaeger.coperms.vault.Permission_CoPerms;
 import net.milkbowl.vault.chat.Chat;
@@ -11,6 +12,9 @@ import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public final class CoPerms extends JavaPlugin {
     
@@ -21,6 +25,20 @@ public final class CoPerms extends JavaPlugin {
     
     @Override
     public void onEnable() {
+
+        /*Set<String> testPermissions = new HashSet<>();
+        testPermissions.add("worldedit.biome.info");
+        testPermissions.add("-worldedit.brush.options.*");
+        testPermissions.add("worldedit.brush.options.range");
+        testPermissions.add("worldedit.region.*");
+        testPermissions.add("-worldedit.region.hollow");
+        System.out.println(Node.hasPermission(Node.getRootNodeTree(testPermissions), "worldedit.brush.options.range")); //expect true
+        System.out.println(Node.hasPermission(Node.getRootNodeTree(testPermissions), "worldedit.region.select")); //Expect true
+        System.out.println(Node.hasPermission(Node.getRootNodeTree(testPermissions), "worldedit.biome.info")); //Expect true
+        System.out.println(Node.hasPermission(Node.getRootNodeTree(testPermissions), "worldedit.region.hollow")); //Expect false
+        System.out.println(Node.hasPermission(Node.getRootNodeTree(testPermissions), "worldedit.brush.options.size")); //Expect false*/
+
+
         this.config = new CoPermsConfig(this);
         this.supers = new SuperDataFile(this);
         this.commandStore = new CommandStore(this);

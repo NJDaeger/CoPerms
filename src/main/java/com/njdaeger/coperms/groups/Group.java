@@ -41,7 +41,6 @@ public final class Group extends AbstractGroup {
     private String prefix;
     private String suffix;
 
-
     public Group(GroupDataFile groupDataFile, UserDataFile userDataFile, String name, DataLoader loader) {
         this.section = groupDataFile.getSection("groups." + name);
         this.rankID = section.getInt("info.rankid");

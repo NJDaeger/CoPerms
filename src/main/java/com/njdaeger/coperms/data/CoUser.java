@@ -2,6 +2,7 @@ package com.njdaeger.coperms.data;
 
 import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.CoPerms;
+import com.njdaeger.coperms.Injector;
 import com.njdaeger.coperms.groups.Group;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
@@ -342,5 +343,6 @@ public final class CoUser {
                 negations.add(node);
             }
         });
+        if (isOnline) Injector.inject(Bukkit.getPlayer(uuid));
     }
 }

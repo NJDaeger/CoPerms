@@ -1,5 +1,6 @@
 package com.njdaeger.coperms.data;
 
+import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.configuration.GroupDataFile;
 import com.njdaeger.coperms.configuration.UserDataFile;
 import com.njdaeger.coperms.groups.Group;
@@ -88,6 +89,21 @@ public final class CoWorld {
     }
 
     /**
+     * This will search for a user in this world who is online or offline via UUID.
+     * @param uuid The UUID of the user to search for.
+     * @return The user, if found. Null otherwise.
+     */
+    public CoUser getUserDeep(@NotNull UUID uuid) {
+        Validate.notNull(uuid, "UUID cannot be null");
+        return hasUser(uuid) ? (getUser(uuid) == null ? new CoUser(CoPerms.getPlugin(CoPerms.class), uuid, false) : getUser(uuid)) : null;
+    }
+
+    public CoUser getUserDeep(@NotNull String name) {
+        Validate.notNull(name, "Name cannot be null");
+        return hasUser(name) ? (getUser(name) == null ? userData.getUser(this, name) : getUser(name)) : null;
+    }
+
+    /**
      * Check if this world has a user via uuid. The user can be online or offline.
      *
      * @param uuid The user to look for
@@ -95,7 +111,7 @@ public final class CoWorld {
      */
     public boolean hasUser(@NotNull UUID uuid) {
         Validate.notNull(uuid, "UUID cannot be null");
-        return hasUser(uuid, true);
+        return hasUser(uuid, false);
     }
     
     /**
@@ -118,7 +134,7 @@ public final class CoWorld {
      */
     public boolean hasUser(@NotNull String name) {
         Validate.notNull(name, "Name cannot be null");
-        return hasUser(name, true);
+        return hasUser(name, false);
     }
     
     /**

@@ -5,14 +5,14 @@ import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
 
-final class Injector {
+public final class Injector {
 
     /**
      * Injects a custom permissible into the user object
      *
      * @param player The player to inject the new permissible into
      */
-    static void inject(Player player) {
+    public static void inject(Player player) {
 
         Field field;
         String v = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3] + ".";
