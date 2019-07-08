@@ -4,7 +4,6 @@ import com.njdaeger.bci.defaults.CommandStore;
 import com.njdaeger.coperms.configuration.CoPermsConfig;
 import com.njdaeger.coperms.configuration.SuperDataFile;
 import com.njdaeger.coperms.groups.Group;
-import com.njdaeger.coperms.tree.Node;
 import com.njdaeger.coperms.vault.Chat_CoPerms;
 import com.njdaeger.coperms.vault.Permission_CoPerms;
 import net.milkbowl.vault.chat.Chat;
@@ -12,9 +11,6 @@ import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public final class CoPerms extends JavaPlugin {
     

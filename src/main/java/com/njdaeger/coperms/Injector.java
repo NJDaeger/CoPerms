@@ -24,6 +24,7 @@ public final class Injector {
             field.setAccessible(true);
 
             field.set(player, new CoPermissible(player));
+            player.updateCommands();
 
         }
         catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException e) {

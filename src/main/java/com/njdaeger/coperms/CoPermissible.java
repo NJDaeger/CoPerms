@@ -27,7 +27,6 @@ public class CoPermissible extends PermissibleBase {
 
     @Override
     public boolean hasPermission(String permission) {
-        System.out.println(permission);
         if (isOp()) {
             return true;
         }
@@ -45,7 +44,6 @@ public class CoPermissible extends PermissibleBase {
 
     @Override
     public boolean hasPermission(Permission permission) {
-        System.out.println("[OBJ] " + permission);
         if (isOp()) {
             return true;
         }
