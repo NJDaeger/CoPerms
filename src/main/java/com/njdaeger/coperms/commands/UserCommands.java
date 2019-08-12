@@ -128,7 +128,12 @@ public final class UserCommands {
 
     private void promoteTab(TabContext context) {
         Set<String> worlds = holder.getWorlds().keySet();
-        context.playerCompletionAt(0);
+        context.completionAt(0, context1 -> {
+            if (context.isPlayer()) {
+                CoWorld world = holder.getWorld(context.asPlayer().getWorld());
+                world.getUserDeep()
+            }
+        });
         context.completionAt(1, worlds.toArray(new String[0]));
     }
 

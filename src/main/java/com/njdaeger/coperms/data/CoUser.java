@@ -22,25 +22,47 @@ public final class CoUser {
     private Group group;
     private String prefix;
     private String suffix;
-    private CoWorld world;
     private final UUID uuid;
     private ISection userInfo;
-    private ISection userSection;
+    private final CoWorld world;
+    private final ISection userSection;
     private final CoPerms plugin;
-    private final boolean isOnline;
     private final Set<String> wildcards;
     private final Set<String> negations;
     private final Set<String> permissions;
     private final Set<String> userPermissions;
 
-    public CoUser(CoPerms plugin, UUID userID, boolean isOnline) {
+    public CoUser(CoPerms plugin, CoWorld world, UUID userID) {
         this.userPermissions = new HashSet<>();
         this.permissions = new HashSet<>();
         this.wildcards = new HashSet<>();
         this.negations = new HashSet<>();
-        this.isOnline = isOnline;
         this.plugin = plugin;
+        this.world = world;
         this.uuid = userID;
+
+        this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
+        this.userInfo = userSection.getSection("info");
+
+        //Checking for any custom permissions this user has in their user section in the datafile
+        List<String> customPerms = userSection.getStringList("permissions");
+        if (customPerms != null) this.userPermissions.addAll(customPerms);
+
+        //Trying to get the group the user is in on this world. If the group doesnt exist, it gets the default of the world
+        this.group = world.getGroup(userSection.getString("group"));
+        if (group == null) setGroup(world, world.getDefaultGroup().getName());
+
+        //Gets the name of the user. If the username doesnt exist for some reason and the user is online, we get their name
+        this.name = userSection.getString("username");
+        if (name == null && isOnline()) this.name = Bukkit.getPlayer(uuid).getName();
+
+        //Get the prefix and suffix. The info may be null.
+        this.prefix = (String)getInfo("prefix");
+        this.suffix = (String)getInfo("suffix");
+
+        //Finish up permission parsing
+        resolvePermissions();
+
     }
 
     /**
@@ -49,7 +71,7 @@ public final class CoUser {
      * @return True if online, false otherwise.
      */
     public boolean isOnline() {
-        return isOnline;
+        return Bukkit.getPlayer(uuid) != null;
     }
 
     /**
@@ -152,11 +174,9 @@ public final class CoUser {
         Validate.notNull(world, "World cannot be null");
         Validate.notNull(name, "Name cannot be null");
         if (world.getGroup(name) == null) return false;
-        
-        if (group != null) this.group.removeUser(uuid);
+
         this.group = world.getGroup(name);
-        this.group.addUser(uuid);
-        
+
         resolvePermissions();
         return true;
     }
@@ -252,63 +272,6 @@ public final class CoUser {
     }
 
     /**
-     * Loads a user into a world
-     *
-     * @param world The world to load the user into
-     */
-    public void load(@NotNull CoWorld world) {
-        Validate.notNull(world, "World cannot be null");
-        this.world = world;
-        
-        //Set the user section in this CoUser object
-        this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
-        this.userInfo = userSection.getSection("info");
-        
-        //Get the user info if possible
-        this.userInfo = userSection.getSection("info");
-        
-        //Checking for any custom permissions this user has in their user section in the datafile
-        List<String> customPerms = userSection.getStringList("permissions");
-        if (customPerms != null) this.userPermissions.addAll(customPerms);
-        
-        //Trying to get the group the user is in on this world. If the group doesnt exist, it gets the default of the world
-        this.group = world.getGroup(userSection.getString("group"));
-        if (group == null) setGroup(world, world.getDefaultGroup().getName());
-        
-        //Gets the name of the user. If the username doesnt exist for some reason and the user is online, we get their name
-        this.name = userSection.getString("username");
-        if (name == null && isOnline) this.name = Bukkit.getPlayer(uuid).getName();
-        
-        //Get the prefix and suffix. The info may be null.
-        this.prefix = (String)getInfo("prefix");
-        this.suffix = (String)getInfo("suffix");
-        
-        //Finish up permission parsing
-        resolvePermissions();
-    }
-
-    /**
-     * Unloads a user from any world.
-     */
-    public void unload() {
-        addInfo("suffix", suffix);
-        addInfo("prefix", prefix);
-        this.userSection.setEntry("group", group.getName());
-        this.userSection.setEntry("permissions", userPermissions.toArray());
-        
-        this.userPermissions.clear();
-        this.group.removeUser(uuid);
-        this.permissions.clear();
-        this.wildcards.clear();
-        this.negations.clear();
-        this.userSection = null;
-        this.suffix = null;
-        this.prefix = null;
-        this.world = null;
-        this.group = null;
-    }
-
-    /**
      * Gets all the wildcard permissions
      *
      * @return The user wildcard permissions
@@ -343,6 +306,14 @@ public final class CoUser {
                 negations.add(node);
             }
         });
-        if (isOnline) Injector.inject(Bukkit.getPlayer(uuid));
+        if (isOnline()) Injector.inject(Bukkit.getPlayer(uuid));
     }
+
+    public void save() {
+        addInfo("suffix", suffix);
+        addInfo("prefix", prefix);
+        this.userSection.setEntry("group", group.getName());
+        this.userSection.setEntry("permissions", userPermissions.toArray());
+    }
+
 }

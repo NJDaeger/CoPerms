@@ -19,7 +19,7 @@ import java.util.UUID;
 public final class Group extends AbstractGroup {
     
     private final GroupDataFile groupDataFile;
-    private final UserDataFile userDataFile;
+    //private final UserDataFile userDataFile;
     
     //All of the inherited groups. This includes the indirect ones which are not listed in the inherited section.
     private List<AbstractGroup> inherited;
@@ -34,7 +34,6 @@ public final class Group extends AbstractGroup {
     private final DataLoader loader;
     private final boolean isDefault;
     private final ISection section;
-    private final Set<UUID> users;
     private final String name;
     private boolean canBuild;
     private final int rankID;
@@ -49,9 +48,9 @@ public final class Group extends AbstractGroup {
         this.direct = new ArrayList<>();
         this.groupDataFile = groupDataFile;
         this.permissions = new HashSet<>();
-        this.userDataFile = userDataFile;
+        //this.userDataFile = userDataFile;
         this.isDefault = rankID == 0;
-        this.users = new HashSet<>();
+        //this.users = new HashSet<>();
         this.loader = loader;
         this.name = name;
     
@@ -60,7 +59,7 @@ public final class Group extends AbstractGroup {
         this.prefix = section.getString("info.prefix");
         this.suffix = section.getString("info.suffix");
     
-        if (userDataFile.hasUsers()) users.addAll(userDataFile.getUsers());
+        //if (userDataFile.hasUsers()) users.addAll(userDataFile.getUsers());
         
     }
 
@@ -167,51 +166,6 @@ public final class Group extends AbstractGroup {
      */
     public Set<String> getGroupPermissions() {
         return groupPermissions;
-    }
-
-    /**
-     * Adds a user to this group
-     *
-     * @param uuid The user to add
-     */
-    public boolean addUser(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID cannot be null");
-        return users.add(uuid);
-    }
-
-    /**
-     * Removes a user from this group
-     *
-     * @param uuid The user to remove
-     */
-    public boolean removeUser(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID cannot be null");
-        return users.remove(uuid);
-    }
-
-    /**
-     * Checks if this group has a user in it
-     *
-     * @param uuid The user to look for
-     * @return True if the user is currently in it, false otherwise
-     */
-    public boolean hasUser(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID cannot be null");
-        return users.contains(uuid);
-    }
-
-    /**
-     * Gets a user from this group
-     *
-     * @param uuid The user to get
-     * @return The user if online.
-     */
-    public CoUser getUser(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID cannot be null");
-        if (hasUser(uuid)) {
-            return userDataFile.getUser(uuid);
-        }
-        return null;
     }
 
     /**
@@ -322,7 +276,12 @@ public final class Group extends AbstractGroup {
         
     }
     
-    public void unload() {
+    //This is called only when the permissions of a group are changed.
+    public void preInheritanceLoad() {
+        inherited.stream().filter(g -> g instanceof Group).forEach(g -> ((Group)g).inheritanceLoaded = false);
+    }
+
+    public void save() {
         section.setEntry("permissions", groupPermissions.toArray(new String[0]));
         section.setEntry("inherits", direct.stream().map(group -> {
             if (group instanceof SuperGroup) return "s:".concat(group.getName());
@@ -332,17 +291,5 @@ public final class Group extends AbstractGroup {
         addInfo("rankid", rankID);
         addInfo("prefix", prefix);
         addInfo("suffix", suffix);
-    }
-    
-    public void reloadUsers() {
-        users.forEach(u -> {
-            CoUser user = getUser(u);
-            if (user != null) user.resolvePermissions();
-        });
-    }
-    
-    //This is called only when the permissions of a group are changed.
-    public void preInheritanceLoad() {
-        inherited.stream().filter(g -> g instanceof Group).forEach(g -> ((Group)g).inheritanceLoaded = false);
     }
 }
