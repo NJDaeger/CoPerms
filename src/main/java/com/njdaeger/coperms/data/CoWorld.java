@@ -6,15 +6,12 @@ import com.njdaeger.coperms.configuration.UserDataFile;
 import com.njdaeger.coperms.groups.Group;
 import org.apache.commons.lang.Validate;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class CoWorld {
@@ -30,8 +27,7 @@ public final class CoWorld {
         this.userData = userData;
         this.groupData = groupData;
 
-        userData.getUsers().forEach(uuid -> users.put(uuid, new CoUser((CoPerms) userData.getPlugin(), this, uuid)));
-
+        userData.getUsers().forEach(uuid -> users.putIfAbsent(uuid, new CoUser((CoPerms) userData.getPlugin(), this, uuid)));
     }
 
     /**
@@ -86,22 +82,8 @@ public final class CoWorld {
         return users.containsKey(userData.getUserId(name));
     }
 
-    /**
-     * Gets a map of all the users in this world
-     *
-     * @return The worlds user map
-     */
-    public Set<CoUser> getOnlineUsers() {
-        return users.values().stream().filter(CoUser::isOnline).collect(Collectors.toSet());
-    }
-
-    /**
-     * Gets all the users that exist in this worlds userdata file
-     *
-     * @return All the users. Online or offline
-     */
-    public Set<UUID> getAllUsers() {
-        return users.keySet();
+    public Map<UUID, CoUser> getUsers() {
+        return users;
     }
 
     /**
@@ -144,17 +126,8 @@ public final class CoWorld {
      * Gets a list of all the groups from this world.
      * @return All the groups in this world.
      */
-    public List<Group> getGroups() {
-        return new ArrayList<>(getGroupMap().values());
-    }
-    
-    /**
-     * Gets a map of all the groups in this world
-     *
-     * @return The group map
-     */
-    public Map<String, Group> getGroupMap() {
-        return groupData.getGroupMap();
+    public Map<String, Group> getGroups() {
+        return groupData.getGroups();
     }
 
     /**
@@ -168,12 +141,11 @@ public final class CoWorld {
     
     /**
      * Loads a user into this world
-     * @param user The user to load
+     * @param player The user to load
      */
-    public void addUser(@NotNull CoUser user) {
-        Validate.notNull(user, "User cannot be null");
-        //The user data file is a database type of file. Data can only be written and read. Not deleted. We load the user into the file
-        userData.loadUser(user.getUserID());
-        users.put(user.getUserID(), user);
+    public void addPlayer(@NotNull Player player) {
+        Validate.notNull(player, "Player cannot be null");
+        userData.loadPlayer(player);
+        users.putIfAbsent(player.getUniqueId(), new CoUser((CoPerms) userData.getPlugin(), this, player.getUniqueId()));
     }
 }

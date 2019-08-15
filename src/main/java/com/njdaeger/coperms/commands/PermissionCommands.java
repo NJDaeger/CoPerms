@@ -6,7 +6,6 @@ import com.njdaeger.bci.defaults.BCIBuilder;
 import com.njdaeger.bci.defaults.CommandContext;
 import com.njdaeger.bci.defaults.TabContext;
 import com.njdaeger.coperms.CoPerms;
-import com.njdaeger.coperms.DataHolder;
 import com.njdaeger.coperms.Pair;
 import com.njdaeger.coperms.commands.flags.WorldFlag;
 import com.njdaeger.coperms.data.CoUser;
@@ -24,11 +23,11 @@ import static org.bukkit.ChatColor.*;
 
 public final class PermissionCommands {
 
-    private final DataHolder holder;
+    private final CoPerms plugin;
 
-    public PermissionCommands(CoPerms plugin, DataHolder holder) {
-        this.holder = holder;
-        
+    public PermissionCommands(CoPerms plugin) {
+        this.plugin = plugin;
+
         BCICommand adduperm = BCIBuilder.create("adduperm")
                 .executor(this::addUserPermission)
                 .completer(this::userPermissionTab)
@@ -99,12 +98,13 @@ public final class PermissionCommands {
     //
     //
     //
+    //TODO redo
     private void addUserPermission(CommandContext context) throws BCIException {
         
         CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
 
-        CoUser user = world.getUserDataFile().getUser(context.argAt(0), false);
+        CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
     
         Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
@@ -116,12 +116,13 @@ public final class PermissionCommands {
         }
     }
 
+    //TODO redo
     private void removeUserPermission(CommandContext context) throws BCIException {
         
         CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
-        CoUser user = world.getUserDataFile().getUser(context.argAt(0), false);
+        CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
         
         Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
@@ -135,7 +136,7 @@ public final class PermissionCommands {
     
     private void userPermissionTab(TabContext context) {
         context.playerCompletionAt(0);
-        context.completionIf(c -> context.getCurrent().startsWith("w:"), holder.getWorlds().keySet().stream().map("w:"::concat).toArray(String[]::new));
+        context.completionIf(c -> context.getCurrent().startsWith("w:"), plugin.getWorlds().keySet().stream().map("w:"::concat).toArray(String[]::new));
     }
 
     //
@@ -178,8 +179,8 @@ public final class PermissionCommands {
     }
     
     private void groupPermissionTab(TabContext context) {
-        context.completionAt(0, holder.getGroupNames().toArray(new String[0]));
-        context.completionIf(c -> context.getCurrent().startsWith("w:"), holder.getWorlds().keySet().stream().map("w:"::concat).toArray(String[]::new));
+        //context.completionAt(0, holder.getGroupNames().toArray(new String[0]));
+        //context.completionIf(c -> context.getCurrent().startsWith("w:"), holder.getWorlds().keySet().stream().map("w:"::concat).toArray(String[]::new));
     }
     
     //
@@ -189,10 +190,10 @@ public final class PermissionCommands {
 
     private void getUserPermissions(CommandContext context) throws BCIException {
     
-        CoWorld world = context.isLength(2) ? holder.getWorld(context.argAt(1)) : resolveWorld(context);
+        CoWorld world = context.isLength(2) ? plugin.getWorld(context.argAt(1)) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
-        CoUser user = world.getUserDataFile().getUser(context.argAt(0), false);
+        CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
         
         context.pluginMessage(GRAY + "All permissions for user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(user.getPermissions()));
@@ -208,7 +209,7 @@ public final class PermissionCommands {
     //
     private void getGroupPermissions(CommandContext context) throws BCIException {
         
-        CoWorld world = context.isLength(2) ? holder.getWorld(context.argAt(1)) : resolveWorld(context);
+        CoWorld world = context.isLength(2) ? plugin.getWorld(context.argAt(1)) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         Group group = world.getGroup(context.argAt(0).toLowerCase());
@@ -218,7 +219,7 @@ public final class PermissionCommands {
     }
 
     private void getGPermsTab(TabContext context) {
-        context.completionAt(0, holder.getGroupNames().toArray(new String[0]));
+        //context.completionAt(0, holder.getGroupNames().toArray(new String[0]));
     }
 
     private String formatPerms(Collection<String> permissions) {
@@ -272,8 +273,8 @@ public final class PermissionCommands {
     }
     
     private CoWorld resolveWorld(CommandContext context) {
-        if (!context.isLocatable()) return holder.getDefaultWorld();
-        else return holder.getWorld(context.getLocation().getWorld());
+        if (!context.isLocatable()) return plugin.getDefaultWorld();
+        else return plugin.getWorld(context.getLocation().getWorld());
     }
 
 }

@@ -68,61 +68,61 @@ public final class Chat_CoPerms extends Chat {
 
     @Override
     public String getPlayerPrefix(String world, String player) {
-        return coperms.getDataHolder().getWorld(world).getUser(player).getPrefix();
+        return coperms.getUser(world, player).getPrefix();
     }
 
     @Override
     public void setPlayerPrefix(String world, String player, String prefix) {
-        coperms.getDataHolder().getWorld(world).getUser(player).setPrefix(prefix);
+        coperms.getUser(world, player).setPrefix(prefix);
     }
 
     @Override
     public String getPlayerSuffix(String world, String player) {
-        return coperms.getDataHolder().getWorld(world).getUser(player).getSuffix();
+        return coperms.getUser(world, player).getSuffix();
     }
 
     @Override
     public void setPlayerSuffix(String world, String player, String suffix) {
-        coperms.getDataHolder().getWorld(world).getUser(player).setSuffix(suffix);
+        coperms.getUser(world, player).setSuffix(suffix);
     }
 
     @Override
     public String getGroupPrefix(String world, String group) {
-        return coperms.getDataHolder().getWorld(world).getGroup(group).getPrefix();
+        return coperms.getGroup(world, group).getPrefix();
     }
 
     @Override
     public void setGroupPrefix(String world, String group, String prefix) {
-        coperms.getDataHolder().getWorld(world).getGroup(group).setPrefix(prefix);
+        coperms.getGroup(world, group).setPrefix(prefix);
     }
 
     @Override
     public String getGroupSuffix(String world, String group) {
-        return coperms.getDataHolder().getWorld(world).getGroup(group).getSuffix();
+        return coperms.getGroup(world, group).getSuffix();
     }
 
     @Override
     public void setGroupSuffix(String world, String group, String suffix) {
-        coperms.getDataHolder().getWorld(world).getGroup(group).setSuffix(suffix);
+        coperms.getGroup(world, group).setSuffix(suffix);
     }
 
     //
     //
     //
     private Object getPlayerInfo(String world, String player, String node) {
-        return coperms.getDataHolder().getWorld(world).getUser(player).getInfo(node);
+        return coperms.getUser(world, player).getInfo(node);
     }
 
     private void setPlayerInfo(String world, String player, String node, Object val) {
-        coperms.getDataHolder().getWorld(world).getUser(player).addInfo(node, val);
+        coperms.getUser(world, player).addInfo(node, val);
     }
 
     private Object getGroupInfo(String world, String group, String node) {
-        return coperms.getDataHolder().getWorld(world).getGroup(group).getInfo(node);
+        return coperms.getGroup(world, group).getInfo(node);
     }
 
     private void setGroupInfo(String world, String group, String node, Object val) {
-        coperms.getDataHolder().getWorld(world).getGroup(group).addInfo(node, val);
+        coperms.getGroup(world, group).addInfo(node, val);
     }
     //
     //

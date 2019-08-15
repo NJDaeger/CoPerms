@@ -12,7 +12,7 @@ public class CoPermissible extends PermissibleBase {
 
     CoPermissible(Player player) {
         super(player);
-        this.user = CoPerms.getPlugin(CoPerms.class).getDataHolder().getUser(player.getUniqueId());
+        this.user = CoPerms.getInstance().getUser(player.getWorld(), player.getUniqueId());
     }
 
     @Override

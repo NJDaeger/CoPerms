@@ -2,6 +2,7 @@ package com.njdaeger.coperms.vault;
 
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.groups.AbstractGroup;
+import com.njdaeger.coperms.groups.Group;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -69,62 +70,62 @@ public final class Permission_CoPerms extends Permission {
 
     @Override
     public boolean playerHas(String world, String player, String permission) {
-        return coperms.getDataHolder().getWorld(world).getUser(player).hasPermission(permission);
+        return coperms.getUser(world, player).hasPermission(permission);
     }
 
     @Override
     public boolean playerAdd(String world, String player, String permission) {
-        return coperms.getDataHolder().getWorld(world).getUser(player).addPermission(permission);
+        return coperms.getUser(world, player).addPermission(permission);
     }
 
     @Override
     public boolean playerRemove(String world, String player, String permission) {
-        return coperms.getDataHolder().getWorld(world).getUser(player).removePermission(permission);
+        return coperms.getUser(world, player).removePermission(permission);
     }
 
     @Override
     public boolean groupHas(String world, String group, String permission) {
-        return coperms.getDataHolder().getWorld(world).getGroup(group).hasPermission(permission);
+        return coperms.getGroup(world, group).hasPermission(permission);
     }
 
     @Override
     public boolean groupAdd(String world, String group, String permission) {
-        return coperms.getDataHolder().getWorld(world).getGroup(group).addPermission(permission);
+        return coperms.getGroup(world, group).addPermission(permission);
     }
 
     @Override
     public boolean groupRemove(String world, String group, String permission) {
-        return coperms.getDataHolder().getWorld(world).getGroup(group).removePermission(permission);
+        return coperms.getGroup(world, group).removePermission(permission);
     }
 
     @Override
     public boolean playerInGroup(String world, String player, String group) {
-        return coperms.getDataHolder().getWorld(world).getUser(player).getGroup().getName().equalsIgnoreCase(group);
+        return coperms.getWorld(world).getUser(player).getGroup().getName().equalsIgnoreCase(group);
     }
 
     @Override
     public boolean playerAddGroup(String world, String player, String group) {
-        return coperms.getDataHolder().getWorld(world).getUser(player).setGroup(coperms.getDataHolder().getWorld(world), group);
+        return coperms.getUser(world, player).setGroup(coperms.getWorld(world), group);
     }
 
     @Override
     public boolean playerRemoveGroup(String world, String player, String group) {
-        return coperms.getDataHolder().getWorld(world).getUser(player).setGroup(coperms.getDataHolder().getWorld(world), group);
+        return coperms.getUser(world, player).setGroup(coperms.getWorld(world), group);
     }
 
     @Override
     public String[] getPlayerGroups(String world, String player) {
-        return coperms.getDataHolder().getWorld(world).getUser(player).getGroup().getInheritedGroups().stream().map(AbstractGroup::getName).toArray(String[]::new);
+        return coperms.getUser(world, player).getGroup().getInheritedGroups().stream().map(AbstractGroup::getName).toArray(String[]::new);
     }
 
     @Override
     public String getPrimaryGroup(String world, String player) {
-        return coperms.getDataHolder().getWorld(world).getUser(player).getGroup().getName();
+        return coperms.getUser(world, player).getGroup().getName();
     }
 
     @Override
     public String[] getGroups() {
-        return coperms.getDataHolder().getGroupNames().toArray(new String[0]);
+        return coperms.getWorlds().values().stream().flatMap(world -> world.getGroups().values().stream()).map(Group::getName).toArray(String[]::new);
     }
 
     @Override

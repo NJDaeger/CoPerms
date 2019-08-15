@@ -7,8 +7,8 @@ import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.data.CoWorld;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,14 +37,14 @@ public final class UserDataFile extends Configuration {
     /**
      * Loads a user to this file
      *
-     * @param uuid The user to load
+     * @param player The player to load
      */
-    public void loadUser(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID cannot be null");
-        users.add(uuid);
-        String path = "users." + uuid.toString();
-        setEntry(path + ".username", Bukkit.getPlayer(uuid).getName());
-        addEntry(path + ".group", plugin.getDataHolder().getWorld(world).getDefaultGroup().getName());
+    public void loadPlayer(@NotNull Player player) {
+        Validate.notNull(player, "Player cannot be null");
+        users.add(player.getUniqueId());
+        String path = "users." + player.getUniqueId().toString();
+        setEntry(path + ".username", player.getName());
+        addEntry(path + ".group", plugin.getWorld(world).getDefaultGroup().getName());
         addEntry(path + ".info.prefix", null);
         addEntry(path + ".info.suffix", null);
         addEntry(path + ".permissions", Collections.emptyList());

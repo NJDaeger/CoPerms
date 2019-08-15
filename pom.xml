@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.njdaeger</groupId>
     <artifactId>CoPerms</artifactId>
-    <version>1.1.2</version>
+    <version>1.2</version>
 
     <repositories>
         <repository>
@@ -23,7 +23,7 @@
         <dependency>
             <groupId>com.njdaeger</groupId>
             <artifactId>BukkitCommandInterface</artifactId>
-            <version>0.0.1</version>
+            <version>0.0.2</version>
             <scope>compile</scope>
         </dependency>
 

@@ -18,6 +18,9 @@ import java.util.UUID;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class CoUser {
 
+    //Determine if the user has changed since the last file save
+    private boolean hasChanged;
+
     private String name;
     private Group group;
     private String prefix;
@@ -108,6 +111,7 @@ public final class CoUser {
      */
     public void setPrefix(@Nullable String prefix) {
         this.prefix = prefix;
+        this.hasChanged = true;
     }
 
     /**
@@ -126,6 +130,7 @@ public final class CoUser {
      */
     public void setSuffix(@Nullable String suffix) {
         this.suffix = suffix;
+        this.hasChanged = true;
     }
 
     /**
@@ -141,6 +146,7 @@ public final class CoUser {
             userInfo = userSection.getSection("info");
         }
         else userInfo.setEntry(node, value);
+        this.hasChanged = true;
     }
 
     /**
@@ -178,6 +184,7 @@ public final class CoUser {
         this.group = world.getGroup(name);
 
         resolvePermissions();
+        this.hasChanged = true;
         return true;
     }
 
@@ -247,6 +254,7 @@ public final class CoUser {
         Validate.notNull(permission, "Permission cannot be null");
         boolean ret = userPermissions.add(permission);
         resolvePermissions();
+        this.hasChanged = true;
         return ret;
     }
     
@@ -268,6 +276,7 @@ public final class CoUser {
         Validate.notNull(permission, "Permission cannot be null");
         boolean ret = userPermissions.remove(permission);
         resolvePermissions();
+        this.hasChanged = true;
         return ret;
     }
 
@@ -288,6 +297,10 @@ public final class CoUser {
     public Set<String> getNegationNodes() {
         return negations;
     }
+
+     public boolean hasChanged() {
+        return hasChanged;
+     }
 
     /**
      * Resolves the user permissions
@@ -314,6 +327,7 @@ public final class CoUser {
         addInfo("prefix", prefix);
         this.userSection.setEntry("group", group.getName());
         this.userSection.setEntry("permissions", userPermissions.toArray());
+        this.hasChanged = false;
     }
 
 }

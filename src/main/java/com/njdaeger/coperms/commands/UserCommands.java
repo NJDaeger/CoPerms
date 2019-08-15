@@ -1,8 +1,11 @@
 package com.njdaeger.coperms.commands;
 
+import com.njdaeger.bci.base.BCICommand;
 import com.njdaeger.bci.base.BCIException;
+import com.njdaeger.bci.defaults.BCIBuilder;
+import com.njdaeger.bci.defaults.CommandContext;
+import com.njdaeger.bci.defaults.TabContext;
 import com.njdaeger.coperms.CoPerms;
-import com.njdaeger.coperms.DataHolder;
 import com.njdaeger.coperms.commands.flags.WorldFlag;
 import com.njdaeger.coperms.commands.flags.WorldParser;
 import com.njdaeger.coperms.data.CoUser;
@@ -11,39 +14,39 @@ import com.njdaeger.coperms.exceptions.GroupNotExistException;
 import com.njdaeger.coperms.exceptions.UserNotExistException;
 import com.njdaeger.coperms.exceptions.WorldNotExistException;
 import com.njdaeger.coperms.groups.Group;
-import com.njdaeger.bci.base.BCICommand;
-import com.njdaeger.bci.defaults.BCIBuilder;
-import com.njdaeger.bci.defaults.CommandContext;
-import com.njdaeger.bci.defaults.TabContext;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.bukkit.ChatColor.*;
 
 public final class UserCommands {
 
-    private final DataHolder holder;
+    private final CoPerms plugin;
 
-    public UserCommands(CoPerms plugin, DataHolder holder) {
-        this.holder = holder;
-    
+    public UserCommands(CoPerms plugin) {
+        this.plugin = plugin;
+
         BCICommand promote = BCIBuilder.create("promote")
                 .executor(this::promote)
-                .completer(this::promoteTab)
+                .completer(this::promotionAndDemotionTab)
+                .flag(new WorldFlag())
                 .aliases("promo")
                 .description("Promotes someone to the next rank.")
-                .usage("/promote <user> [world]")
+                .usage("/promote <user> w:[world]")
                 .minArgs(1)
                 .maxArgs(2)
                 .permissions("coperms.ranks.promote")
                 .build();
-    
+
         BCICommand setRank = BCIBuilder.create("setrank")
                 .executor(this::setRank)
                 .completer(this::setRankTab)
+                .flag(new WorldFlag())
                 .aliases("setr", "setgroup")
                 .description("Adds a user to a specified rank")
-                .usage("/setrank <user> <rank> [world]")
+                .usage("/setrank <user> <rank> w:[world]")
                 .minArgs(2)
                 .maxArgs(3)
                 .permissions("coperms.ranks.setrank")
@@ -51,10 +54,11 @@ public final class UserCommands {
     
         BCICommand demote = BCIBuilder.create("demote")
                 .executor(this::demote)
-                .completer(this::demoteTab)
+                .completer(this::promotionAndDemotionTab)
+                .flag(new WorldFlag())
                 .aliases("demo")
                 .description("Demotes someone to the previous rank.")
-                .usage("/demote <user> [world]")
+                .usage("/demote <user> w:[world]")
                 .minArgs(1)
                 .maxArgs(2)
                 .permissions("coperms.ranks.demote")
@@ -62,7 +66,7 @@ public final class UserCommands {
     
         BCICommand setPrefix = BCIBuilder.create("setprefix")
                 .executor(this::setPrefix)
-                .completer(this::setPrefixTab)
+                .completer(this::setPrefixAndSuffixTab)
                 .aliases("prefix")
                 .description("Adds or removes a prefix from a user")
                 .usage("/prefix <user> w:[world] [prefix]")
@@ -73,9 +77,10 @@ public final class UserCommands {
     
         BCICommand setSuffix = BCIBuilder.create("setsuffix")
                 .executor(this::setSuffix)
-                .completer(this::setSuffixTab)
+                .completer(this::setPrefixAndSuffixTab)
+                .aliases("suffix")
                 .description("Adds or removes a suffix from a user")
-                .usage("/suffix <user> w:[world] [prefix]")
+                .usage("/suffix <user> w:[world] [suffix]")
                 .flag(new WorldFlag())
                 .minArgs(1)
                 .permissions("coperms.variables.user.suffix")
@@ -83,19 +88,21 @@ public final class UserCommands {
     
         BCICommand setGPrefix = BCIBuilder.create("setgprefix")
                 .executor(this::setGroupPrefix)
-                .completer(this::groupVarChange)
+                .completer(this::setGroupPrefixAndSuffix)
+                .flag(new WorldFlag())
+                .aliases("gprefix", "setgpre")
                 .description("Sets the prefix of a group.")
-                .usage("/setgprefix <group> <world> [prefix]")
-                .aliases("setgpre")
+                .usage("/setgprefix <group> w:[world] [prefix]")
                 .minArgs(2)
                 .permissions("coperms.variables.group.prefix").build();
     
         BCICommand setGSuffix = BCIBuilder.create("setgsuffix")
                 .executor(this::setGroupSuffix)
-                .completer(this::groupVarChange)
+                .completer(this::setGroupPrefixAndSuffix)
+                .flag(new WorldFlag())
                 .description("Sets the suffix of a group.")
-                .usage("/setgsuffix <group> <world> [suffix]")
-                .aliases("setgsuf")
+                .usage("/setgsuffix <group> w:[world] [suffix]")
+                .aliases("gsuffix", "setgsuf")
                 .minArgs(2)
                 .permissions("coperms.variables.group.suffix")
                 .build();
@@ -108,14 +115,13 @@ public final class UserCommands {
     //
     //
 
+    //promote command
     private void promote(CommandContext context) throws BCIException {
-        
-        CoWorld world = context.argAt(1, WorldParser.class, resolveWorld(context));
-        
-        //CoWorld world = holder.getWorld(context.argAt(1)) == null ? resolveWorld(context) : holder.getWorld(context.argAt(1));
+
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
-        CoUser user = world.getUserDeep(context.argAt(0));
+        CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
         
         Group group = world.getGroup(user.getGroup().getRankID() + 1);
@@ -126,28 +132,13 @@ public final class UserCommands {
         user.pluginMessage(GRAY + "You were promoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
     }
 
-    private void promoteTab(TabContext context) {
-        Set<String> worlds = holder.getWorlds().keySet();
-        context.completionAt(0, context1 -> {
-            if (context.isPlayer()) {
-                CoWorld world = holder.getWorld(context.asPlayer().getWorld());
-                world.getUserDeep()
-            }
-        });
-        context.completionAt(1, worlds.toArray(new String[0]));
-    }
-
-    //
-    //
-    //
-    //
-
+    //Demote command
     private void demote(CommandContext context) throws BCIException {
-    
-        CoWorld world = context.argAt(1, WorldParser.class, resolveWorld(context));
+
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
-        CoUser user = world.getUserDeep(context.argAt(0));
+        CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
         
         Group group = world.getGroup(user.getGroup().getRankID() - 1);
@@ -158,10 +149,9 @@ public final class UserCommands {
         user.pluginMessage(GRAY + "You were demoted to " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
     }
 
-    private void demoteTab(TabContext context) {
-        Set<String> worlds = holder.getWorlds().keySet();
-        context.playerCompletionAt(0);
-        context.completionAt(1, worlds.toArray(new String[0]));
+    private void promotionAndDemotionTab(TabContext context) {
+        context.completionIf(c -> context.getCurrent().startsWith("w:"), this::worldFlagCompletion);
+        context.completionAt(1, this::playerCompletion);
     }
 
     //
@@ -171,10 +161,10 @@ public final class UserCommands {
 
     private void setRank(CommandContext context) throws BCIException {
         
-        CoWorld world = context.argAt(2, WorldParser.class, resolveWorld(context));
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
-        CoUser user = world.getUserDeep(context.argAt(0));
+        CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
         
         Group group = world.getGroup(context.argAt(1));
@@ -186,21 +176,24 @@ public final class UserCommands {
     }
 
     private void setRankTab(TabContext context) {
-        context.playerCompletionAt(0);
-        context.completionAt(1, holder.getGroupNames().toArray(new String[0]));
-        context.completionAt(2, holder.getWorlds().keySet().toArray(new String[0]));
+        context.completionIf(c -> context.getCurrent().startsWith("w:"), this::worldFlagCompletion);
+        context.completionIf(c -> !context.getCurrent().startsWith("w:") && context.isLessOrEqual(2), this::playerCompletion);
+        System.out.println(context.hasFlag("w"));
+        context.completionIf(c -> !context.getCurrent().startsWith("w:") && (context.hasFlag("w") ? context.isLength(3) : context.isLength(2)), this::groupCompletion);
     }
 
     //
     //
     //
     //
+
+    //User prefix
     private void setPrefix(CommandContext context) throws BCIException {
         
         CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
-        CoUser user = world.getUserDataFile().getUser(context.argAt(0), false);
+        CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
         
         if (!context.hasPermission("coperms.variables.prefix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) context.noPermission();
@@ -216,21 +209,13 @@ public final class UserCommands {
         user.pluginMessage(GRAY + "Your prefix has been changed to " + AQUA + translate(user.getPrefix()));
     }
 
-    private void setPrefixTab(TabContext context) {
-        context.playerCompletionAt(0);
-        context.completionIf(c -> context.getCurrent().startsWith("w:"), holder.getWorlds().keySet().stream().map("w:"::concat).toArray(String[]::new));
-    }
-
-    //
-    //
-    //
-    //
+    //User suffix
     private void setSuffix(CommandContext context) throws BCIException {
     
         CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
     
-        CoUser user = world.getUserDataFile().getUser(context.argAt(0), false);
+        CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
         
         if (!context.hasPermission("coperms.variables.suffix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) context.noPermission();
@@ -246,9 +231,9 @@ public final class UserCommands {
         user.pluginMessage(GRAY + "Your suffix has been changed to " + AQUA + translate(user.getSuffix()));
     }
 
-    private void setSuffixTab(TabContext context) {
-        context.playerCompletionAt(0);
-        context.completionIf(c -> context.getCurrent().startsWith("w:"), holder.getWorlds().keySet().stream().map("w:"::concat).toArray(String[]::new));
+    private void setPrefixAndSuffixTab(TabContext context) {
+        context.completionIf(c -> context.getCurrent().startsWith("w:"), this::worldFlagCompletion);
+        context.completionIf(c -> !context.getCurrent().startsWith("w:") && context.isLessOrEqual(2), this::playerCompletion);
     }
 
     //
@@ -256,9 +241,10 @@ public final class UserCommands {
     //
     //
 
+    //Group prefix
     private void setGroupPrefix(CommandContext context) throws BCIException {
     
-        CoWorld world = context.argAt(1, WorldParser.class, resolveWorld(context));
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         Group group = world.getGroup(context.argAt(0));
@@ -273,19 +259,10 @@ public final class UserCommands {
         context.pluginMessage(GRAY + "Prefix for " + AQUA + group.getName() + GRAY + " has been changed to " + AQUA + group.getPrefix());
     }
 
-    private void groupVarChange(TabContext context) {
-        context.completionAt(0, holder.getGroupNames().toArray(new String[0]));
-        context.completionAt(1, holder.getWorlds().keySet().toArray(new String[0]));
-    }
-
-    //
-    //
-    //
-    //
-
+    //Group suffix
     private void setGroupSuffix(CommandContext context) throws BCIException {
     
-        CoWorld world = context.argAt(1, WorldParser.class, resolveWorld(context));
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w").getAs(CoWorld.class) : resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         Group group = world.getGroup(context.argAt(0));
@@ -299,14 +276,71 @@ public final class UserCommands {
         group.setSuffix(" " + context.joinArgs(2));
         context.pluginMessage(GRAY + "Suffix for " + AQUA + group.getName() + GRAY + " has been changed to" + AQUA + group.getSuffix());
     }
-    
+
+    private void setGroupPrefixAndSuffix(TabContext context) {
+        context.completionIf(c -> context.getCurrent().startsWith("w:"), this::worldFlagCompletion);
+        context.completionIf(c -> !context.getCurrent().startsWith("w:") && context.isLessOrEqual(2), this::groupCompletion);
+    }
+
+    //
+    //
+    //
+    //
+
     private String translate(String message) {
         return translateAlternateColorCodes('&', message);
     }
     
     private CoWorld resolveWorld(CommandContext context) {
-        if (!context.isLocatable()) return holder.getDefaultWorld();
-        else return holder.getWorld(context.getLocation().getWorld());
+        if (!context.isLocatable()) return plugin.getDefaultWorld();
+        else return plugin.getWorld(context.getLocation().getWorld());
     }
-    
+
+    private List<String> worldFlagCompletion(TabContext context) {
+        return plugin.getWorlds().keySet().stream().map("w:"::concat).collect(Collectors.toList());
+
+    }
+
+    private List<String> playerCompletion(TabContext context) {
+        if (context.isPlayer()) {
+            CoWorld world = plugin.getWorld(context.asPlayer().getWorld());
+            List<String> users = world.getUsers().values().stream().map(CoUser::getName).collect(Collectors.toList());
+            if (!context.hasFlag("w")) users.add("w:");
+            return users;
+        } else {
+            if (context.hasFlag("w")) {
+                try {
+                    return context.getFlag("w").getAs(CoWorld.class).getUsers().values().stream().map(CoUser::getName).collect(Collectors.toList());
+                } catch (BCIException ignored) {
+                    return new ArrayList<>();
+                }
+            } else {
+                List<String> users = plugin.getWorlds().values().stream().flatMap(world -> world.getUsers().values().stream().map(CoUser::getName)).collect(Collectors.toList());
+                users.add("w:");
+                return users;
+            }
+        }
+    }
+
+    private List<String> groupCompletion(TabContext context) {
+        if (context.isPlayer()) {
+            CoWorld world = plugin.getWorld(context.asPlayer().getWorld());
+            List<String> groups = new ArrayList<>(world.getGroups().keySet());
+            if (!context.hasFlag("w")) groups.add("w:");
+            return groups;
+        } else {
+            if (context.hasFlag("w")) {
+                try {
+                    return new ArrayList<>(context.getFlag("w").getAs(CoWorld.class).getGroups().keySet());
+                } catch (BCIException ignored) {
+                    return new ArrayList<>();
+                }
+            } else {
+                List<String> groups = plugin.getWorlds().values().stream().flatMap(world -> world.getGroups().keySet().stream()).collect(Collectors.toList());
+                groups.add("w:");
+                return groups;
+            }
+        }
+    }
+
 }
