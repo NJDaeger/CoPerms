@@ -2,4 +2,5 @@ name: ${project.artifactId}
 version: ${project.version}
 main: com.njdaeger.coperms.CoPerms
 author: NJDaeger
-softdepend: [Vault]
+softdepend: [Vault, EssentialsX]
+api-version: 1.13

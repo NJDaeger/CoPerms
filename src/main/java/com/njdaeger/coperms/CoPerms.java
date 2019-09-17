@@ -1,5 +1,6 @@
 package com.njdaeger.coperms;
 
+import com.earth2me.essentials.EssentialsServerListener;
 import com.njdaeger.bci.defaults.CommandStore;
 import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.commands.PermissionCommands;
@@ -13,6 +14,7 @@ import com.njdaeger.coperms.data.CoWorld;
 import com.njdaeger.coperms.groups.Group;
 import com.njdaeger.coperms.groups.SuperGroup;
 import com.njdaeger.coperms.vault.Chat_CoPerms;
+import com.njdaeger.coperms.vault.EssentialsPermissionHandler;
 import com.njdaeger.coperms.vault.Permission_CoPerms;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
@@ -64,6 +66,8 @@ public final class CoPerms extends JavaPlugin implements CoPermsAPI{
             getServer().getServicesManager().register(Permission.class, perms, this, ServicePriority.High);
             getServer().getServicesManager().register(Chat.class, new Chat_CoPerms(this, perms), this, ServicePriority.High);
         } else getLogger().warning("Vault is not hooked into CoPerms... Loading anyway...");
+
+        EssentialsPermissionHandler.injectHandler();
 
         //Setting some defaults before we start the loading of worlds and groups.
         this.mirrors = config.getSection("mirrors");

@@ -9,9 +9,9 @@ public final class WorldParser extends ParsedType<CoWorld> {
     
     @Override
     public CoWorld parse(String input) throws BCIException {
-        if (input == null) throw new BCIException("");
+        if (input == null) throw new BCIException();
         CoWorld world = CoPerms.getInstance().getWorld(input);
-        if (world == null) throw new BCIException("");
+        if (world == null) throw new BCIException();
         else return world;
     }
     
