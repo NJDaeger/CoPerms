@@ -4,7 +4,6 @@ import com.njdaeger.bci.base.BCICommand;
 import com.njdaeger.bci.base.BCIException;
 import com.njdaeger.bci.defaults.BCIBuilder;
 import com.njdaeger.bci.defaults.CommandContext;
-import com.njdaeger.bci.defaults.TabContext;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.Pair;
 import com.njdaeger.coperms.commands.flags.WorldFlag;
@@ -15,8 +14,10 @@ import com.njdaeger.coperms.exceptions.UserNotExistException;
 import com.njdaeger.coperms.exceptions.WorldNotExistException;
 import com.njdaeger.coperms.groups.Group;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.bukkit.ChatColor.*;
@@ -28,12 +29,50 @@ public final class PermissionCommands {
     public PermissionCommands(CoPerms plugin) {
         this.plugin = plugin;
 
+        BCICommand addPerm = BCIBuilder.create("addperm")
+                .executor((c) -> {
+                    if (c.subCommandAt(0, "user", true, this::addUserPermission)) return;
+                    if (c.subCommandAt(0, "group", true, this::addGroupPermission)) return;
+                    throw new BCIException("Please specify 'group' or 'user' to add a permission to.");
+                })
+                .completer((c) -> {
+                    c.completionAt(0, "user", "group");
+                    c.subCompletionAt(1, true, "user", CommandUtil::playerCompletion);
+                    c.subCompletionAt(1, true, "group", CommandUtil::allGroupCompletion);
+                })
+                .minArgs(3)
+                .flag(new WorldFlag())
+                .description("Adds a permission or permissions to a user or group")
+                .usage("/addperm user|group <user|group> w:[world] <permission> [permissions...]")
+                .build();
+
+        BCICommand removePerm = BCIBuilder.create("removeperm")
+                .executor((c) -> {
+                    if (c.subCommandAt(0, "user", true, this::removeUserPermission)) return;
+                    if (c.subCommandAt(0, "group", true, this::removeGroupPermission)) return;
+                    throw new BCIException("Please specify 'group' or 'user' to remove a permission from.");
+                })
+                .completer((c) -> {
+                    c.completionAt(0, "user", "group");
+                    c.subCompletionAt(1, true, "user", CommandUtil::playerCompletion);
+                    c.subCompletionAt(1, true, "group", CommandUtil::allGroupCompletion);
+                    if (c.isGreater(1) && c.first().equalsIgnoreCase("user")) c.completion(CommandUtil.resolveWorld(c).getUser(c.first()).getPermissions().toArray(new String[0]));
+                    if (c.isGreater(1) && c.first().equalsIgnoreCase("group")) c.completion(CommandUtil.resolveWorld(c).getGroup(c.first()).getPermissions().toArray(new String[0]));
+                })
+                .minArgs(3)
+                .flag(new WorldFlag())
+                .description("Removes a permission or permissions from a user or group")
+                .usage("/removeperm user|group <user|group> w:[world] <permission> [permissions...]")
+                .build();
+
+
         BCICommand adduperm = BCIBuilder.create("adduperm")
                 .executor(this::addUserPermission)
-                .completer(this::userPermissionTab)
+                .completer((c) -> c.completionAt(0, CommandUtil::playerCompletion))
+                .flag(new WorldFlag())
                 .aliases("adduserperm")
                 .description("Adds a permission to a user")
-                .usage("/adduperm <user> w:[world] <permission> [permission]...")
+                .usage("/adduperm <user> w:[world] <permission> [permissions...]")
                 .flag(new WorldFlag())
                 .minArgs(2)
                 .permissions("coperms.permissions.user.add")
@@ -41,7 +80,11 @@ public final class PermissionCommands {
     
         BCICommand remuperm = BCIBuilder.create("remuperm")
                 .executor(this::removeUserPermission)
-                .completer(this::userPermissionTab)
+                .completer((c) -> {
+                    c.completionAt(0, CommandUtil::playerCompletion);
+                    if (c.isGreater(1)) c.completion(CommandUtil.resolveWorld(c).getUser(c.first()).getPermissions().toArray(new String[0]));
+                })
+                .flag(new WorldFlag())
                 .aliases("remuserperm")
                 .description("Removes a permission from a user")
                 .usage("/remuperm <user> w:[world] <permission> [permission]...")
@@ -51,7 +94,8 @@ public final class PermissionCommands {
     
         BCICommand addgperm = BCIBuilder.create("addgperm")
                 .executor(this::addGroupPermission)
-                .completer(this::groupPermissionTab)
+                .completer((c) -> c.completionAt(0, CommandUtil::allGroupCompletion))
+                .flag(new WorldFlag())
                 .aliases("addgroupperm")
                 .description("Adds a permission to a group")
                 .usage("/addgperm <group> w:[world] <permission> [permission]...")
@@ -61,7 +105,11 @@ public final class PermissionCommands {
     
         BCICommand remgperm = BCIBuilder.create("remgperm")
                 .executor(this::removeGroupPermission)
-                .completer(this::groupPermissionTab)
+                .completer((c) -> {
+                    c.completionAt(0, CommandUtil::allGroupCompletion);
+                    if (c.isGreater(1)) c.completion(CommandUtil.resolveWorld(c).getGroup(c.first()).getPermissions().toArray(new String[0]));
+                })
+                .flag(new WorldFlag())
                 .aliases("remgroupperm")
                 .description("Removes a permission from a group")
                 .usage("/remgperm <group> w:[world] <permission> [permission]...")
@@ -71,7 +119,10 @@ public final class PermissionCommands {
     
         BCICommand getuperms = BCIBuilder.create("getuperms")
                 .executor(this::getUserPermissions)
-                .completer(this::getUPermsTab)
+                .completer((c) -> {
+                    c.completionAt(0, CommandUtil::playerCompletion);
+                    c.completionAt(1, (ctx) -> new ArrayList<>(plugin.getWorlds().keySet()));
+                })
                 .aliases("userperms")
                 .description("Shows a list of user permissions")
                 .usage("/getuperms <user> [world]")
@@ -82,7 +133,10 @@ public final class PermissionCommands {
     
         BCICommand getgperms = BCIBuilder.create("getgperms")
                 .executor(this::getGroupPermissions)
-                .completer(this::getGPermsTab)
+                .completer((c) -> {
+                    c.completionAt(0, CommandUtil::groupCompletion);
+                    c.completionAt(1, (ctx) -> new ArrayList<>(plugin.getWorlds().keySet()));
+                })
                 .aliases("groupperms")
                 .description("Shows a list of group permissions")
                 .usage("/getgperms <group> [world]")
@@ -109,7 +163,7 @@ public final class PermissionCommands {
     
         Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
         if (!pair.getFirst().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was added to user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
+            context.pluginMessage(GRAY + "Added the following permission(s) to user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
         }
         if (!pair.getSecond().isEmpty()) {
             context.pluginMessage(GRAY + "Some permissions could not be added to user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
@@ -127,16 +181,11 @@ public final class PermissionCommands {
         
         Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
         if (!pair.getFirst().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was removed from user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
+            context.pluginMessage(GRAY + "Removed the following permission(s) from user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
         }
         if (!pair.getSecond().isEmpty()) {
             context.pluginMessage(GRAY + "Some permissions could not be removed from user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
         }
-    }
-    
-    private void userPermissionTab(TabContext context) {
-        context.playerCompletionAt(0);
-        context.completionIf(c -> context.getCurrent().startsWith("w:"), plugin.getWorlds().keySet().stream().map("w:"::concat).toArray(String[]::new));
     }
 
     //
@@ -178,11 +227,6 @@ public final class PermissionCommands {
         }
     }
     
-    private void groupPermissionTab(TabContext context) {
-        //context.completionAt(0, holder.getGroupNames().toArray(new String[0]));
-        //context.completionIf(c -> context.getCurrent().startsWith("w:"), holder.getWorlds().keySet().stream().map("w:"::concat).toArray(String[]::new));
-    }
-    
     //
     //
     //
@@ -199,10 +243,6 @@ public final class PermissionCommands {
         context.pluginMessage(GRAY + "All permissions for user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(user.getPermissions()));
     }
 
-    private void getUPermsTab(TabContext context) {
-        context.playerCompletionAt(0);
-    }
-
     //
     //
     //
@@ -216,10 +256,6 @@ public final class PermissionCommands {
         if (group == null) throw new GroupNotExistException();
         
         context.pluginMessage(GRAY + "All permissions for group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(group.getPermissions()));
-    }
-
-    private void getGPermsTab(TabContext context) {
-        //context.completionAt(0, holder.getGroupNames().toArray(new String[0]));
     }
 
     private String formatPerms(Collection<String> permissions) {
@@ -274,7 +310,7 @@ public final class PermissionCommands {
     
     private CoWorld resolveWorld(CommandContext context) {
         if (!context.isLocatable()) return plugin.getDefaultWorld();
-        else return plugin.getWorld(context.getLocation().getWorld());
+        else return plugin.getWorld(Objects.requireNonNull(context.getLocation().getWorld()));
     }
 
 }

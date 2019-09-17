@@ -4,10 +4,8 @@ import com.njdaeger.bci.base.BCICommand;
 import com.njdaeger.bci.base.BCIException;
 import com.njdaeger.bci.defaults.BCIBuilder;
 import com.njdaeger.bci.defaults.CommandContext;
-import com.njdaeger.bci.defaults.TabContext;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.commands.flags.WorldFlag;
-import com.njdaeger.coperms.commands.flags.WorldParser;
 import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.data.CoWorld;
 import com.njdaeger.coperms.exceptions.GroupNotExistException;
@@ -15,23 +13,15 @@ import com.njdaeger.coperms.exceptions.UserNotExistException;
 import com.njdaeger.coperms.exceptions.WorldNotExistException;
 import com.njdaeger.coperms.groups.Group;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import static org.bukkit.ChatColor.*;
 
 public final class UserCommands {
 
-    private final CoPerms plugin;
-
     public UserCommands(CoPerms plugin) {
-        this.plugin = plugin;
 
         BCICommand promote = BCIBuilder.create("promote")
                 .executor(this::promote)
-                .completer((c) -> c.completionAt(0, this::playerCompletion))
+                .completer((c) -> c.completionAt(0, CommandUtil::playerCompletion))
                 .flag(new WorldFlag())
                 .aliases("promo")
                 .description("Promotes someone to the next rank.")
@@ -44,8 +34,8 @@ public final class UserCommands {
         BCICommand setRank = BCIBuilder.create("setrank")
                 .executor(this::setRank)
                 .completer((c) -> {
-                    c.completionAt(0, this::playerCompletion);
-                    c.completionAt(1, this::groupCompletion);
+                    c.completionAt(0, CommandUtil::playerCompletion);
+                    c.completionAt(1, CommandUtil::groupCompletion);
                 })
                 .flag(new WorldFlag())
                 .aliases("setr", "setgroup")
@@ -58,7 +48,7 @@ public final class UserCommands {
     
         BCICommand demote = BCIBuilder.create("demote")
                 .executor(this::demote)
-                .completer((c) -> c.completionAt(0, this::playerCompletion))
+                .completer((c) -> c.completionAt(0, CommandUtil::playerCompletion))
                 .flag(new WorldFlag())
                 .aliases("demo")
                 .description("Demotes someone to the previous rank.")
@@ -70,7 +60,7 @@ public final class UserCommands {
     
         BCICommand setPrefix = BCIBuilder.create("setprefix")
                 .executor(this::setPrefix)
-                .completer((c) -> c.completionAt(0, this::playerCompletion))
+                .completer((c) -> c.completionAt(0, CommandUtil::playerCompletion))
                 .aliases("prefix")
                 .description("Adds or removes a prefix from a user")
                 .usage("/prefix <user> w:[world] [prefix]")
@@ -81,7 +71,7 @@ public final class UserCommands {
     
         BCICommand setSuffix = BCIBuilder.create("setsuffix")
                 .executor(this::setSuffix)
-                .completer((c) -> c.completionAt(0, this::playerCompletion))
+                .completer((c) -> c.completionAt(0, CommandUtil::playerCompletion))
                 .aliases("suffix")
                 .description("Adds or removes a suffix from a user")
                 .usage("/suffix <user> w:[world] [suffix]")
@@ -92,7 +82,7 @@ public final class UserCommands {
     
         BCICommand setGPrefix = BCIBuilder.create("setgprefix")
                 .executor(this::setGroupPrefix)
-                .completer((c) -> c.completionAt(0, this::groupCompletion))
+                .completer((c) -> c.completionAt(0, CommandUtil::groupCompletion))
                 .flag(new WorldFlag())
                 .aliases("gprefix", "setgpre")
                 .description("Sets the prefix of a group.")
@@ -102,7 +92,7 @@ public final class UserCommands {
     
         BCICommand setGSuffix = BCIBuilder.create("setgsuffix")
                 .executor(this::setGroupSuffix)
-                .completer((c) -> c.completionAt(0, this::groupCompletion))
+                .completer((c) -> c.completionAt(0, CommandUtil::groupCompletion))
                 .flag(new WorldFlag())
                 .description("Sets the suffix of a group.")
                 .usage("/setgsuffix <group> w:[world] [suffix]")
@@ -122,7 +112,7 @@ public final class UserCommands {
     //promote command
     private void promote(CommandContext context) throws BCIException {
 
-        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         CoUser user = world.getUser(context.argAt(0));
@@ -139,7 +129,7 @@ public final class UserCommands {
     //Demote command
     private void demote(CommandContext context) throws BCIException {
 
-        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         CoUser user = world.getUser(context.argAt(0));
@@ -160,7 +150,7 @@ public final class UserCommands {
 
     private void setRank(CommandContext context) throws BCIException {
         
-        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         CoUser user = world.getUser(context.argAt(0));
@@ -182,7 +172,7 @@ public final class UserCommands {
     //User prefix
     private void setPrefix(CommandContext context) throws BCIException {
         
-        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         CoUser user = world.getUser(context.argAt(0));
@@ -204,7 +194,7 @@ public final class UserCommands {
     //User suffix
     private void setSuffix(CommandContext context) throws BCIException {
     
-        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
     
         CoUser user = world.getUser(context.argAt(0));
@@ -231,7 +221,7 @@ public final class UserCommands {
     //Group prefix
     private void setGroupPrefix(CommandContext context) throws BCIException {
     
-        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         Group group = world.getGroup(context.argAt(0));
@@ -249,7 +239,7 @@ public final class UserCommands {
     //Group suffix
     private void setGroupSuffix(CommandContext context) throws BCIException {
     
-        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         Group group = world.getGroup(context.argAt(0));
@@ -271,27 +261,6 @@ public final class UserCommands {
 
     private String translate(String message) {
         return translateAlternateColorCodes('&', message);
-    }
-    
-    private CoWorld resolveWorld(CommandContext context) {
-        if (!context.isLocatable()) return plugin.getDefaultWorld();
-        else return plugin.getWorld(Objects.requireNonNull(context.getLocation().getWorld()));
-    }
-
-    private List<String> playerCompletion(TabContext context) {
-        if (context.isPlayer()) return context.hasFlag("w") ? context.getFlag("w") : plugin.getWorld(context.asPlayer().getWorld()).getUsers().values().stream().map(CoUser::getName).collect(Collectors.toList());
-        else {
-            if (context.hasFlag("w")) return ((CoWorld)context.getFlag("w")).getUsers().values().stream().map(CoUser::getName).collect(Collectors.toList());
-            else return plugin.getWorlds().values().stream().flatMap(world -> world.getUsers().values().stream().map(CoUser::getName)).collect(Collectors.toList());
-        }
-    }
-
-    private List<String> groupCompletion(TabContext context) {
-        if (context.isPlayer()) return new ArrayList<>(context.hasFlag("w") ? context.getFlag("w") : plugin.getWorld(context.asPlayer().getWorld()).getGroups().keySet());
-        else {
-            if (context.hasFlag("w")) return new ArrayList<>(((CoWorld)context.getFlag("w")).getGroups().keySet());
-            else return plugin.getWorlds().values().stream().flatMap(world -> world.getGroups().keySet().stream()).collect(Collectors.toList());
-        }
     }
 
 }
