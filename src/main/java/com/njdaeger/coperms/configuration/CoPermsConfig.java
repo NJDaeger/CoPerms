@@ -12,9 +12,8 @@ public final class CoPermsConfig extends Configuration {
     public CoPermsConfig(CoPerms plugin) {
         super(plugin, ConfigType.YML, "config");
 
-        addEntry("allow-manual-promotion", false);
+        addEntry("allow-self-promotion", true);
         addEntry("operator-overrides", true);
-        addEntry("log-commands", true);
         addEntry("mirrors." + Bukkit.getWorlds().get(0).getName(), Arrays.asList("users", "groups"));
         addEntry("mirrors.all-other-worlds", Arrays.asList("users", "groups"));
     }
@@ -24,8 +23,8 @@ public final class CoPermsConfig extends Configuration {
      *
      * @return True if allowed, false otherwise.
      */
-    public boolean allowManualPromotion() {
-        return getBoolean("allow-manual-promotion");
+    public boolean allowSelfPromotion() {
+        return getBoolean("allow-self-promotion");
     }
 
     /**
@@ -35,14 +34,5 @@ public final class CoPermsConfig extends Configuration {
      */
     public boolean allowOperatorOverrides() {
         return getBoolean("operator-overrides");
-    }
-
-    /**
-     * Whether to log all CoPerms commands
-     *
-     * @return True if logging, false otherwise.
-     */
-    public boolean logCommands() {
-        return getBoolean("log-commands");
     }
 }

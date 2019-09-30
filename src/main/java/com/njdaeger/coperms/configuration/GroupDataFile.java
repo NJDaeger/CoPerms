@@ -3,7 +3,6 @@ package com.njdaeger.coperms.configuration;
 import com.njdaeger.bcm.Configuration;
 import com.njdaeger.bcm.base.ConfigType;
 import com.njdaeger.coperms.CoPerms;
-import com.njdaeger.coperms.DataLoader;
 import com.njdaeger.coperms.groups.Group;
 import org.apache.commons.lang.Validate;
 import org.bukkit.World;
@@ -11,12 +10,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
 public final class GroupDataFile extends Configuration {
 
     
@@ -27,10 +24,9 @@ public final class GroupDataFile extends Configuration {
     /**
      * Generates a groupdata file
      * @param plugin The plugin instance
-     * @param loader The data loader instance
      * @param world The world the datafile was originally created with.
      */
-    public GroupDataFile(CoPerms plugin, DataLoader loader, UserDataFile userDataFile, World world) {
+    public GroupDataFile(CoPerms plugin, World world) {
         super(plugin, ConfigType.YML, "worlds" + File.separator + world.getName() + File.separator + "groups");
         
         this.groups = new HashMap<>();
@@ -45,7 +41,7 @@ public final class GroupDataFile extends Configuration {
             addEntry("groups.default.info.rankid", 0);
         }
         
-        getSection("groups").getKeys(false).forEach(k -> groups.put(k.toLowerCase(), new Group(this, userDataFile, k, loader)));
+        getSection("groups").getKeys(false).forEach(k -> groups.put(k.toLowerCase(), new Group(plugin, this, k)));
         groups.values().forEach(Group::loadInheritance);
         groups.values().forEach(g -> groupIds.put(g.getRankID(), g.getName()));
         
@@ -60,7 +56,6 @@ public final class GroupDataFile extends Configuration {
         groups.values().forEach(group -> {
             group.preInheritanceLoad();
             group.loadInheritance();
-            group.reloadUsers();
         });
     }
     
@@ -68,17 +63,8 @@ public final class GroupDataFile extends Configuration {
      * Get a map of all the groups and their names from this file
      * @return A map of all the groups
      */
-    public Map<String, Group> getGroupMap() {
+    public Map<String, Group> getGroups() {
         return groups;
-    }
-    
-    /**
-     * Gets a list of groups held in this file.
-     *
-     * @return The groups list.
-     */
-    public Collection<Group> getGroups() {
-        return groups.values();
     }
     
     /**

@@ -1,10 +1,8 @@
 package com.njdaeger.coperms.groups;
 
 import com.njdaeger.bcm.base.ISection;
-import com.njdaeger.coperms.DataLoader;
+import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.configuration.GroupDataFile;
-import com.njdaeger.coperms.configuration.UserDataFile;
-import com.njdaeger.coperms.data.CoUser;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,13 +11,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
-@SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue"})
 public final class Group extends AbstractGroup {
     
     private final GroupDataFile groupDataFile;
-    private final UserDataFile userDataFile;
     
     //All of the inherited groups. This includes the indirect ones which are not listed in the inherited section.
     private List<AbstractGroup> inherited;
@@ -31,17 +26,16 @@ public final class Group extends AbstractGroup {
     private final ISection infoSection;
     private boolean inheritanceLoaded;
     private Set<String> permissions;
-    private final DataLoader loader;
     private final boolean isDefault;
     private final ISection section;
-    private final Set<UUID> users;
+    private final CoPerms plugin;
     private final String name;
     private boolean canBuild;
     private final int rankID;
     private String prefix;
     private String suffix;
 
-    public Group(GroupDataFile groupDataFile, UserDataFile userDataFile, String name, DataLoader loader) {
+    public Group(CoPerms plugin, GroupDataFile groupDataFile, String name) {
         this.section = groupDataFile.getSection("groups." + name);
         this.rankID = section.getInt("info.rankid");
         this.infoSection = section.getSection("info");
@@ -49,19 +43,14 @@ public final class Group extends AbstractGroup {
         this.direct = new ArrayList<>();
         this.groupDataFile = groupDataFile;
         this.permissions = new HashSet<>();
-        this.userDataFile = userDataFile;
         this.isDefault = rankID == 0;
-        this.users = new HashSet<>();
-        this.loader = loader;
+        this.plugin = plugin;
         this.name = name;
     
         this.groupPermissions = new HashSet<>(section.getStringList("permissions"));
         this.canBuild = section.getBoolean("info.canBuild");
         this.prefix = section.getString("info.prefix");
         this.suffix = section.getString("info.suffix");
-    
-        if (userDataFile.hasUsers()) users.addAll(userDataFile.getUsers());
-        
     }
 
     @Override
@@ -170,51 +159,6 @@ public final class Group extends AbstractGroup {
     }
 
     /**
-     * Adds a user to this group
-     *
-     * @param uuid The user to add
-     */
-    public boolean addUser(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID cannot be null");
-        return users.add(uuid);
-    }
-
-    /**
-     * Removes a user from this group
-     *
-     * @param uuid The user to remove
-     */
-    public boolean removeUser(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID cannot be null");
-        return users.remove(uuid);
-    }
-
-    /**
-     * Checks if this group has a user in it
-     *
-     * @param uuid The user to look for
-     * @return True if the user is currently in it, false otherwise
-     */
-    public boolean hasUser(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID cannot be null");
-        return users.contains(uuid);
-    }
-
-    /**
-     * Gets a user from this group
-     *
-     * @param uuid The user to get
-     * @return The user if online.
-     */
-    public CoUser getUser(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID cannot be null");
-        if (hasUser(uuid)) {
-            return userDataFile.getUser(uuid);
-        }
-        return null;
-    }
-
-    /**
      * Checks whether this group has a permission or not
      *
      * @param permission The permission to look for
@@ -259,9 +203,9 @@ public final class Group extends AbstractGroup {
      */
     public boolean addInheritance(@NotNull AbstractGroup group) {
         Validate.notNull(group, "Group cannot be null");
-        boolean ret = direct.add(group);
-        if (ret) groupDataFile.reloadGroups();
-        return ret;
+        direct.add(group);
+        groupDataFile.reloadGroups();
+        return true;
     }
     
     /**
@@ -295,14 +239,14 @@ public final class Group extends AbstractGroup {
         
         for (String key : section.getStringList("inherits")) {
             if (key.startsWith("s:")) {
-                SuperGroup group = loader.getPlugin().getDataHolder().getSuperGroup(key.substring(2));
-                if (group == null) loader.getPlugin().getLogger().warning("Cannot inherit supergroup " + key + " for group " + getName() + ". Is it spelled correctly? Does it exist?");
+                SuperGroup group = plugin.getSuperGroup(key.substring(2));
+                if (group == null) plugin.getLogger().warning("Cannot inherit supergroup " + key + " for group " + getName() + ". Is it spelled correctly? Does it exist?");
                 else direct.add(group);
                 
             }
             else {
                 Group group = groupDataFile.getGroup(key);
-                if (group == null) loader.getPlugin().getLogger().warning("Cannot inherit group " + key + " for group " + getName() + ". Is it spelled correctly? Does it exist?");
+                if (group == null) plugin.getLogger().warning("Cannot inherit group " + key + " for group " + getName() + ". Is it spelled correctly? Does it exist?");
                 else direct.add(group);
             }
         }
@@ -322,7 +266,12 @@ public final class Group extends AbstractGroup {
         
     }
     
-    public void unload() {
+    //This is called only when the permissions of a group are changed.
+    public void preInheritanceLoad() {
+        inherited.stream().filter(g -> g instanceof Group).forEach(g -> ((Group)g).inheritanceLoaded = false);
+    }
+
+    public void save() {
         section.setEntry("permissions", groupPermissions.toArray(new String[0]));
         section.setEntry("inherits", direct.stream().map(group -> {
             if (group instanceof SuperGroup) return "s:".concat(group.getName());
@@ -332,17 +281,5 @@ public final class Group extends AbstractGroup {
         addInfo("rankid", rankID);
         addInfo("prefix", prefix);
         addInfo("suffix", suffix);
-    }
-    
-    public void reloadUsers() {
-        users.forEach(u -> {
-            CoUser user = getUser(u);
-            if (user != null) user.resolvePermissions();
-        });
-    }
-    
-    //This is called only when the permissions of a group are changed.
-    public void preInheritanceLoad() {
-        inherited.stream().filter(g -> g instanceof Group).forEach(g -> ((Group)g).inheritanceLoaded = false);
     }
 }
