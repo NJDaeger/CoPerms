@@ -155,7 +155,7 @@ public final class PermissionCommands {
     //TODO redo
     private void addUserPermission(CommandContext context) throws BCIException {
         
-        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
 
         CoUser user = world.getUser(context.argAt(0));

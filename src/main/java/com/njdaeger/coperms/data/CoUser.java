@@ -35,6 +35,11 @@ public final class CoUser {
     private final Set<String> permissions;
     private final Set<String> userPermissions;
 
+    public CoUser(CoPerms plugin, CoWorld world, UUID userID, boolean hasChanged) {
+        this(plugin, world, userID);
+        this.hasChanged = true;
+    }
+
     public CoUser(CoPerms plugin, CoWorld world, UUID userID) {
         this.userPermissions = new HashSet<>();
         this.permissions = new HashSet<>();
@@ -62,9 +67,6 @@ public final class CoUser {
         //Get the prefix and suffix. The info may be null.
         this.prefix = (String)getInfo("prefix");
         this.suffix = (String)getInfo("suffix");
-
-        //Finish up permission parsing
-        resolvePermissions();
 
     }
 

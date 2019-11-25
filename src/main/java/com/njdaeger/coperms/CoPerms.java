@@ -12,9 +12,14 @@ import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.data.CoWorld;
 import com.njdaeger.coperms.groups.Group;
 import com.njdaeger.coperms.groups.SuperGroup;
+import com.njdaeger.coperms.vault.Chat_CoPerms;
+import com.njdaeger.coperms.vault.Permission_CoPerms;
+import net.milkbowl.vault.chat.Chat;
+import net.milkbowl.vault.permission.Permission;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,6 +57,13 @@ public final class CoPerms extends JavaPlugin implements CoPermsAPI{
         this.groupDataFiles = new HashMap<>();
         this.userDataFiles = new HashMap<>();
         this.worlds = new HashMap<>();
+
+        if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+            Permission_CoPerms perms = new Permission_CoPerms(this);
+            Chat_CoPerms chat = new Chat_CoPerms(this, perms);
+            getServer().getServicesManager().register(Permission.class, perms, this, ServicePriority.Highest);
+            getServer().getServicesManager().register(Chat.class, chat, this, ServicePriority.Highest);
+        }
 
         EssentialsPermissionHandler.injectHandler();
 

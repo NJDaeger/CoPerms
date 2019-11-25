@@ -20,7 +20,6 @@ public final class DataListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         plugin.getWorld(e.getPlayer().getWorld()).addPlayer(e.getPlayer());
-        Injector.inject(e.getPlayer());
     }
 
     @EventHandler

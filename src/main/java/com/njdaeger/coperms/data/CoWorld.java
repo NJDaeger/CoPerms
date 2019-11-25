@@ -1,6 +1,7 @@
 package com.njdaeger.coperms.data;
 
 import com.njdaeger.coperms.CoPerms;
+import com.njdaeger.coperms.Injector;
 import com.njdaeger.coperms.configuration.GroupDataFile;
 import com.njdaeger.coperms.configuration.UserDataFile;
 import com.njdaeger.coperms.groups.Group;
@@ -146,6 +147,9 @@ public final class CoWorld {
     public void addPlayer(@NotNull Player player) {
         Validate.notNull(player, "Player cannot be null");
         userData.loadPlayer(player);
-        users.putIfAbsent(player.getUniqueId(), new CoUser((CoPerms) userData.getPlugin(), this, player.getUniqueId()));
+        users.putIfAbsent(player.getUniqueId(), new CoUser((CoPerms) userData.getPlugin(), this, player.getUniqueId(), true));
+        if (player.isOnline()) {
+            users.get(player.getUniqueId()).resolvePermissions();
+        }
     }
 }
