@@ -4,12 +4,15 @@ import com.njdaeger.bci.base.BCICommand;
 import com.njdaeger.bci.base.BCIException;
 import com.njdaeger.bci.defaults.BCIBuilder;
 import com.njdaeger.bci.defaults.CommandContext;
+import com.njdaeger.btu.Text;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.Pair;
+import com.njdaeger.coperms.commands.flags.PageFlag;
 import com.njdaeger.coperms.commands.flags.WorldFlag;
 import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.data.CoWorld;
 import com.njdaeger.coperms.exceptions.GroupNotExistException;
+import com.njdaeger.coperms.exceptions.PageOutOfBoundsException;
 import com.njdaeger.coperms.exceptions.UserNotExistException;
 import com.njdaeger.coperms.exceptions.WorldNotExistException;
 import com.njdaeger.coperms.groups.Group;
@@ -17,7 +20,6 @@ import com.njdaeger.coperms.groups.Group;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 import static org.bukkit.ChatColor.*;
@@ -123,9 +125,11 @@ public final class PermissionCommands {
                     c.completionAt(0, CommandUtil::playerCompletion);
                     c.completionAt(1, (ctx) -> new ArrayList<>(plugin.getWorlds().keySet()));
                 })
-                .aliases("userperms")
+                .aliases("userperms", "listuperms")
                 .description("Shows a list of user permissions")
-                .usage("/getuperms <user> [world]")
+                .usage("/getuperms <user> w:[world] p:[page]")
+                .flag(new WorldFlag())
+                .flag(new PageFlag())
                 .minArgs(1)
                 .maxArgs(2)
                 .permissions("coperms.permission.user.see")
@@ -137,9 +141,11 @@ public final class PermissionCommands {
                     c.completionAt(0, CommandUtil::groupCompletion);
                     c.completionAt(1, (ctx) -> new ArrayList<>(plugin.getWorlds().keySet()));
                 })
-                .aliases("groupperms")
+                .aliases("groupperms", "listgperms")
                 .description("Shows a list of group permissions")
-                .usage("/getgperms <group> [world]")
+                .usage("/getgperms <group> w:[world] p:[page]")
+                .flag(new WorldFlag())
+                .flag(new PageFlag())
                 .minArgs(1)
                 .maxArgs(2)
                 .permissions("coperms.permission.group.see")
@@ -147,12 +153,11 @@ public final class PermissionCommands {
         
         plugin.getCommandStore().registerCommands(adduperm, remuperm, addgperm, remgperm, getuperms, getgperms);
     }
-    
+
     //
     //
     //
     //
-    //TODO redo
     private void addUserPermission(CommandContext context) throws BCIException {
         
         CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
@@ -160,31 +165,30 @@ public final class PermissionCommands {
 
         CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
-    
-        Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
+
+        Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user, true);
         if (!pair.getFirst().isEmpty()) {
-            context.pluginMessage(GRAY + "Added the following permission(s) to user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
+            context.pluginMessage(GRAY + "Added the following permission(s) to user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatInlinePerms(pair.getFirst()));
         }
         if (!pair.getSecond().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be added to user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
+            context.pluginMessage(GRAY + "Some permissions could not be added to user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatInlinePerms(pair.getSecond()));
         }
     }
 
-    //TODO redo
     private void removeUserPermission(CommandContext context) throws BCIException {
         
-        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
         
-        Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user);
+        Pair<Set<String>, Set<String>> pair = resolveSets(context, null, user, false);
         if (!pair.getFirst().isEmpty()) {
-            context.pluginMessage(GRAY + "Removed the following permission(s) from user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
+            context.pluginMessage(GRAY + "Removed the following permission(s) from user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatInlinePerms(pair.getFirst()));
         }
         if (!pair.getSecond().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be removed from user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
+            context.pluginMessage(GRAY + "Some permissions could not be removed from user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatInlinePerms(pair.getSecond()));
         }
     }
 
@@ -195,35 +199,35 @@ public final class PermissionCommands {
     
     private void addGroupPermission(CommandContext context) throws BCIException {
         
-        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
         
         Group group = world.getGroup(context.argAt(0));
         if (group == null) throw new GroupNotExistException();
         
-        Pair<Set<String>, Set<String>> pair = resolveSets(context, group, null);
+        Pair<Set<String>, Set<String>> pair = resolveSets(context, group, null, true);
         if (!pair.getFirst().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was added to group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
+            context.pluginMessage(GRAY + "The following permission(s) was added to group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatInlinePerms(pair.getFirst()));
         }
         if (!pair.getSecond().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be added to group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
+            context.pluginMessage(GRAY + "Some permissions could not be added to group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatInlinePerms(pair.getSecond()));
         }
     }
     
     private void removeGroupPermission(CommandContext context) throws BCIException {
         
-        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : resolveWorld(context);
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
     
         Group group = world.getGroup(context.argAt(0));
         if (group == null) throw new GroupNotExistException();
         
-        Pair<Set<String>, Set<String>> pair = resolveSets(context, group, null);
+        Pair<Set<String>, Set<String>> pair = resolveSets(context, group, null, false);
         if (!pair.getFirst().isEmpty()) {
-            context.pluginMessage(GRAY + "The following permission(s) was removed from group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getFirst()));
+            context.pluginMessage(GRAY + "The following permission(s) was removed from group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatInlinePerms(pair.getFirst()));
         }
         if (!pair.getSecond().isEmpty()) {
-            context.pluginMessage(GRAY + "Some permissions could not be removed from group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(pair.getSecond()));
+            context.pluginMessage(GRAY + "Some permissions could not be removed from group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatInlinePerms(pair.getSecond()));
         }
     }
     
@@ -233,14 +237,20 @@ public final class PermissionCommands {
     //
 
     private void getUserPermissions(CommandContext context) throws BCIException {
-    
-        CoWorld world = context.isLength(2) ? plugin.getWorld(context.argAt(1)) : resolveWorld(context);
+
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
-        
+
+        int page = context.hasFlag("p") ? context.getFlag("p") : 0;
+
         CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
-        
-        context.pluginMessage(GRAY + "All permissions for user " + AQUA + user.getName() + GRAY + ": " + WHITE + formatPerms(user.getPermissions()));
+
+        if (page < 0 || page*10 >= user.getPermissions().size()) throw new PageOutOfBoundsException();
+
+        context.pluginMessage(GRAY + "All permissions for user " + AQUA + user.getName() + GRAY + ":");
+        sendPaginatedList(context, world, null, user, user.getPermissions(), page);
+
     }
 
     //
@@ -248,17 +258,53 @@ public final class PermissionCommands {
     //
     //
     private void getGroupPermissions(CommandContext context) throws BCIException {
-        
-        CoWorld world = context.isLength(2) ? plugin.getWorld(context.argAt(1)) : resolveWorld(context);
+
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
-        
+
+        int page = context.hasFlag("p") ? context.getFlag("p") : 0;
+
         Group group = world.getGroup(context.argAt(0).toLowerCase());
         if (group == null) throw new GroupNotExistException();
-        
-        context.pluginMessage(GRAY + "All permissions for group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatPerms(group.getPermissions()));
+
+        if (page < 0 || page*10 >= group.getPermissions().size()) throw new PageOutOfBoundsException();
+
+        context.pluginMessage(GRAY + "All permissions for group " + AQUA + group.getName() + GRAY + ":");
+        sendPaginatedList(context, world, group, null, group.getPermissions(), page);
     }
 
-    private String formatPerms(Collection<String> permissions) {
+    private void sendPaginatedList(CommandContext context, CoWorld world, Group group, CoUser user, Collection<String> permissions, int page) {
+        // [X] (negate for group) [O] remove from group, fallback to whether the permission is given to the group via inheritance [+] add for group
+
+        for (String perm : permissions.stream().skip(page*10).limit(10).toArray(String[]::new)) {
+            context.send("> " + formatPermission(perm));
+        }
+        if (context.isPlayer()) {
+            Text.TextSection txt = Text.of(page == 0 ? RED + "|X|--" : GREEN + "<<--")
+                    .setBold(true)
+                    .clickEvent(c -> {
+                        c.action(Text.ClickAction.RUN_COMMAND);
+                        c.click(user == null ? "/getgperms " + group.getName() + " w:" + world.getName().replaceAll(" ", "_") + " p:" + (page - 1)
+                                : "/getuperms " + user.getName() + " w:" + world.getName().replaceAll(" ", "_") + " p:" + (page - 1));
+                    })
+                    .append(" =================== ")
+                    .setColor(GRAY)
+                    .append((page + 1)*10 > permissions.size() ? RED + "--|X|" : GREEN + "-->>").setBold(true)
+                    .clickEvent(c -> {
+                        c.action(Text.ClickAction.RUN_COMMAND);
+                        c.click(user == null ? "/getgperms " + group.getName() + " w:" + world.getName().replaceAll(" ", "_") + " p:" + (page + 1)
+                                : "/getuperms " + user.getName() + " w:" + world.getName().replaceAll(" ", "_") + " p:" + (page + 1));
+                    });
+            Text.sendTo(txt, context.asPlayer());
+        }
+        else context.send("Use the page flag to change pages. Eg. /getgperms Admin p:3");
+    }
+
+    private String formatPermission(String permission) {
+        return GRAY.toString() + (permission.startsWith("-") ? ITALIC : "") + (permission.endsWith(".*") ? UNDERLINE : "") + permission;
+    }
+
+    private String formatInlinePerms(Collection<String> permissions) {
         StringBuilder builder = new StringBuilder();
         if (permissions == null || permissions.isEmpty()) {
             return null;
@@ -269,48 +315,45 @@ public final class PermissionCommands {
             if (node == null) {
                 continue;
             }
-            if (node.startsWith("-") && node.endsWith(".*")) {
-                builder.append(GRAY).append(ITALIC).append(UNDERLINE).append(node).append(comma);
-                continue;
-            }
-            if (node.startsWith("-")) {
-                builder.append(GRAY).append(ITALIC).append(node).append(comma);
-                continue;
-            }
-            if (node.endsWith(".*")) {
-                builder.append(GRAY).append(UNDERLINE).append(node).append(comma);
-                continue;
-            }
-            builder.append(node).append(comma);
+            builder.append(formatPermission(node)).append(comma);
         }
         String s = builder.toString().trim();
         return s.substring(0, (s.endsWith(",") ? s.lastIndexOf(",") : s.length()));
     }
     
     
-    private Pair<Set<String>, Set<String>> resolveSets(CommandContext context, Group group, CoUser user) {
+    private Pair<Set<String>, Set<String>> resolveSets(CommandContext context, Group group, CoUser user, boolean add) {
         Set<String> setA = new HashSet<>();
         Set<String> setB = new HashSet<>();
         for (int i = 1; context.getArgs().size() > i; i++) {
             if (user == null) {
-                if (group.addPermission(context.argAt(i))) {
-                    setA.add(context.argAt(i));
-                    continue;
+                if (add) {
+                    if (group.addPermission(context.argAt(i))) {
+                        setA.add(context.argAt(i));
+                        continue;
+                    }
+                } else {
+                    if (group.removePermission(context.argAt(i))) {
+                        setA.add(context.argAt(i));
+                        continue;
+                    }
                 }
             } else {
-                if (user.addPermission(context.argAt(i))) {
-                    setA.add(context.argAt(i));
-                    continue;
+                if (add) {
+                    if (user.addPermission(context.argAt(i))) {
+                        setA.add(context.argAt(i));
+                        continue;
+                    }
+                } else {
+                    if (user.removePermission(context.argAt(i))) {
+                        setA.add(context.argAt(i));
+                        continue;
+                    }
                 }
             }
             setB.add(context.argAt(i));
         }
         return new Pair<>(setA, setB);
-    }
-    
-    private CoWorld resolveWorld(CommandContext context) {
-        if (!context.isLocatable()) return plugin.getDefaultWorld();
-        else return plugin.getWorld(Objects.requireNonNull(context.getLocation().getWorld()));
     }
 
 }
