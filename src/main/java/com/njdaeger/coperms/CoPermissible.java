@@ -17,82 +17,35 @@ public class CoPermissible extends PermissibleBase {
 
     @Override
     public boolean isPermissionSet(String permission) {
-        return user.getPermissions().contains(permission);
+        return hasPermission(permission);
     }
 
     @Override
     public boolean isPermissionSet(Permission permission) {
-        return user.getPermissions().contains(permission.getName());
+        return hasPermission(permission);
     }
 
     @Override
     public boolean hasPermission(String permission) {
+        System.out.println(permission);
         if (isOp()) {
             return true;
         }
         if (user.hasPermission("*")) {
             return true;
         }
-        if (hasNegatedNode(permission)) {
+        return user.hasPermission(permission);
+        /*if (hasNegatedNode(permission)) {
             return false;
         }
         if (hasWildcardNode(permission)) {
             return true;
-        }
-        return user.getPermissions().contains(permission);
+        }*/
+        //return user.getPermissions().contains(permission);
     }
 
     @Override
     public boolean hasPermission(Permission permission) {
-        if (isOp()) {
-            return true;
-        }
-        if (user.hasPermission("*")) {
-            return true;
-        }
-        if (hasNegatedNode(permission.getName())) {
-            return false;
-        }
-        if (hasWildcardNode(permission.getName())) {
-            return true;
-        }
-        return user.getPermissions().contains(permission.getName());
-    }
-
-    private boolean hasWildcardNode(String permission) {
-        if (permission.contains(".")) {
-            if (user.getWildcardNodes().contains(permission)) {
-                return true;
-            }
-            for (int i = 0; i < StringUtils.countMatches(permission, "."); i++) {
-                if (permission.endsWith(".*")) {
-                    permission = permission.substring(0, permission.lastIndexOf("."));
-                }
-                permission = permission.substring(0, permission.lastIndexOf(".")) + ".*";
-                if (user.getWildcardNodes().contains(permission)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean hasNegatedNode(String permission) {
-        if (user.getNegationNodes().contains("-" + permission) && !user.getPermissions().contains(permission)) {
-            if (permission.endsWith(".*") && user.getWildcardNodes().contains(permission)) {
-                for (int i = 0; i < StringUtils.countMatches(permission, "."); i++) {
-                    if (permission.endsWith(".*")) {
-                        permission = permission.substring(0, permission.lastIndexOf("."));
-                    }
-                    permission = permission.substring(0, permission.lastIndexOf(".")) + ".*";
-                    if (user.getNegationNodes().contains(permission)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-            return true;
-        }
-        return false;
+        return hasPermission(permission.getName());
     }
 }

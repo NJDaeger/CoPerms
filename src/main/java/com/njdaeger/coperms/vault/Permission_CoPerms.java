@@ -73,12 +73,12 @@ public class Permission_CoPerms extends Permission {
 
     @Override
     public boolean playerAdd(String world, String player, String permission) {
-        return coperms.getUser(world, player).addPermission(permission);
+        return coperms.getUser(world, player).grantPermission(permission);
     }
 
     @Override
     public boolean playerRemove(String world, String player, String permission) {
-        return coperms.getUser(world, player).removePermission(permission);
+        return coperms.getUser(world, player).revokePermission(permission);
     }
 
     @Override
@@ -88,12 +88,12 @@ public class Permission_CoPerms extends Permission {
 
     @Override
     public boolean groupAdd(String world, String group, String permission) {
-        return coperms.getGroup(world, group).addPermission(permission);
+        return coperms.getGroup(world, group).grantPermission(permission);
     }
 
     @Override
     public boolean groupRemove(String world, String group, String permission) {
-        return coperms.getGroup(world, group).removePermission(permission);
+        return coperms.getGroup(world, group).revokePermission(permission);
     }
 
     @Override

@@ -212,6 +212,7 @@ public final class PermissionCommands {
         if (!pair.getSecond().isEmpty()) {
             context.pluginMessage(GRAY + "Some permissions could not be added to group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatInlinePerms(pair.getSecond()));
         }
+        world.getUsers().forEach((uuid, user) -> user.resolvePermissions());
     }
     
     private void removeGroupPermission(CommandContext context) throws BCIException {
@@ -221,7 +222,7 @@ public final class PermissionCommands {
     
         Group group = world.getGroup(context.argAt(0));
         if (group == null) throw new GroupNotExistException();
-        
+
         Pair<Set<String>, Set<String>> pair = resolveSets(context, group, null, false);
         if (!pair.getFirst().isEmpty()) {
             context.pluginMessage(GRAY + "The following permission(s) was removed from group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatInlinePerms(pair.getFirst()));
@@ -229,6 +230,7 @@ public final class PermissionCommands {
         if (!pair.getSecond().isEmpty()) {
             context.pluginMessage(GRAY + "Some permissions could not be removed from group " + AQUA + group.getName() + GRAY + ": " + WHITE + formatInlinePerms(pair.getSecond()));
         }
+        world.getUsers().forEach((uuid, user) -> user.resolvePermissions());
     }
     
     //
@@ -328,24 +330,24 @@ public final class PermissionCommands {
         for (int i = 1; context.getArgs().size() > i; i++) {
             if (user == null) {
                 if (add) {
-                    if (group.addPermission(context.argAt(i))) {
+                    if (group.grantPermission(context.argAt(i))) {
                         setA.add(context.argAt(i));
                         continue;
                     }
                 } else {
-                    if (group.removePermission(context.argAt(i))) {
+                    if (group.revokePermission(context.argAt(i))) {
                         setA.add(context.argAt(i));
                         continue;
                     }
                 }
             } else {
                 if (add) {
-                    if (user.addPermission(context.argAt(i))) {
+                    if (user.grantPermission(context.argAt(i))) {
                         setA.add(context.argAt(i));
                         continue;
                     }
                 } else {
-                    if (user.removePermission(context.argAt(i))) {
+                    if (user.revokePermission(context.argAt(i))) {
                         setA.add(context.argAt(i));
                         continue;
                     }

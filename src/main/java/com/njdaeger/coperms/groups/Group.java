@@ -3,29 +3,27 @@ package com.njdaeger.coperms.groups;
 import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.configuration.GroupDataFile;
+import com.njdaeger.coperms.tree.PermissionTree;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public final class Group extends AbstractGroup {
-    
+
     private final GroupDataFile groupDataFile;
-    
-    //All of the inherited groups. This includes the indirect ones which are not listed in the inherited section.
-    private List<AbstractGroup> inherited;
-    
+
     //All the directly inherited groups. Anything which is listed in the groups inherits section is in this.
-    private List<AbstractGroup> direct;
-    
-    private Set<String> groupPermissions;
+    private List<AbstractGroup> directlyInherits;
+    private List<AbstractGroup> inheritors;
+
+    private PermissionTree groupPermissionTree;
+    private PermissionTree fullPermissionTree;
     private final ISection infoSection;
     private boolean inheritanceLoaded;
-    private Set<String> permissions;
     private final boolean isDefault;
     private final ISection section;
     private final CoPerms plugin;
@@ -39,15 +37,15 @@ public final class Group extends AbstractGroup {
         this.section = groupDataFile.getSection("groups." + name);
         this.rankID = section.getInt("info.rankid");
         this.infoSection = section.getSection("info");
-        this.inherited = new ArrayList<>();
-        this.direct = new ArrayList<>();
+        this.directlyInherits = new ArrayList<>();
+        this.inheritors = new ArrayList<>();
         this.groupDataFile = groupDataFile;
-        this.permissions = new HashSet<>();
         this.isDefault = rankID == 0;
         this.plugin = plugin;
         this.name = name;
-    
-        this.groupPermissions = new HashSet<>(section.getStringList("permissions"));
+
+        this.groupPermissionTree = new PermissionTree(section.getStringList("permissions"));
+        this.fullPermissionTree = new PermissionTree();
         this.canBuild = section.getBoolean("info.canBuild");
         this.prefix = section.getString("info.prefix");
         this.suffix = section.getString("info.suffix");
@@ -57,12 +55,27 @@ public final class Group extends AbstractGroup {
     public String getName() {
         return name;
     }
-    
+
     @Override
     public Set<String> getPermissions() {
-        return permissions;
+        return fullPermissionTree.getPermissionNodes();
     }
-    
+
+    @Override
+    public PermissionTree getPermissionTree() {
+        return fullPermissionTree;
+    }
+
+    @Override
+    public Set<String> getGroupPermissions() {
+        return groupPermissionTree.getPermissionNodes();
+    }
+
+    @Override
+    public PermissionTree getGroupPermissionTree() {
+        return groupPermissionTree;
+    }
+
     /**
      * Gets the group prefix
      *
@@ -102,7 +115,7 @@ public final class Group extends AbstractGroup {
     /**
      * Adds info to the user section
      *
-     * @param node  The node to add
+     * @param node The node to add
      * @param value The value to set the node
      */
     public void addInfo(@NotNull String node, @Nullable Object value) {
@@ -149,52 +162,59 @@ public final class Group extends AbstractGroup {
         return isDefault;
     }
 
-    /**
-     * Gets the permissions that are specified for this group
-     *
-     * @return THe group private permissions.
-     */
-    public Set<String> getGroupPermissions() {
-        return groupPermissions;
-    }
-
-    /**
-     * Checks whether this group has a permission or not
-     *
-     * @param permission The permission to look for
-     * @return True if the group has the permission, false otherwise
-     */
+    @Override
     public boolean hasPermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        return permissions.contains(permission);
+        return fullPermissionTree.hasPermission(permission);
     }
 
-    /**
-     * Adds a permission to the group
-     *
-     * @param permission The permission to add
-     * @return True if it was successfully added.
-     */
-    public boolean addPermission(@NotNull String permission) {
+    @Override
+    public List<AbstractGroup> getInheritors() {
+        return inheritors;
+    }
+
+    @Override
+    public boolean addInheritor(AbstractGroup group) {
+        return inheritors.add(group);
+    }
+
+    @Override
+    public boolean removeInheritor(AbstractGroup group) {
+        return inheritors.remove(group);
+    }
+
+    @Override
+    public boolean grantPermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = groupPermissions.add(permission);
-        if (ret) groupDataFile.reloadGroups();
+        boolean ret = groupPermissionTree.grantPermission(permission);
+        fullPermissionTree.grantPermission(permission);
+        inheritors.forEach(g -> {
+            //If the permission is explicitly defined in the group, and that definition prohibits them from using said
+            //permission, then we do not want to grant that group permission to this newly coming permission. Otherwise,
+            //we do want to give them permission
+            if (!g.getGroupPermissionTree().isPermissionDefined(permission) || g.getGroupPermissionTree().hasPermission(permission)) {
+                g.getPermissionTree().grantPermission(permission);
+            }
+        });
         return ret;
     }
 
-    /**
-     * Removes a permission from the group
-     *
-     * @param permission The permission to remove
-     * @return True if the permission was successfully removed.
-     */
-    public boolean removePermission(@NotNull String permission) {
+    @Override
+    public boolean revokePermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = groupPermissions.remove(permission);
-        if (ret) groupDataFile.reloadGroups();
+        boolean ret = groupPermissionTree.revokePermission(permission);
+        fullPermissionTree.revokePermission(permission);
+        inheritors.forEach(g -> {
+            //The idea here is that since group permissions override all inherited permissions, if the group has explicit
+            //permission to do something, then they should not have the permission taken away from them. Otherwise, the
+            //permission will be taken from the fullPermissionTree, which is just a mashup of all the inherited permissions
+            if (!g.getGroupPermissionTree().hasPermission(permission)) {
+                g.getPermissionTree().revokePermission(permission);
+            }
+        });
         return ret;
     }
-    
+
     /**
      * Adds an inherited group to a group
      *
@@ -203,11 +223,12 @@ public final class Group extends AbstractGroup {
      */
     public boolean addInheritance(@NotNull AbstractGroup group) {
         Validate.notNull(group, "Group cannot be null");
-        direct.add(group);
-        groupDataFile.reloadGroups();
-        return true;
+        group.addInheritor(this);
+        boolean ret = directlyInherits.add(group);
+        if (ret) groupDataFile.reloadGroups();
+        return ret;
     }
-    
+
     /**
      * Removes an inherited group from a group
      *
@@ -216,64 +237,78 @@ public final class Group extends AbstractGroup {
      */
     public boolean removeInheritance(@NotNull AbstractGroup group) {
         Validate.notNull(group, "Group cannot be null");
-        boolean ret = direct.remove(group);
+        group.removeInheritor(this);
+        boolean ret = directlyInherits.remove(group);
         if (ret) groupDataFile.reloadGroups();
         return ret;
     }
-    
+
     /**
      * Get a list of all the groups which this group inherits its permissions from.
+     *
      * @return A list of groups this groups permissions are inherited from.
      */
     public List<AbstractGroup> getInheritedGroups() {
-        return inherited;
-    }
-    
-    public void loadInheritance() {
-        
-        this.inheritanceLoaded = true;
-    
-        permissions.clear();
-        inherited.clear();
-        direct.clear();
-        
-        for (String key : section.getStringList("inherits")) {
-            if (key.startsWith("s:")) {
-                SuperGroup group = plugin.getSuperGroup(key.substring(2));
-                if (group == null) plugin.getLogger().warning("Cannot inherit supergroup " + key + " for group " + getName() + ". Is it spelled correctly? Does it exist?");
-                else direct.add(group);
-                
-            }
-            else {
-                Group group = groupDataFile.getGroup(key);
-                if (group == null) plugin.getLogger().warning("Cannot inherit group " + key + " for group " + getName() + ". Is it spelled correctly? Does it exist?");
-                else direct.add(group);
-            }
-        }
-        
-        for (AbstractGroup abstractGroup : direct) {
+        List<AbstractGroup> inherited = new ArrayList<>();
+        for (AbstractGroup abstractGroup : directlyInherits) {
+
             if (abstractGroup instanceof SuperGroup) inherited.add(abstractGroup);
             else {
-                Group group = (Group)abstractGroup;
+                Group group = (Group) abstractGroup;
                 if (!group.inheritanceLoaded) group.loadInheritance();
                 inherited.add(group);
                 inherited.addAll(group.getInheritedGroups());
             }
         }
-        
-        permissions.addAll(groupPermissions);
-        inherited.forEach(g -> permissions.addAll(g.getPermissions()));
-        
+        return inherited;
     }
-    
+
+    public void loadInheritance() {
+
+        this.inheritanceLoaded = true;
+
+        fullPermissionTree.clear();
+        //inherited.clear();
+        directlyInherits.clear();
+
+        //todo determine why permissions arent being inherited over from regular groups
+
+        for (String key : section.getStringList("inherits")) {
+            if (key.startsWith("s:")) {
+                SuperGroup group = plugin.getSuperGroup(key.substring(2));
+                if (group == null)
+                    plugin.getLogger().warning("Cannot inherit supergroup " + key + " for group " + getName() + ". Is it spelled correctly? Does it exist?");
+                else {
+                    group.addInheritor(this);
+                    directlyInherits.add(group);
+                }
+
+            } else {
+                Group group = groupDataFile.getGroup(key);
+                if (group == null)
+                    plugin.getLogger().warning("Cannot inherit group " + key + " for group " + getName() + ". Is it spelled correctly? Does it exist?");
+                else {
+                    group.addInheritor(this);
+                    directlyInherits.add(group);
+                }
+            }
+        }
+
+        directlyInherits.forEach(g -> {
+            if (g instanceof Group && !((Group) g).inheritanceLoaded) ((Group) g).loadInheritance();
+            fullPermissionTree.importPermissions(g.getPermissionTree());
+        });
+        fullPermissionTree.importPermissions(groupPermissionTree);
+    }
+
     //This is called only when the permissions of a group are changed.
     public void preInheritanceLoad() {
-        inherited.stream().filter(g -> g instanceof Group).forEach(g -> ((Group)g).inheritanceLoaded = false);
+        getInheritedGroups().stream().filter(g -> g instanceof Group).forEach(g -> ((Group) g).inheritanceLoaded = false);
     }
 
     public void save() {
-        section.setEntry("permissions", groupPermissions.toArray(new String[0]));
-        section.setEntry("inherits", direct.stream().map(group -> {
+        section.setEntry("permissions", groupPermissionTree.getPermissionNodes().toArray(new String[0]));
+        section.setEntry("inherits", directlyInherits.stream().map(group -> {
             if (group instanceof SuperGroup) return "s:".concat(group.getName());
             else return group.getName();
         }).toArray(String[]::new));

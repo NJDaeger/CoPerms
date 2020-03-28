@@ -177,7 +177,7 @@ public final class UserCommands {
         
         CoUser user = world.getUser(context.argAt(0));
         if (user == null) throw new UserNotExistException();
-        
+        user.getPermissionTree().printTree();
         if (!context.hasPermission("coperms.variables.prefix.other") && !user.getName().equalsIgnoreCase(context.argAt(0))) context.noPermission();
         
         if (context.getLength() < 2) {

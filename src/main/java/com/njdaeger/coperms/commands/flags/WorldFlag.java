@@ -1,12 +1,9 @@
 package com.njdaeger.coperms.commands.flags;
 
-import com.njdaeger.bci.base.BCIException;
 import com.njdaeger.bci.base.executors.TabExecutor;
 import com.njdaeger.bci.defaults.TabContext;
 import com.njdaeger.bci.flags.AbstractFlag;
 import com.njdaeger.coperms.CoPerms;
-
-import java.util.stream.Collectors;
 
 public final class WorldFlag extends AbstractFlag<WorldParser> implements TabExecutor<TabContext> {
     

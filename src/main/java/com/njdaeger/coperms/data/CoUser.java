@@ -4,13 +4,13 @@ import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.Injector;
 import com.njdaeger.coperms.groups.Group;
+import com.njdaeger.coperms.tree.PermissionTree;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -30,10 +30,8 @@ public final class CoUser {
     private final CoWorld world;
     private final ISection userSection;
     private final CoPerms plugin;
-    private final Set<String> wildcards;
-    private final Set<String> negations;
-    private final Set<String> permissions;
-    private final Set<String> userPermissions;
+    private final PermissionTree userPermissionTree;
+    private final PermissionTree fullPermissionTree;
 
     public CoUser(CoPerms plugin, CoWorld world, UUID userID, boolean hasChanged) {
         this(plugin, world, userID);
@@ -41,10 +39,8 @@ public final class CoUser {
     }
 
     public CoUser(CoPerms plugin, CoWorld world, UUID userID) {
-        this.userPermissions = new HashSet<>();
-        this.permissions = new HashSet<>();
-        this.wildcards = new HashSet<>();
-        this.negations = new HashSet<>();
+        this.fullPermissionTree = new PermissionTree();
+        this.userPermissionTree = new PermissionTree();
         this.plugin = plugin;
         this.world = world;
         this.uuid = userID;
@@ -54,7 +50,7 @@ public final class CoUser {
 
         //Checking for any custom permissions this user has in their user section in the datafile
         List<String> customPerms = userSection.getStringList("permissions");
-        if (customPerms != null) this.userPermissions.addAll(customPerms);
+        if (customPerms != null) this.userPermissionTree.importPermissions(customPerms);
 
         //Trying to get the group the user is in on this world. If the group doesnt exist, it gets the default of the world
         this.group = world.getGroup(userSection.getString("group"));
@@ -65,9 +61,17 @@ public final class CoUser {
         if (name == null && isOnline()) this.name = Bukkit.getPlayer(uuid).getName();
 
         //Get the prefix and suffix. The info may be null.
-        this.prefix = (String)getInfo("prefix");
-        this.suffix = (String)getInfo("suffix");
+        this.prefix = (String) getInfo("prefix");
+        this.suffix = (String) getInfo("suffix");
 
+    }
+
+    public PermissionTree getUserPermissionTree() {
+        return userPermissionTree;
+    }
+
+    public PermissionTree getPermissionTree() {
+        return fullPermissionTree;
     }
 
     /**
@@ -138,7 +142,7 @@ public final class CoUser {
     /**
      * Adds info to the user section
      *
-     * @param node  The node to add
+     * @param node The node to add
      * @param value The value to set the node
      */
     public void addInfo(@NotNull String node, @Nullable Object value) {
@@ -146,8 +150,7 @@ public final class CoUser {
         if (userInfo == null) {
             userSection.setEntry("info." + node, value);
             userInfo = userSection.getSection("info");
-        }
-        else userInfo.setEntry(node, value);
+        } else userInfo.setEntry(node, value);
         this.hasChanged = true;
     }
 
@@ -162,9 +165,10 @@ public final class CoUser {
         if (userInfo == null || userInfo.getValue(node) == null) return null;
         else return userInfo.getValue(node);
     }
-    
+
     /**
      * Gets the section containing additional user info
+     *
      * @return The user info section. May be null if the user doesn't have a user info section.
      */
     public ISection getUserInfo() {
@@ -175,7 +179,7 @@ public final class CoUser {
      * Sets the group of a user
      *
      * @param world The world to set the group of the user in
-     * @param name  The name of the group
+     * @param name The name of the group
      * @return Whether the user was added or not.
      */
     public boolean setGroup(@NotNull CoWorld world, @NotNull String name) {
@@ -214,16 +218,16 @@ public final class CoUser {
      * @return All the user permissions in this world
      */
     public Set<String> getUserPermissions() {
-        return userPermissions;
+        return userPermissionTree.getPermissionNodes();
     }
 
     /**
-     * All the permissions the user has, including the ones given from the group its currently in
+     * All the permissions the user has not including the user specific ones.
      *
      * @return All the user permissions
      */
     public Set<String> getPermissions() {
-        return permissions;
+        return fullPermissionTree.getPermissionNodes();
     }
 
     /**
@@ -243,84 +247,52 @@ public final class CoUser {
      */
     public boolean hasPermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        return permissions.contains(permission);
+        return fullPermissionTree.hasPermission(permission);
     }
 
     /**
-     * Adds a permission to the users permissions.
+     * Grants this user permission to a specific permission.
      *
-     * @param permission The permission to add
-     * @return If the permission was added or not.
+     * @param permission The permission to grant access to
+     * @return True if the permission was granted, or false if the permission was already granted.
      */
-    public boolean addPermission(@NotNull String permission) {
+    public boolean grantPermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = userPermissions.add(permission);
-        resolvePermissions();
+        boolean ret = userPermissionTree.grantPermission(permission);
+        fullPermissionTree.grantPermission(permission);
         this.hasChanged = true;
         return ret;
     }
-    
+
     /**
      * Sends a formatted plugin message to the represented player
+     *
      * @param message The message to send
      */
     public void pluginMessage(@Nullable String message) {
-        if (isOnline()) Bukkit.getPlayer(uuid).sendMessage(ChatColor.GRAY + "[" + ChatColor.DARK_AQUA + plugin.getName() + ChatColor.GRAY + "] " + ChatColor.RESET + message);
+        if (isOnline())
+            Bukkit.getPlayer(uuid).sendMessage(ChatColor.GRAY + "[" + ChatColor.DARK_AQUA + plugin.getName() + ChatColor.GRAY + "] " + ChatColor.RESET + message);
     }
 
-    /**
-     * Removes a permission from the users permissions.
-     *
-     * @param permission The permission to add
-     * @return If the permission was removed or not.
-     */
-    public boolean removePermission(@NotNull String permission) {
+    public boolean revokePermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = userPermissions.remove(permission);
-        resolvePermissions();
+        boolean ret = userPermissionTree.revokePermission(permission);
+        fullPermissionTree.revokePermission(permission);
         this.hasChanged = true;
         return ret;
     }
 
-    /**
-     * Gets all the wildcard permissions
-     *
-     * @return The user wildcard permissions
-     */
-    public Set<String> getWildcardNodes() {
-        return wildcards;
-    }
-
-    /**
-     * Gets all the negated nodes. (including negated wildcards)
-     *
-     * @return The user negated nodes.
-     */
-    public Set<String> getNegationNodes() {
-        return negations;
-    }
-
-     public boolean hasChanged() {
+    public boolean hasChanged() {
         return hasChanged;
-     }
+    }
 
     /**
      * Resolves the user permissions
      */
     public void resolvePermissions() {
-        permissions.clear();
-        wildcards.clear();
-        negations.clear();
-        this.permissions.addAll(group.getPermissions());
-        this.permissions.addAll(getUserPermissions());
-        permissions.forEach(node -> {
-            if (node.endsWith(".*")) {
-                wildcards.add(node);
-            }
-            if (node.startsWith("-")) {
-                negations.add(node);
-            }
-        });
+        fullPermissionTree.clear();
+        fullPermissionTree.importPermissions(group.getPermissions());
+        fullPermissionTree.importPermissions(userPermissionTree);
         if (isOnline()) Injector.inject(Bukkit.getPlayer(uuid));
     }
 
@@ -328,7 +300,7 @@ public final class CoUser {
         addInfo("suffix", suffix);
         addInfo("prefix", prefix);
         this.userSection.setEntry("group", group.getName());
-        this.userSection.setEntry("permissions", userPermissions.toArray());
+        this.userSection.setEntry("permissions", userPermissionTree.getPermissionNodes());
         this.hasChanged = false;
     }
 
