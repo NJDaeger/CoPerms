@@ -208,11 +208,18 @@ public final class Group extends AbstractGroup {
             //The idea here is that since group permissions override all inherited permissions, if the group has explicit
             //permission to do something, then they should not have the permission taken away from them. Otherwise, the
             //permission will be taken from the fullPermissionTree, which is just a mashup of all the inherited permissions
+
+
             if (!g.getGroupPermissionTree().hasPermission(permission)) {
                 g.getPermissionTree().revokePermission(permission);
             }
         });
         return ret;
+    }
+
+    @Override
+    public boolean removePermission(@NotNull String permission) {
+        return false;
     }
 
     /**

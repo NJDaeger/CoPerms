@@ -56,6 +56,11 @@ public final class SuperGroup extends AbstractGroup {
     }
 
     @Override
+    public boolean removePermission(@NotNull String permission) {
+        return false;
+    }
+
+    @Override
     public boolean hasPermission(@NotNull String permission) {
         return permissionTree.hasPermission(permission);
     }

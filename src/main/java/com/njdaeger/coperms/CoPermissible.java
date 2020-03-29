@@ -1,7 +1,6 @@
 package com.njdaeger.coperms;
 
 import com.njdaeger.coperms.data.CoUser;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissibleBase;
 import org.bukkit.permissions.Permission;
@@ -27,7 +26,6 @@ public class CoPermissible extends PermissibleBase {
 
     @Override
     public boolean hasPermission(String permission) {
-        System.out.println(permission);
         if (isOp()) {
             return true;
         }
@@ -35,13 +33,6 @@ public class CoPermissible extends PermissibleBase {
             return true;
         }
         return user.hasPermission(permission);
-        /*if (hasNegatedNode(permission)) {
-            return false;
-        }
-        if (hasWildcardNode(permission)) {
-            return true;
-        }*/
-        //return user.getPermissions().contains(permission);
     }
 
     @Override

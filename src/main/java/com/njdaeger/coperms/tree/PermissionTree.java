@@ -149,6 +149,11 @@ public class PermissionTree {
         }
     }
 
+    /**
+     * Import another permission tree and override any of the current permissions
+     *
+     * @param permissionTree The permission tree to import
+     */
     public void importPermissions(PermissionTree permissionTree) {
         importPermissions(permissionTree.getPermissionNodes());
     }
@@ -164,7 +169,6 @@ public class PermissionTree {
         Node lastNode = nodes.get(parts[0]);
         if (lastNode == null) return nodes.containsKey("*") && nodes.get("*").granted;
 
-        //if (parts.length == 1) return lastNode.granted;
         for (int i = 1; i < parts.length; i++) {
             if (lastNode.hasChild(parts[i])) {
                 if (parts.length - 1 == i) return lastNode.getChild(parts[i]).granted;
@@ -248,6 +252,31 @@ public class PermissionTree {
                 if (parts.length - 1 == i) {
                     if (!lastNode.getChild(parts[i]).granted) return false;
                     else return !(lastNode.getChild(parts[i]).granted = false);
+                } else lastNode = lastNode.getChild(parts[i]);
+            } else lastNode = lastNode.addChild(parts[i], parts.length - 1 == i);
+        }
+        return lastNode.granted && !(lastNode.granted = false);
+    }
+
+    public boolean removePermission(String permission) {
+        //Split the permission node into its parts
+        String[] parts = permission.split("\\.");
+
+        //Check if the current root map contains any mapping for the first part of the node
+        //If it doesnt, create a mapping for it. If the parts array is only one in length,
+        //then the user will be granted permission to that root node
+        if (!nodes.containsKey(parts[0])) return false;
+
+        //We automatically set the last node to the root node by default
+        Node lastNode = nodes.get(parts[0]);
+
+        for (int i = 1; i < parts.length; i++) {
+
+            if (lastNode.hasChild(parts[i])) {
+                if (parts.length - 1 == i) {
+
+                    //if (!lastNode.getChild(parts[i]).granted) return false;
+                    //else return !(lastNode.getChild(parts[i]).granted = false);
                 } else lastNode = lastNode.getChild(parts[i]);
             } else lastNode = lastNode.addChild(parts[i], parts.length - 1 == i);
         }

@@ -52,12 +52,21 @@ public abstract class AbstractGroup {
     public abstract boolean grantPermission(@NotNull String permission);
 
     /**
-     * Revoke a permission from this group
+     * Revoke a permission from this group (negates the permission)
      *
      * @param permission The permission to revoke
      * @return True if the permission was successfully revoked, false if the permission was already revoked before
      */
     public abstract boolean revokePermission(@NotNull String permission);
+
+    /**
+     * Remove a permission from this group (removes it from the tree, causing it to fall back onto its inheritance for
+     * permission)
+     *
+     * @param permission The permission to remove
+     * @return True if the permission was successfully removed, false if the permission wasnt in the tree already
+     */
+    public abstract boolean removePermission(@NotNull String permission);
 
     /**
      * Check if a group has a permission or not
@@ -69,12 +78,14 @@ public abstract class AbstractGroup {
 
     /**
      * Gets the list of abstract groups which inherit this group directly or indirectly
+     *
      * @return The list of groups inheriting this group
      */
     public abstract List<AbstractGroup> getInheritors();
 
     /**
      * Adds an inheritor to this group
+     *
      * @param group The group which is now inheriting this group
      * @return true if the group was successfully inherited, false if not
      */
@@ -82,6 +93,7 @@ public abstract class AbstractGroup {
 
     /**
      * Removes an inheritor from this group
+     *
      * @param group The group which is no longer inheriting this group
      * @return True if the group was successfully un-inherited, false if not
      */
