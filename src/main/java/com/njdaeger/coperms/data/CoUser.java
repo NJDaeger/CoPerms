@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -259,9 +260,78 @@ public final class CoUser {
     public boolean grantPermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
         boolean ret = userPermissionTree.grantPermission(permission);
-        fullPermissionTree.grantPermission(permission);
-        this.hasChanged = true;
+        if (ret) {
+            fullPermissionTree.grantPermission(permission);
+            this.hasChanged = true;
+        }
         return ret;
+    }
+
+    public Set<String> grantPermissions(@NotNull String... permissions) {
+        Validate.notNull(permissions, "Permission cannot be null");
+        Set<String> unable = new HashSet<>();
+        for (String permission : permissions) {
+            if (!userPermissionTree.grantPermission(permission)) unable.add(permission);
+            else fullPermissionTree.grantPermission(permission);
+        }
+        if (!unable.isEmpty()) this.hasChanged = true;
+        return unable;
+    }
+
+    /**
+     * Revokes this permission from the user (negates)
+     *
+     * @param permission The permission to revoke from the user
+     * @return True if the permission was successfully revoked, false if it is already revoked.
+     */
+    public boolean revokePermission(@NotNull String permission) {
+        Validate.notNull(permission, "Permission cannot be null");
+        boolean ret = userPermissionTree.revokePermission(permission);
+        if (ret) {
+            fullPermissionTree.revokePermission(permission);
+            this.hasChanged = true;
+        }
+        return ret;
+    }
+
+    public Set<String> revokePermissions(@NotNull String... permissions) {
+        Validate.notNull(permissions, "Permission cannot be null");
+        Set<String> unable = new HashSet<>();
+        for (String permission : permissions) {
+            if (!userPermissionTree.revokePermission(permission)) unable.add(permission);
+            else fullPermissionTree.revokePermission(permission);
+        }
+        if (!unable.isEmpty()) this.hasChanged = true;
+        return unable;
+    }
+
+    /**
+     * Removes this permission from the user (inherits)
+     *
+     * @param permission The permission to remove from the user
+     * @return True if the permission was successfully removed, false if it is already removed.
+     */
+    public boolean removePermission(@NotNull String permission) {
+        Validate.notNull(permission, "Permission cannot be null");
+        boolean ret = userPermissionTree.removePermission(permission);
+        if (ret) {
+            resolvePermissions();
+            this.hasChanged = true;
+        }
+        return ret;
+    }
+
+    public Set<String> removePermissions(@NotNull String... permissions) {
+        Validate.notNull(permissions, "Permission cannot be null");
+        Set<String> unable = new HashSet<>();
+        for (String permission : permissions) {
+            if (!userPermissionTree.removePermission(permission)) unable.add(permission);
+        }
+        if (!unable.isEmpty()) {
+            resolvePermissions();
+            this.hasChanged = true;
+        }
+        return unable;
     }
 
     /**
@@ -274,13 +344,6 @@ public final class CoUser {
             Bukkit.getPlayer(uuid).sendMessage(ChatColor.GRAY + "[" + ChatColor.DARK_AQUA + plugin.getName() + ChatColor.GRAY + "] " + ChatColor.RESET + message);
     }
 
-    public boolean revokePermission(@NotNull String permission) {
-        Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = userPermissionTree.revokePermission(permission);
-        fullPermissionTree.revokePermission(permission);
-        this.hasChanged = true;
-        return ret;
-    }
 
     public boolean hasChanged() {
         return hasChanged;

@@ -17,7 +17,7 @@ public class PermissionTree {
         permissions.add("essentials.set.granite");
         permissions.add("essentials");
         PermissionTree perms = new PermissionTree(permissions);
-        /*System.out.println(perms.hasPermission("essentials.build"));            //false
+        System.out.println(perms.hasPermission("essentials.build"));            //false
         System.out.println(perms.hasPermission("essentials.build.gravel"));     //true
         System.out.println(perms.hasPermission("essentials.build.bedrock"));    //false
         System.out.println(perms.hasPermission("essentials.set"));              //true
@@ -34,10 +34,12 @@ public class PermissionTree {
         System.out.println(perms.revokePermission("essentials.build.*"));       //true
         System.out.println(perms.hasPermission("essentials.build.gravel"));     //false
         System.out.println(perms.hasPermission("essentials.build.bedrock"));    //true
-        System.out.println(perms.hasPermission("essentials.build.granite.all"));//false*/
-
+        System.out.println(perms.hasPermission("essentials.build.granite.all"));//false
+        System.out.println(perms.removePermission("essentials"));               //True
+        System.out.println(perms.removePermission("essentials"));               //false
         System.out.println(perms.getPermissionNodes());
         perms.printTree();
+        //System.out.println(perms.getPermissionNodes());
     }
 
     private Map<String, Node> nodes;
@@ -61,7 +63,7 @@ public class PermissionTree {
      */
     public void printTree() {
         nodes.forEach((name, node) -> {
-            System.out.printf("%s [%b]\n", name, node.granted);
+            System.out.printf("%s [%d]\n", name, node.granted);
             node.printNode(1);
         });
     }
@@ -75,8 +77,8 @@ public class PermissionTree {
         Set<String> perms = new HashSet<>();
 
         nodes.forEach((root, node) -> {
-            if (!node.hasChildren() || node.granted) {
-                perms.add((node.granted ? "" : "-") + root);
+            if ((!node.hasChildren() || node.isGranted()) && !node.isInherited()) {
+                perms.add((node.isNegated() ? "-" : "") + root);
             }
             getPermissionNodes0(node).forEach(n -> {
                 boolean negate = n.endsWith("-");
@@ -96,8 +98,8 @@ public class PermissionTree {
         Set<String> perms = new HashSet<>();
 
         node.getChildren().forEach((root, child) -> {
-            if (!child.hasChildren() || child.granted) {
-                perms.add(root + (child.granted ? "" : "-"));
+            if ((!child.hasChildren() || child.isGranted()) && !child.isInherited()) {
+                perms.add(root + (child.isNegated() ? "-" : ""));
             }
             getPermissionNodes0(child).forEach(n -> perms.add(root + "." + n));
         });
@@ -130,7 +132,7 @@ public class PermissionTree {
             //Check if the current root map contains any mapping for the first part of the node
             //If it doesnt, create a mapping for it. If the node does not start with the negation character, and if
             //the parts array is only one in length, then the user will be granted permission to that root node (Note, it is not a wildcard)
-            if (!nodes.containsKey(parts[0])) nodes.put(parts[0], new Node(parts.length == 1 && !negated));
+            if (!nodes.containsKey(parts[0])) nodes.put(parts[0], new Node((byte) ((parts.length == 1) ? (negated ? -1 : 1) : 0))); //We wont enter inherited permissions into the tree
 
             //We automatically set the last node to the root node by default
             Node lastNode = nodes.get(parts[0]);
@@ -139,13 +141,13 @@ public class PermissionTree {
 
                 //if the last node has a child of one of its
                 if (lastNode.hasChild(parts[i])) {
-                    if (parts.length - 1 == i) lastNode.getChild(parts[i]).granted = !negated;
+                    if (parts.length - 1 == i) lastNode.getChild(parts[i]).granted = (byte)(negated ? -1 : 1);
                     else lastNode = lastNode.getChild(parts[i]);
 
-                } else lastNode = lastNode.addChild(parts[i], parts.length - 1 == i && !negated);
+                } else lastNode = lastNode.addChild(parts[i], (byte) ((parts.length - 1 == i) ? (negated ? -1 : 1) : 0));
             }
 
-            if (parts.length == 1) lastNode.granted = !negated;
+            if (parts.length == 1) lastNode.granted = (byte) (negated ? -1 : 1);
         }
     }
 
@@ -167,19 +169,38 @@ public class PermissionTree {
     public boolean hasPermission(String permission) {
         String[] parts = permission.split("\\.");
         Node lastNode = nodes.get(parts[0]);
-        if (lastNode == null) return nodes.containsKey("*") && nodes.get("*").granted;
+        if (lastNode == null) return nodes.containsKey("*") && nodes.get("*").isGranted();
 
+        for (int i = 1; i < parts.length; i++) {
+            if (lastNode.hasChild(parts[i])) {
+                if (parts.length - 1 == i) return lastNode.getChild(parts[i]).isGranted();
+                else lastNode = lastNode.getChild(parts[i]);
+            } else return lastNode.hasChild("*") && lastNode.getChild("*").isGranted();
+        }
+        return lastNode.isGranted();
+    }
+
+    /**
+     * Gets the granted state of a specific permission node.
+     * @param permission The permission node to get the granted state of
+     * @return 0 if the permission isn't defined, -1 if the permission is negated, or 1 if the tree has permission.
+     */
+    public byte getGrantedState(String permission) {
+        String[] parts = permission.split("\\.");
+        Node lastNode = nodes.get(parts[0]);
+        if (lastNode == null) return nodes.containsKey("*") ? nodes.get("*").granted : 0;
         for (int i = 1; i < parts.length; i++) {
             if (lastNode.hasChild(parts[i])) {
                 if (parts.length - 1 == i) return lastNode.getChild(parts[i]).granted;
                 else lastNode = lastNode.getChild(parts[i]);
-            } else return lastNode.hasChild("*") && lastNode.getChild("*").granted;
+            } else return lastNode.hasChild("*") ? lastNode.getChild("*").granted : 0;
         }
         return lastNode.granted;
     }
 
     /**
      * Checks if the given permission is explicitly defined in here (regardless of whether it's granted or not)
+     *
      * @param permission The permission to look for
      * @return True if the permission is explicitly defined in here, false otherwise.
      */
@@ -209,7 +230,7 @@ public class PermissionTree {
         //Check if the current root map contains any mapping for the first part of the node
         //If it doesnt, create a mapping for it. If the parts array is only one in length,
         //then the user will be granted permission to that root node
-        if (!nodes.containsKey(parts[0])) nodes.put(parts[0], new Node(parts.length == 1));
+        if (!nodes.containsKey(parts[0])) nodes.put(parts[0], new Node((byte) (parts.length == 1 ? 1 : 0)));
 
         //We automatically set the last node to the root node by default
         Node lastNode = nodes.get(parts[0]);
@@ -219,12 +240,19 @@ public class PermissionTree {
             //if the last node has a child of one of its
             if (lastNode.hasChild(parts[i])) {
                 if (parts.length - 1 == i) {
-                    if (lastNode.getChild(parts[i]).granted) return false;
-                    else return lastNode.getChild(parts[i]).granted = true;
+                    if (lastNode.getChild(parts[i]).isGranted()) return false;
+                    else {
+                        lastNode.getChild(parts[i]).granted = 1;
+                        return true;
+                    }
                 } else lastNode = lastNode.getChild(parts[i]);
-            } else lastNode = lastNode.addChild(parts[i], parts.length - 1 == i);
+            } else lastNode = lastNode.addChild(parts[i], (byte) (parts.length - 1 == i ? 1 : 0));
         }
-        return !lastNode.granted && (lastNode.granted = true);
+        if (!lastNode.isGranted()) {
+            lastNode.granted = 1;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -241,7 +269,7 @@ public class PermissionTree {
         //Check if the current root map contains any mapping for the first part of the node
         //If it doesnt, create a mapping for it. If the parts array is only one in length,
         //then the user will be granted permission to that root node
-        if (!nodes.containsKey(parts[0])) return false;
+        if (!nodes.containsKey(parts[0])) nodes.put(parts[0], new Node((byte) (parts.length == 1 ? -1 : 0)));
 
         //We automatically set the last node to the root node by default
         Node lastNode = nodes.get(parts[0]);
@@ -250,14 +278,31 @@ public class PermissionTree {
 
             if (lastNode.hasChild(parts[i])) {
                 if (parts.length - 1 == i) {
-                    if (!lastNode.getChild(parts[i]).granted) return false;
-                    else return !(lastNode.getChild(parts[i]).granted = false);
+                    if (lastNode.getChild(parts[i]).isNegated()) return false;
+                    else {
+                        lastNode.getChild(parts[i]).granted = -1;
+                        return true;
+                    }
                 } else lastNode = lastNode.getChild(parts[i]);
-            } else lastNode = lastNode.addChild(parts[i], parts.length - 1 == i);
+            } else lastNode = lastNode.addChild(parts[i], (byte) (parts.length - 1 == i ? -1 : 0));
         }
-        return lastNode.granted && !(lastNode.granted = false);
+        if (!lastNode.isNegated()) {
+            lastNode.granted = -1;
+            return true;
+        }
+        return false;
     }
 
+    /**
+     * Removes a permission from this tree via setting its granted state to "inherit". If the state is set it inherit,
+     * it acts like the tree doesnt have permission inherently AND the node doesnt "technically" exist in terms of the
+     * tree, even though it is still contained in the tree. Its common use is when you want to export permissions to
+     * another tree, where if the other tree has permission for something you want to keep, if that same permission is
+     * set to inherit in this tree, it will not override the other tree.
+     *
+     * @param permission The permission to revoke
+     * @return True if the permission was successfully revoked, false otherwise (if it was revoked previously)
+     */
     public boolean removePermission(String permission) {
         //Split the permission node into its parts
         String[] parts = permission.split("\\.");
@@ -265,7 +310,7 @@ public class PermissionTree {
         //Check if the current root map contains any mapping for the first part of the node
         //If it doesnt, create a mapping for it. If the parts array is only one in length,
         //then the user will be granted permission to that root node
-        if (!nodes.containsKey(parts[0])) return false;
+        if (!nodes.containsKey(parts[0])) nodes.put(parts[0], new Node((byte) 0));
 
         //We automatically set the last node to the root node by default
         Node lastNode = nodes.get(parts[0]);
@@ -274,13 +319,19 @@ public class PermissionTree {
 
             if (lastNode.hasChild(parts[i])) {
                 if (parts.length - 1 == i) {
-
-                    //if (!lastNode.getChild(parts[i]).granted) return false;
-                    //else return !(lastNode.getChild(parts[i]).granted = false);
+                    if (lastNode.getChild(parts[i]).isInherited()) return false;
+                    else {
+                        lastNode.getChild(parts[i]).granted = 0;
+                        return true;
+                    }
                 } else lastNode = lastNode.getChild(parts[i]);
-            } else lastNode = lastNode.addChild(parts[i], parts.length - 1 == i);
+            } else lastNode = lastNode.addChild(parts[i], (byte) 0);
         }
-        return lastNode.granted && !(lastNode.granted = false);
+        if (!lastNode.isInherited()) {
+            lastNode.granted = 0;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -289,16 +340,43 @@ public class PermissionTree {
     public class Node {
 
         private Map<String, Node> children;
-        private boolean granted;
+        private byte granted;
 
         /**
          * Creates a new permission node
          *
          * @param granted Whether this node was granted or not
          */
-        private Node(boolean granted) {
+        private Node(byte granted) {
             this.granted = granted;
             this.children = new HashMap<>();
+        }
+
+        /**
+         * Whether the granted state is set to 1.
+         *
+         * @return True if the node is granted.
+         */
+        public boolean isGranted() {
+            return granted == 1;
+        }
+
+        /**
+         * Whether the granted state is set to -1.
+         *
+         * @return True if the node is negated.
+         */
+        public boolean isNegated() {
+            return granted == -1;
+        }
+
+        /**
+         * Whether the granted state is set to 0.
+         *
+         * @return True if the node is inherited.
+         */
+        public boolean isInherited() {
+            return granted == 0;
         }
 
         /**
@@ -308,7 +386,7 @@ public class PermissionTree {
          * @param granted Whether the child node was granted
          * @return The new child node
          */
-        private Node addChild(String node, boolean granted) {
+        private Node addChild(String node, byte granted) {
             Node child = new Node(granted);
             children.put(node, child);
             return child;
@@ -359,7 +437,7 @@ public class PermissionTree {
             children.forEach((name, node) -> {
                 int i = 0;
                 while (i++ < depth) System.out.print("\t");
-                System.out.printf("%s [%b]\n", name, node.granted);
+                System.out.printf("%s [%d]\n", name, node.granted);
                 node.printNode(depth + 1);
             });
         }

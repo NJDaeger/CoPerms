@@ -8,7 +8,7 @@ import com.njdaeger.coperms.CoPerms;
 public final class WorldFlag extends AbstractFlag<WorldParser> implements TabExecutor<TabContext> {
     
     public WorldFlag() {
-        super("w", ':');
+        super("-", "w", true);
     }
     
     @Override
@@ -18,6 +18,6 @@ public final class WorldFlag extends AbstractFlag<WorldParser> implements TabExe
 
     @Override
     public void complete(TabContext context) {
-        context.completion(CoPerms.getInstance().getWorlds().keySet().stream().map("w:"::concat).toArray(String[]::new));
+        context.completion(CoPerms.getInstance().getWorlds().keySet().stream().map("-w "::concat).toArray(String[]::new));
     }
 }

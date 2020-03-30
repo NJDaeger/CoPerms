@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 public final class PageFlag extends AbstractFlag<IntegerType> implements TabExecutor<TabContext> {
 
     public PageFlag() {
-        super("p", ':');
+        super("-", "p", true);
     }
 
     @Override
