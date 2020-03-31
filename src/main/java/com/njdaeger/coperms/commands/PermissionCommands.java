@@ -1,10 +1,5 @@
 package com.njdaeger.coperms.commands;
 
-import com.njdaeger.bci.base.BCICommand;
-import com.njdaeger.bci.base.BCIException;
-import com.njdaeger.bci.defaults.BCIBuilder;
-import com.njdaeger.bci.defaults.CommandContext;
-import com.njdaeger.btu.Text;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.commands.flags.PageFlag;
 import com.njdaeger.coperms.commands.flags.WorldFlag;
@@ -15,6 +10,12 @@ import com.njdaeger.coperms.exceptions.UserNotExistException;
 import com.njdaeger.coperms.exceptions.WorldNotExistException;
 import com.njdaeger.coperms.groups.AbstractGroup;
 import com.njdaeger.coperms.tree.PermissionTree;
+import com.njdaeger.pdk.command.CommandBuilder;
+import com.njdaeger.pdk.command.CommandContext;
+import com.njdaeger.pdk.command.PDKCommand;
+import com.njdaeger.pdk.command.exception.PDKCommandException;
+import com.njdaeger.pdk.command.flag.OptionalFlag;
+import com.njdaeger.pdk.utils.Text;
 
 import java.util.Set;
 
@@ -27,94 +28,107 @@ public final class PermissionCommands {
     public PermissionCommands(CoPerms plugin) {
         this.plugin = plugin;
 
-        BCICommand grantUserPerm = BCIBuilder.create("grantuperm")
+        PDKCommand grantUserPerm = CommandBuilder.of("grantuperm", "guperm")
                 .executor(this::userPermissionChange)
-                .aliases("guperm")
+                .completer(c -> c.completionAt(0, CommandUtil::playerCompletion))
                 .description("Grants a permission to a specific user")
                 .usage("/grantuperm <user> <permissions...> [-w <world>]")
                 .flag(new WorldFlag())
-                .minArgs(2)
+                .flag(new OptionalFlag("Silent the command output", "-s", "s"))
+                .min(2)
                 .permissions("coperms.permission.user.grant")
                 .build();
+        grantUserPerm.register(plugin);
 
-        BCICommand grantGroupPerm = BCIBuilder.create("grantgperm")
+        PDKCommand grantGroupPerm = CommandBuilder.of("grantgperm", "ggperm")
                 .executor(this::groupPermissionChange)
-                .aliases("ggperm")
+                .completer(c -> c.completionAt(0, CommandUtil::allGroupCompletion))
                 .description("Grants a permission to a specific group")
                 .usage("/grantgperm <group> <permissions...> [-w <world>]")
                 .flag(new WorldFlag())
-                .minArgs(2)
+                .flag(new OptionalFlag("Silent the command output", "-s", "s"))
+                .min(2)
                 .permissions("coperms.permission.group.grant")
                 .build();
+        grantGroupPerm.register(plugin);
 
-        BCICommand revokeUserPerm = BCIBuilder.create("revokeuperm")
+        PDKCommand revokeUserPerm = CommandBuilder.of("revokeuperm", "revuperm")
                 .executor(this::userPermissionChange)
-                .aliases("revuperm")
+                .completer(c -> c.completionAt(0, CommandUtil::playerCompletion))
                 .description("Revokes a permission to a specific user")
                 .usage("/revokeuperm <user> <permissions...> [-w <world>]")
+                .flag(new OptionalFlag("Silent the command output", "-s", "s"))
                 .flag(new WorldFlag())
-                .minArgs(2)
+                .min(2)
                 .permissions("coperms.permission.user.revoke")
                 .build();
+        revokeUserPerm.register(plugin);
 
-        BCICommand revokeGroupPerm = BCIBuilder.create("revokegperm")
+        PDKCommand revokeGroupPerm = CommandBuilder.of("revokegperm", "revgperm")
                 .executor(this::groupPermissionChange)
-                .aliases("revgperm")
+                .completer(c -> c.completionAt(0, CommandUtil::allGroupCompletion))
                 .description("Revokes a permission to a specific group")
                 .usage("/revokegperm <group> <permissions...> [-w <world>]")
                 .flag(new WorldFlag())
-                .minArgs(2)
+                .flag(new OptionalFlag("Silent the command output", "-s", "s"))
+                .min(2)
                 .permissions("coperms.permission.group.revoke")
                 .build();
+        revokeGroupPerm.register(plugin);
 
-        BCICommand removeUserPerm = BCIBuilder.create("removeuperm")
+        PDKCommand removeUserPerm = CommandBuilder.of("removeuperm", "remuperm")
                 .executor(this::userPermissionChange)
-                .aliases("remuperm")
+                .completer(c -> c.completionAt(0, CommandUtil::playerCompletion))
                 .description("Removes a permission to a specific user")
                 .usage("/removeuperm <user> <permissions...> [-w <world>]")
                 .flag(new WorldFlag())
-                .minArgs(2)
+                .flag(new OptionalFlag("Silent the command output", "-s", "s"))
+                .min(2)
                 .permissions("coperms.permission.user.remove")
                 .build();
+        removeUserPerm.register(plugin);
 
-        BCICommand removeGroupPerm = BCIBuilder.create("removegperm")
+        PDKCommand removeGroupPerm = CommandBuilder.of("removegperm", "remgperm")
                 .executor(this::groupPermissionChange)
-                .aliases("remgperm")
+                .completer(c -> c.completionAt(0, CommandUtil::allGroupCompletion))
                 .description("Removes a permission to a specific group")
                 .usage("/removegperm <group> <permissions...> [-w <world>]")
                 .flag(new WorldFlag())
-                .minArgs(2)
+                .flag(new OptionalFlag("Silent the command output", "-s", "s"))
+                .min(2)
                 .permissions("coperms.permission.group.remove")
                 .build();
+        removeGroupPerm.register(plugin);
 
-        BCICommand listUserPerms = BCIBuilder.create("listuperms")
+        PDKCommand listUserPerms = CommandBuilder.of("listuperms", "edituperms", "euperms", "getuperms")
                 .executor(this::listUserPermissions)
-                .aliases("edituperms", "euperms", "getuperms")
+                .completer(c -> c.completionAt(0, CommandUtil::playerCompletion))
                 .description("View and modify the permissions of a user")
                 .usage("/listuperms <user> [-p <page>] [-w <world>]")
                 .flag(new WorldFlag())
                 .flag(new PageFlag())
-                .minArgs(1)
-                .maxArgs(1)
+                .min(1)
+                .max(1)
                 .permissions("coperms.permission.user.list")
                 .build();
+        listUserPerms.register(plugin);
 
-        BCICommand listGroupPerms = BCIBuilder.create("listgperms")
+        PDKCommand listGroupPerms = CommandBuilder.of("listgperms", "editgperms", "egperms", "getgperms")
                 .executor(this::listGroupPermissions)
-                .aliases("editgperms", "egperms", "getgperms")
-                .description("View and modify the permissions of a user")
+                .completer(c -> c.completionAt(0, CommandUtil::allGroupCompletion))
+                .description("View and modify the permissions of a group")
                 .usage("/listgperms <group> [-p <page>] [-w <world>]")
                 .flag(new WorldFlag())
                 .flag(new PageFlag())
-                .minArgs(1)
-                .maxArgs(1)
+                .min(1)
+                .max(1)
                 .permissions("coperms.permission.group.list")
                 .build();
+        listGroupPerms.register(plugin);
 
-        plugin.getCommandStore().registerCommands(grantGroupPerm, grantUserPerm, revokeGroupPerm, revokeUserPerm, removeGroupPerm, removeUserPerm, listGroupPerms, listUserPerms);
     }
 
-    private void listGroupPermissions(CommandContext context) throws BCIException {
+    private void listGroupPermissions(CommandContext context) throws PDKCommandException {
 
         CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
@@ -124,12 +138,12 @@ public final class PermissionCommands {
         if (group == null) throw new GroupNotExistException();
 
 
-        int page = context.hasFlag("p") ? context.getFlag("p") : 0;
+        int page = context.hasFlag("p") ? context.getFlag("p") : 1;
         sendEditPermissionPage(context, group.getPermissionTree(), world, page, true);
 
     }
 
-    private void listUserPermissions(CommandContext context) throws BCIException {
+    private void listUserPermissions(CommandContext context) throws PDKCommandException {
 
         CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
         if (world == null) throw new WorldNotExistException();
@@ -138,12 +152,12 @@ public final class PermissionCommands {
         if (user == null) throw new UserNotExistException();
 
 
-        int page = context.hasFlag("p") ? context.getFlag("p") : 0;
+        int page = context.hasFlag("p") ? context.getFlag("p") : 1;
         sendEditPermissionPage(context, user.getPermissionTree(), world, page, false);
 
     }
 
-    private void userPermissionChange(CommandContext context) throws BCIException {
+    private void userPermissionChange(CommandContext context) throws PDKCommandException {
 
         boolean isSilent = context.hasFlag("s");
 
@@ -169,12 +183,12 @@ public final class PermissionCommands {
         }
 
         if (!isSilent) {
-            context.pluginMessage(GRAY + action + AQUA + (length - unused.size()) + "/" + length + GRAY + " permissions. The following couldn't be " + action.toLowerCase().trim() + ":");
+            context.pluginMessage(GRAY + action + DARK_AQUA + (length - unused.size()) + "/" + length + GRAY + " permissions. The following couldn't be " + action.toLowerCase().trim() + ":");
             context.send(createPermissionListString(unused));
         }
     }
 
-    private void groupPermissionChange(CommandContext context) throws BCIException {
+    private void groupPermissionChange(CommandContext context) throws PDKCommandException {
 
         boolean isSilent = context.hasFlag("s");
 
@@ -201,7 +215,7 @@ public final class PermissionCommands {
         }
 
         if (!isSilent) {
-            context.pluginMessage(GRAY + action + AQUA + (length - unused.size()) + "/" + length + GRAY + " permissions. The following couldn't be " + action.toLowerCase().trim() + ":");
+            context.pluginMessage(GRAY + action + DARK_AQUA + (length - unused.size()) + "/" + length + GRAY + " permissions. The following couldn't be " + action.toLowerCase().trim() + ":");
             context.send(createPermissionListString(unused));
         }
         world.getUsers().forEach((uuid, user) -> user.resolvePermissions());
@@ -212,82 +226,52 @@ public final class PermissionCommands {
         int pages = (int) Math.ceil(permissions.size()/10.);
 
         Text.TextSection text = Text.of("CoPerms ").setColor(AQUA).append("Permission Editor ------ Page: ").setColor(GRAY).append(page + "/" + pages).setColor(AQUA).append("\n");
-        for (String permission : permissions.stream().skip(page*10).limit(10).toArray(String[]::new)) {
+        for (String permission : permissions.stream().skip((page-1)*10).limit(10).toArray(String[]::new)) {
             switch (permissionTree.getGrantedState(permission)) {
                 case -1:
-                    text.append("[-]").setColor(RED).setBold(true).hoverEvent(e -> {
-                        e.action(Text.HoverAction.SHOW_TEXT);
-                        e.hover(h -> h.setText("Permission is revoked").setColor(GRAY));
-                    }).append("[o]").setColor(GRAY).setBold(true).hoverEvent(e -> {
-                        e.action(Text.HoverAction.SHOW_TEXT);
-                        e.hover(h -> h.setText("Remove permission").setColor(GRAY));
-                    }).clickEvent(e -> {
-                        e.action(Text.ClickAction.RUN_COMMAND);
-                        e.click("/remove" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission);
-                    }).append("[+]").setColor(GRAY).setBold(true).hoverEvent(e -> {
-                        e.action(Text.HoverAction.SHOW_TEXT);
-                        e.hover(h -> h.setText("Grant permission").setColor(GRAY));
-                    }).clickEvent(e -> {
-                        e.action(Text.ClickAction.RUN_COMMAND);
-                        e.click("/grant" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission);
-                    }).append(" >  ").setColor(AQUA).setBold(true).append(formatPermission(permission)).append("\n");
+                    text.append("[-]").setColor(RED).setBold(true).hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Permission is revoked").setColor(GRAY))
+                            .append("[o]").setColor(GRAY).setBold(true)
+                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Remove permission").setColor(GRAY))
+                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/remove" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+                            .append("[+]").setColor(GRAY).setBold(true)
+                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Grant permission").setColor(GRAY))
+                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/grant" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+                            .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
                     break;
                 case 1:
-                    text.append("[-]").setColor(GRAY).setBold(true).hoverEvent(e -> {
-                        e.action(Text.HoverAction.SHOW_TEXT);
-                        e.hover(h -> h.setText("Revoke permission").setColor(GRAY));
-                    }).clickEvent(e -> {
-                        e.action(Text.ClickAction.RUN_COMMAND);
-                        e.click("/revoke" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission);
-                    }).append("[o]").setColor(GRAY).setBold(true).hoverEvent(e -> {
-                        e.action(Text.HoverAction.SHOW_TEXT);
-                        e.hover(h -> h.setText("Remove permission").setColor(GRAY));
-                    }).clickEvent(e -> {
-                        e.action(Text.ClickAction.RUN_COMMAND);
-                        e.click("/remove" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission);
-                    }).append("[+]").setColor(GREEN).setBold(true).hoverEvent(e -> {
-                        e.action(Text.HoverAction.SHOW_TEXT);
-                        e.hover(h -> h.setText("Permission is granted").setColor(GRAY));
-                    }).append(" >  ").setColor(AQUA).setBold(true).append(formatPermission(permission)).append("\n");
+                    text.append("[-]").setColor(GRAY).setBold(true)
+                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Revoke permission").setColor(GRAY))
+                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/revoke" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+                            .append("[o]").setColor(GRAY).setBold(true)
+                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Remove permission").setColor(GRAY))
+                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/remove" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+                            .append("[+]").setColor(GREEN).setBold(true)
+                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Permission is granted").setColor(GRAY))
+                            .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
                     break;
                 case 0:
-                    text.append("[-]").setColor(GRAY).setBold(true).hoverEvent(e -> {
-                        e.action(Text.HoverAction.SHOW_TEXT);
-                        e.hover(h -> h.setText("Revoke permission").setColor(GRAY));
-                    }).clickEvent(e -> {
-                        e.action(Text.ClickAction.RUN_COMMAND);
-                        e.click("/revoke" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission);
-                    }).append("[0]").setColor(DARK_GRAY).setBold(true).hoverEvent(e -> {
-                        e.action(Text.HoverAction.SHOW_TEXT);
-                        e.hover(h -> h.setText("Permission is removed (inherited)").setColor(GRAY));
-                    }).append("[+]").setColor(GRAY).setBold(true).hoverEvent(e -> {
-                        e.action(Text.HoverAction.SHOW_TEXT);
-                        e.hover(h -> h.setText("Grant permission").setColor(GRAY));
-                    }).clickEvent(e -> {
-                        e.action(Text.ClickAction.RUN_COMMAND);
-                        e.click("/grant" + (group ? "g" : "u") + "perm " + context.argAt(0) + permission);
-                    }).append(" >  ").setColor(AQUA).setBold(true).append(formatPermission(permission)).append("\n");
+                    text.append("[-]").setColor(GRAY).setBold(true)
+                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Revoke permission").setColor(GRAY))
+                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/revoke" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+                            .append("[o]").setColor(DARK_GRAY).setBold(true)
+                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Permission is removed (inherited)").setColor(GRAY))
+                            .append("[+]").setColor(GRAY).setBold(true)
+                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Grant permission").setColor(GRAY))
+                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/grant" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+                            .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
                     break;
                 default:
-                    text.append("[-][o][+]").setColor(GRAY).setBold(true).hoverEvent(e -> {
-                        e.action(Text.HoverAction.SHOW_TEXT);
-                        e.hover(h -> h.setText("Unknown state."));
-                    }).append(" >  ").setColor(AQUA).setBold(true).append(formatPermission(permission)).append("\n");
+                    text.append("[-][o][+]").setColor(GRAY).setBold(true).hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Unknown state").setColor(GRAY))
+                        .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
             }
         }
-        text.append(page == 0 ? RED + "|X|--" : GREEN + "<<--")
+        text.append(page <= 1 ? RED + "|X|--" : GREEN + "<<--")
                 .setBold(true)
-                .clickEvent(c -> {
-                    c.action(Text.ClickAction.RUN_COMMAND);
-                    c.click("/list" + (group ? "g" : "u") + "perms " + context.argAt(0) + " -p " + (page-1) + " -w " + world.getName().replaceAll(" ", "_"));
-                })
+                .clickEvent(Text.ClickAction.RUN_COMMAND, "/list" + (group ? "g" : "u") + "perms " + context.argAt(0) + " -p " + (page-1) + " -w " + world.getName().replaceAll(" ", "_"))
                 .append(" =================== ")
                 .setColor(GRAY)
-                .append((page + 1)*10 > permissions.size() ? RED + "--|X|" : GREEN + "-->>").setBold(true)
-                .clickEvent(c -> {
-                    c.action(Text.ClickAction.RUN_COMMAND);
-                    c.click("/list" + (group ? "g" : "u") + "perms " + context.argAt(0) + " -p " + (page+1) + " -w " + world.getName().replaceAll(" ", "_"));
-                });
+                .append(page == pages ? RED + "--|X|" : GREEN + "-->>").setBold(true)
+                .clickEvent(Text.ClickAction.RUN_COMMAND, "/list" + (group ? "g" : "u") + "perms " + context.argAt(0) + " -p " + (page+1) + " -w " + world.getName().replaceAll(" ", "_"));
 
         if (context.isPlayer()) {
             text.sendTo(context.asPlayer());

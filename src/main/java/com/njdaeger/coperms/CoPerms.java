@@ -1,6 +1,5 @@
 package com.njdaeger.coperms;
 
-import com.njdaeger.bci.defaults.CommandStore;
 import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.commands.PermissionCommands;
 import com.njdaeger.coperms.commands.UserCommands;
@@ -29,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public final class CoPerms extends JavaPlugin implements CoPermsAPI{
+public final class CoPerms extends JavaPlugin implements CoPermsAPI {
 
     private static CoPerms INSTANCE;
 
@@ -37,7 +36,6 @@ public final class CoPerms extends JavaPlugin implements CoPermsAPI{
     private Map<String, UserDataFile> userDataFiles;
     private Map<String, SuperGroup> superGroups;
     private Map<String, CoWorld> worlds;
-    private CommandStore commandStore;
     private CoPermsConfig config;
     private SuperDataFile supers;
     private String defaultWorld;
@@ -50,7 +48,6 @@ public final class CoPerms extends JavaPlugin implements CoPermsAPI{
         //Creating configurations, command store, and metrics
         this.config = new CoPermsConfig(this);
         this.supers = new SuperDataFile(this);
-        this.commandStore = new CommandStore(this);
         new Metrics(this);
 
         //Setting up maps
@@ -208,11 +205,6 @@ public final class CoPerms extends JavaPlugin implements CoPermsAPI{
     @Override
     public SuperDataFile getSuperDataFile() {
         return supers;
-    }
-    
-    @Override
-    public CommandStore getCommandStore() {
-        return commandStore;
     }
 
     public static CoPerms getInstance() {

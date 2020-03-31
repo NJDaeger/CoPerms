@@ -1,6 +1,5 @@
 package com.njdaeger.coperms;
 
-import com.njdaeger.bci.defaults.CommandStore;
 import com.njdaeger.coperms.configuration.CoPermsConfig;
 import com.njdaeger.coperms.configuration.SuperDataFile;
 import com.njdaeger.coperms.data.CoUser;
@@ -69,12 +68,5 @@ public interface CoPermsAPI extends Plugin {
      * @return The super data file.
      */
     SuperDataFile getSuperDataFile();
-
-    /**
-     * Gets this plugin's command store
-     *
-     * @return The command store
-     */
-    CommandStore getCommandStore();
 
 }

@@ -24,23 +24,16 @@
     </repositories>
 
     <dependencies>
+
         <dependency>
             <groupId>com.njdaeger</groupId>
-            <artifactId>BukkitCommandInterface</artifactId>
-            <version>0.0.2</version>
-            <scope>compile</scope>
+            <artifactId>PluginDevelopmentKit</artifactId>
+            <version>0.0.1</version>
         </dependency>
 
         <dependency>
             <groupId>com.njdaeger</groupId>
             <artifactId>BukkitConfigManager</artifactId>
-            <version>0.0.1</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.njdaeger</groupId>
-            <artifactId>BukkitTextUtils</artifactId>
             <version>0.0.1</version>
             <scope>compile</scope>
         </dependency>
@@ -170,8 +163,8 @@
                 <configuration>
                     <relocations>
                         <relocation>
-                            <pattern>com.njdaeger.bci</pattern>
-                            <shadedPattern>com.njdaeger.coperms.libs.bci</shadedPattern>
+                            <pattern>com.njdaeger.pdk</pattern>
+                            <shadedPattern>com.njdaeger.coperms.libs.pdk</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.njdaeger.bcm</pattern>

@@ -1,23 +1,29 @@
 package com.njdaeger.coperms.commands.flags;
 
-import com.njdaeger.bci.base.executors.TabExecutor;
-import com.njdaeger.bci.defaults.TabContext;
-import com.njdaeger.bci.flags.AbstractFlag;
-import com.njdaeger.coperms.CoPerms;
 
-public final class WorldFlag extends AbstractFlag<WorldParser> implements TabExecutor<TabContext> {
+import com.njdaeger.coperms.CoPerms;
+import com.njdaeger.coperms.data.CoWorld;
+import com.njdaeger.pdk.command.CommandContext;
+import com.njdaeger.pdk.command.TabContext;
+import com.njdaeger.pdk.command.exception.PDKCommandException;
+import com.njdaeger.pdk.command.flag.Flag;
+
+public final class WorldFlag extends Flag<CoWorld>  {
     
     public WorldFlag() {
-        super("-", "w", true);
-    }
-    
-    @Override
-    public WorldParser getFlagType() {
-        return new WorldParser();
+        super(CoWorld.class, "Finds a given world", "-w <world>", "w");
     }
 
     @Override
     public void complete(TabContext context) {
-        context.completion(CoPerms.getInstance().getWorlds().keySet().stream().map("-w "::concat).toArray(String[]::new));
+        context.completion(CoPerms.getInstance().getWorlds().keySet().toArray(new String[0]));
+    }
+
+    @Override
+    public CoWorld parse(CommandContext context, String argument) throws PDKCommandException {
+        if (argument == null) throw new PDKCommandException();
+        CoWorld world = CoPerms.getInstance().getWorld(argument);
+        if (world == null) throw new PDKCommandException();
+        else return world;
     }
 }

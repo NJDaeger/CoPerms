@@ -1,27 +1,33 @@
 package com.njdaeger.coperms.commands.flags;
 
-import com.njdaeger.bci.base.BCIException;
-import com.njdaeger.bci.base.executors.TabExecutor;
-import com.njdaeger.bci.defaults.TabContext;
-import com.njdaeger.bci.flags.AbstractFlag;
-import com.njdaeger.bci.types.defaults.IntegerType;
+import com.njdaeger.pdk.command.CommandContext;
+import com.njdaeger.pdk.command.TabContext;
+import com.njdaeger.pdk.command.exception.ArgumentParseException;
+import com.njdaeger.pdk.command.exception.PDKCommandException;
+import com.njdaeger.pdk.command.flag.Flag;
 
 import java.util.stream.IntStream;
 
-public final class PageFlag extends AbstractFlag<IntegerType> implements TabExecutor<TabContext> {
+public final class PageFlag extends Flag<Integer> {
 
     public PageFlag() {
-        super("-", "p", true);
-    }
-
-    @Override
-    public IntegerType getFlagType() {
-        return new IntegerType();
+        super(Integer.class, "Get a page of a text GUI", "-p <page>", "p");
     }
 
 
     @Override
-    public void complete(TabContext context) throws BCIException {
-        context.completion(IntStream.rangeClosed(0, 9).mapToObj(String::valueOf).map(s -> context.getCurrent() + s).toArray(String[]::new));
+    public void complete(TabContext context) {
+        context.completion(IntStream.rangeClosed(0, 9).mapToObj(String::valueOf).toArray(String[]::new));
+    }
+
+    @Override
+    public Integer parse(CommandContext context, String argument) throws PDKCommandException {
+        int parsed;
+        try {
+            parsed = Integer.parseInt(argument);
+        } catch (NumberFormatException ignored) {
+            throw new ArgumentParseException("Integer argument unable to be parsed. Input: " + argument);
+        }
+        return parsed;
     }
 }
