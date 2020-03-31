@@ -30,20 +30,6 @@ public abstract class AbstractGroup {
     public abstract PermissionTree getPermissionTree();
 
     /**
-     * Get a set of the permissions which specifically belong to this group not including any inherited permissions.
-     *
-     * @return This specific groups permissions
-     */
-    public abstract Set<String> getGroupPermissions();
-
-    /**
-     * Get the permission tree which holds all this specific groups permissions.
-     *
-     * @return The group permission tree
-     */
-    public abstract PermissionTree getGroupPermissionTree();
-
-    /**
      * Grant a permission to this group.
      *
      * @param permission The permission to grant

@@ -29,9 +29,6 @@ public class CoPermissible extends PermissibleBase {
         if (isOp()) {
             return true;
         }
-        if (user.hasPermission("*")) {
-            return true;
-        }
         return user.hasPermission(permission);
     }
 

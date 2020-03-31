@@ -40,26 +40,9 @@ public final class SuperGroup extends AbstractGroup {
     }
 
     @Override
-    public Set<String> getGroupPermissions() {
-        return getPermissions();
-    }
-
-    @Override
-    public PermissionTree getGroupPermissionTree() {
-        return getPermissionTree();
-    }
-
-    @Override
     public boolean grantPermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = permissionTree.grantPermission(permission);
-        inheritors.forEach(g -> {
-            if (g instanceof Group && !g.getGroupPermissionTree().isPermissionDefined(permission) || g.getGroupPermissionTree().hasPermission(permission)) {
-                g.getPermissionTree().grantPermission(permission);
-                g.getInheritors().forEach(gr -> gr.getPermissionTree().grantPermission(permission));
-            }
-        });
-        return ret;
+        return permissionTree.grantPermission(permission);
     }
 
     @Override
@@ -69,29 +52,13 @@ public final class SuperGroup extends AbstractGroup {
         for (String permission : permissions) {
             if (!permissionTree.grantPermission(permission)) unable.add(permission);
         }
-        if (permissions.length == unable.size()) return unable;
-        inheritors.forEach(g -> {
-            for (String permission : permissions) {
-                if (g instanceof Group && !g.getGroupPermissionTree().isPermissionDefined(permission) || g.getGroupPermissionTree().hasPermission(permission)) {
-                    g.getPermissionTree().grantPermission(permission);
-                    g.getInheritors().forEach(gr -> gr.getPermissionTree().grantPermission(permission));
-                }
-            }
-        });
         return unable;
     }
 
     @Override
     public boolean revokePermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = permissionTree.revokePermission(permission);
-        inheritors.forEach(g -> {
-            if (g instanceof Group && !g.getGroupPermissionTree().hasPermission(permission)) {
-                g.getPermissionTree().revokePermission(permission);
-                g.getInheritors().forEach(gr -> gr.getPermissionTree().revokePermission(permission));
-            }
-        });
-        return ret;
+        return permissionTree.revokePermission(permission);
     }
 
     @Override
@@ -101,27 +68,13 @@ public final class SuperGroup extends AbstractGroup {
         for (String permission : permissions) {
             if (!permissionTree.revokePermission(permission)) unable.add(permission);
         }
-        if (permissions.length == unable.size()) return unable;
-        inheritors.forEach(g -> {
-            for (String permission : permissions) {
-                if (g instanceof Group && !g.getGroupPermissionTree().hasPermission(permission)) {
-                    g.getPermissionTree().revokePermission(permission);
-                    g.getInheritors().forEach(gr -> gr.getPermissionTree().revokePermission(permission));
-                }
-            }
-        });
         return unable;
     }
 
     @Override
     public boolean removePermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = permissionTree.removePermission(permission);
-
-        inheritors.forEach(g -> {
-            if (g instanceof Group) ((Group) g).loadInheritance();
-        });
-        return ret;
+        return permissionTree.removePermission(permission);
     }
 
     @Override
@@ -131,9 +84,6 @@ public final class SuperGroup extends AbstractGroup {
         for (String permission : permissions) {
             if (!permissionTree.removePermission(permission)) unable.add(permission);
         }
-        inheritors.forEach(g -> {
-            if (g instanceof Group) ((Group) g).loadInheritance();
-        });
         return unable;
     }
 

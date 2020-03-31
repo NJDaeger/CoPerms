@@ -8,6 +8,7 @@ import com.njdaeger.coperms.tree.PermissionTree;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +33,6 @@ public final class CoUser {
     private final ISection userSection;
     private final CoPerms plugin;
     private final PermissionTree userPermissionTree;
-    private final PermissionTree fullPermissionTree;
 
     public CoUser(CoPerms plugin, CoWorld world, UUID userID, boolean hasChanged) {
         this(plugin, world, userID);
@@ -40,7 +40,6 @@ public final class CoUser {
     }
 
     public CoUser(CoPerms plugin, CoWorld world, UUID userID) {
-        this.fullPermissionTree = new PermissionTree();
         this.userPermissionTree = new PermissionTree();
         this.plugin = plugin;
         this.world = world;
@@ -67,12 +66,8 @@ public final class CoUser {
 
     }
 
-    public PermissionTree getUserPermissionTree() {
-        return userPermissionTree;
-    }
-
     public PermissionTree getPermissionTree() {
-        return fullPermissionTree;
+        return userPermissionTree;
     }
 
     /**
@@ -190,7 +185,7 @@ public final class CoUser {
 
         this.group = world.getGroup(name);
 
-        resolvePermissions();
+        updateCommands();
         this.hasChanged = true;
         return true;
     }
@@ -223,15 +218,6 @@ public final class CoUser {
     }
 
     /**
-     * All the permissions the user has not including the user specific ones.
-     *
-     * @return All the user permissions
-     */
-    public Set<String> getPermissions() {
-        return fullPermissionTree.getPermissionNodes();
-    }
-
-    /**
      * Gets the current world of the user.
      *
      * @return The users current world
@@ -248,7 +234,10 @@ public final class CoUser {
      */
     public boolean hasPermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        return fullPermissionTree.hasPermission(permission);
+        byte state = userPermissionTree.getGrantedState(permission);
+        if (state == 1) return true;
+        else if (state == 0) return group.hasPermission(permission);
+        return false;
     }
 
     /**
@@ -261,7 +250,7 @@ public final class CoUser {
         Validate.notNull(permission, "Permission cannot be null");
         boolean ret = userPermissionTree.grantPermission(permission);
         if (ret) {
-            fullPermissionTree.grantPermission(permission);
+            updateCommands();
             this.hasChanged = true;
         }
         return ret;
@@ -272,9 +261,12 @@ public final class CoUser {
         Set<String> unable = new HashSet<>();
         for (String permission : permissions) {
             if (!userPermissionTree.grantPermission(permission)) unable.add(permission);
-            else fullPermissionTree.grantPermission(permission);
+            //else fullPermissionTree.grantPermission(permission);
         }
-        if (!unable.isEmpty()) this.hasChanged = true;
+        if (unable.isEmpty()) {
+            updateCommands();
+            this.hasChanged = true;
+        }
         return unable;
     }
 
@@ -288,7 +280,7 @@ public final class CoUser {
         Validate.notNull(permission, "Permission cannot be null");
         boolean ret = userPermissionTree.revokePermission(permission);
         if (ret) {
-            fullPermissionTree.revokePermission(permission);
+            updateCommands();
             this.hasChanged = true;
         }
         return ret;
@@ -299,9 +291,11 @@ public final class CoUser {
         Set<String> unable = new HashSet<>();
         for (String permission : permissions) {
             if (!userPermissionTree.revokePermission(permission)) unable.add(permission);
-            else fullPermissionTree.revokePermission(permission);
         }
-        if (!unable.isEmpty()) this.hasChanged = true;
+        if (unable.isEmpty()) {
+            updateCommands();
+            this.hasChanged = true;
+        }
         return unable;
     }
 
@@ -315,7 +309,7 @@ public final class CoUser {
         Validate.notNull(permission, "Permission cannot be null");
         boolean ret = userPermissionTree.removePermission(permission);
         if (ret) {
-            resolvePermissions();
+            updateCommands();
             this.hasChanged = true;
         }
         return ret;
@@ -327,8 +321,8 @@ public final class CoUser {
         for (String permission : permissions) {
             if (!userPermissionTree.removePermission(permission)) unable.add(permission);
         }
-        if (!unable.isEmpty()) {
-            resolvePermissions();
+        if (unable.isEmpty()) {
+            updateCommands();
             this.hasChanged = true;
         }
         return unable;
@@ -349,13 +343,17 @@ public final class CoUser {
         return hasChanged;
     }
 
+    public void updateCommands() {
+        if (isOnline()) Bukkit.getScheduler().runTask(CoPerms.getInstance(), () -> {
+            Player player = Bukkit.getPlayer(uuid);
+            player.updateCommands();
+        });
+    }
+
     /**
-     * Resolves the user permissions
+     * Resolves the user permissions by Injecting the permissible and updating user commands.
      */
     public void resolvePermissions() {
-        fullPermissionTree.clear();
-        fullPermissionTree.importPermissions(group.getPermissions());
-        fullPermissionTree.importPermissions(userPermissionTree);
         if (isOnline()) Injector.inject(Bukkit.getPlayer(uuid));
     }
 

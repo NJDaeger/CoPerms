@@ -22,6 +22,7 @@ import java.util.Set;
 
 import static org.bukkit.ChatColor.*;
 
+@SuppressWarnings("Duplicates")
 public final class PermissionCommands {
 
     private final CoPerms plugin;
@@ -184,8 +185,8 @@ public final class PermissionCommands {
         }
 
         if (!isSilent) {
-            context.pluginMessage(GRAY + action + DARK_AQUA + (length - unused.size()) + "/" + length + GRAY + " permissions. The following couldn't be " + action.toLowerCase().trim() + ":");
-            context.send(createPermissionListString(unused));
+            context.pluginMessage(GRAY + action + DARK_AQUA + (length - unused.size()) + "/" + length + GRAY + " permissions. " + (!unused.isEmpty() ? "The following couldn't be " + action.toLowerCase().trim() + ":" : ""));
+            if (!unused.isEmpty()) context.send(createPermissionListString(unused));
         }
     }
 
@@ -216,10 +217,10 @@ public final class PermissionCommands {
         }
 
         if (!isSilent) {
-            context.pluginMessage(GRAY + action + DARK_AQUA + (length - unused.size()) + "/" + length + GRAY + " permissions. The following couldn't be " + action.toLowerCase().trim() + ":");
-            context.send(createPermissionListString(unused));
+            context.pluginMessage(GRAY + action + DARK_AQUA + (length - unused.size()) + "/" + length + GRAY + " permissions. " + (!unused.isEmpty() ? "The following couldn't be " + action.toLowerCase().trim() + ":" : ""));
+            if (!unused.isEmpty()) context.send(createPermissionListString(unused));
         }
-        world.getUsers().forEach((uuid, user) -> user.resolvePermissions());
+        world.getUsers().forEach((uuid, user) -> user.updateCommands());
     }
 
     private String[] fixPermissions(String[] perms) {

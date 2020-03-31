@@ -22,9 +22,8 @@ public final class Injector {
 
             field = humanEntity.getDeclaredField("perm");
             field.setAccessible(true);
-
             field.set(player, new CoPermissible(player));
-            player.updateCommands();
+            Bukkit.getScheduler().runTask(CoPerms.getInstance(), player::updateCommands);
 
         }
         catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException e) {
