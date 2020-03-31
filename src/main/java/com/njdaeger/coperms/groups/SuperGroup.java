@@ -13,12 +13,14 @@ import java.util.Set;
 public final class SuperGroup extends AbstractGroup {
 
     private final String name;
+    private final ISection section;
     private final PermissionTree permissionTree;
     private final List<AbstractGroup> inheritors;
 
     public SuperGroup(String name, ISection section) {
         this.permissionTree = new PermissionTree(section.getStringList("permissions"));
         this.inheritors = new ArrayList<>();
+        this.section = section;
         this.name = name;
     }
 
@@ -54,6 +56,7 @@ public final class SuperGroup extends AbstractGroup {
         inheritors.forEach(g -> {
             if (g instanceof Group && !g.getGroupPermissionTree().isPermissionDefined(permission) || g.getGroupPermissionTree().hasPermission(permission)) {
                 g.getPermissionTree().grantPermission(permission);
+                g.getInheritors().forEach(gr -> gr.getPermissionTree().grantPermission(permission));
             }
         });
         return ret;
@@ -71,6 +74,7 @@ public final class SuperGroup extends AbstractGroup {
             for (String permission : permissions) {
                 if (g instanceof Group && !g.getGroupPermissionTree().isPermissionDefined(permission) || g.getGroupPermissionTree().hasPermission(permission)) {
                     g.getPermissionTree().grantPermission(permission);
+                    g.getInheritors().forEach(gr -> gr.getPermissionTree().grantPermission(permission));
                 }
             }
         });
@@ -84,6 +88,7 @@ public final class SuperGroup extends AbstractGroup {
         inheritors.forEach(g -> {
             if (g instanceof Group && !g.getGroupPermissionTree().hasPermission(permission)) {
                 g.getPermissionTree().revokePermission(permission);
+                g.getInheritors().forEach(gr -> gr.getPermissionTree().revokePermission(permission));
             }
         });
         return ret;
@@ -101,6 +106,7 @@ public final class SuperGroup extends AbstractGroup {
             for (String permission : permissions) {
                 if (g instanceof Group && !g.getGroupPermissionTree().hasPermission(permission)) {
                     g.getPermissionTree().revokePermission(permission);
+                    g.getInheritors().forEach(gr -> gr.getPermissionTree().revokePermission(permission));
                 }
             }
         });
@@ -149,6 +155,10 @@ public final class SuperGroup extends AbstractGroup {
     @Override
     public boolean removeInheritor(AbstractGroup group) {
         return inheritors.remove(group);
+    }
+
+    public void save() {
+        section.setEntry("permissions", permissionTree.getPermissionNodes().toArray(new String[0]));
     }
 
 }

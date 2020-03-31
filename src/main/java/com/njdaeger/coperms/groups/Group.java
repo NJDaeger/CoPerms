@@ -195,6 +195,8 @@ public final class Group extends AbstractGroup {
             //permission, then we do not want to grant that group permission to this newly coming permission. Otherwise,
             if (g instanceof Group && !g.getGroupPermissionTree().isPermissionDefined(permission) || g.getGroupPermissionTree().hasPermission(permission)) {
                 g.getPermissionTree().grantPermission(permission);
+                g.getInheritors().forEach(gr -> gr.getPermissionTree().grantPermission(permission));
+
             }
         });
         return ret;
@@ -213,6 +215,7 @@ public final class Group extends AbstractGroup {
             for (String permission : permissions) {
                 if (g instanceof Group && !g.getGroupPermissionTree().isPermissionDefined(permission) || g.getGroupPermissionTree().hasPermission(permission)) {
                     g.getPermissionTree().grantPermission(permission);
+                    g.getInheritors().forEach(gr -> gr.getPermissionTree().grantPermission(permission));
                 }
             }
         });
@@ -231,6 +234,7 @@ public final class Group extends AbstractGroup {
 
             if (g instanceof Group && !g.getGroupPermissionTree().hasPermission(permission)) {
                 g.getPermissionTree().revokePermission(permission);
+                g.getInheritors().forEach(gr -> gr.getPermissionTree().revokePermission(permission));
             }
         });
         return ret;
@@ -249,6 +253,7 @@ public final class Group extends AbstractGroup {
             for (String permission : permissions) {
                 if (g instanceof Group && !g.getGroupPermissionTree().hasPermission(permission)) {
                     g.getPermissionTree().revokePermission(permission);
+                    g.getInheritors().forEach(gr -> gr.getPermissionTree().revokePermission(permission));
                 }
             }
         });

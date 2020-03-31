@@ -16,6 +16,7 @@ import com.njdaeger.pdk.command.PDKCommand;
 import com.njdaeger.pdk.command.exception.PDKCommandException;
 import com.njdaeger.pdk.command.flag.OptionalFlag;
 import com.njdaeger.pdk.utils.Text;
+import org.bukkit.ChatColor;
 
 import java.util.Set;
 
@@ -173,13 +174,13 @@ public final class PermissionCommands {
 
         if (context.getAlias().startsWith("g")) {
             action = "Granted ";
-            unused = user.grantPermissions(context.joinArgs(1).split(" "));
+            unused = user.grantPermissions(fixPermissions(context.joinArgs(1).split(" ")));
         } else if (context.getAlias().startsWith("rev")) {
             action = "Revoked ";
-            unused = user.revokePermissions(context.joinArgs(1).split(" "));
+            unused = user.revokePermissions(fixPermissions(context.joinArgs(1).split(" ")));
         } else {
             action = "Removed ";
-            unused = user.removePermissions(context.joinArgs(1).split(" "));
+            unused = user.removePermissions(fixPermissions(context.joinArgs(1).split(" ")));
         }
 
         if (!isSilent) {
@@ -205,13 +206,13 @@ public final class PermissionCommands {
 
         if (context.getAlias().startsWith("g")) {
             action = "Granted ";
-            unused = group.grantPermissions(context.joinArgs(1).split(" "));
+            unused = group.grantPermissions(fixPermissions(context.joinArgs(1).split(" ")));
         } else if (context.getAlias().startsWith("rev")) {
             action = "Revoked ";
-            unused = group.revokePermissions(context.joinArgs(1).split(" "));
+            unused = group.revokePermissions(fixPermissions(context.joinArgs(1).split(" ")));
         } else {
             action = "Removed ";
-            unused = group.removePermissions(context.joinArgs(1).split(" "));
+            unused = group.removePermissions(fixPermissions(context.joinArgs(1).split(" ")));
         }
 
         if (!isSilent) {
@@ -221,9 +222,18 @@ public final class PermissionCommands {
         world.getUsers().forEach((uuid, user) -> user.resolvePermissions());
     }
 
-    private void sendEditPermissionPage(CommandContext context, PermissionTree permissionTree, CoWorld world, int page, boolean group) {
+    private String[] fixPermissions(String[] perms) {
+        for (int i = 0; i < perms.length; i++) {
+            if (perms[i].startsWith("-")) perms[i] = perms[i].substring(1);
+        }
+        return perms;
+    }
+
+    private void sendEditPermissionPage(CommandContext context, PermissionTree permissionTree, CoWorld world, int page, boolean group) throws PDKCommandException {
         Set<String> permissions = permissionTree.getPermissionNodes();
         int pages = (int) Math.ceil(permissions.size()/10.);
+
+        if (pages < page || page <= 0) context.error(RED + "There are no more pages to display.");
 
         Text.TextSection text = Text.of("CoPerms ").setColor(AQUA).append("Permission Editor ------ Page: ").setColor(GRAY).append(page + "/" + pages).setColor(AQUA).append("\n");
         for (String permission : permissions.stream().skip((page-1)*10).limit(10).toArray(String[]::new)) {

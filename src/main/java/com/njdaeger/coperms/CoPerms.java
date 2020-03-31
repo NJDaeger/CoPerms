@@ -81,6 +81,7 @@ public final class CoPerms extends JavaPlugin implements CoPermsAPI {
         final int[] totalSaved = {0};
         getWorlds().values().forEach(world -> {
             world.getGroups().values().forEach(Group::save);
+            getSuperGroups().values().forEach(SuperGroup::save);
             totalSaved[0] += world.getUsers().values().stream().filter(CoUser::hasChanged).count();
             world.getUsers().values().stream().filter(CoUser::hasChanged).forEach(CoUser::save);
         });

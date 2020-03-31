@@ -17,7 +17,7 @@ public final class PageFlag extends Flag<Integer> {
 
     @Override
     public void complete(TabContext context) {
-        context.completion(IntStream.rangeClosed(0, 9).mapToObj(String::valueOf).toArray(String[]::new));
+        context.completion(IntStream.rangeClosed(1, 9).mapToObj(String::valueOf).toArray(String[]::new));
     }
 
     @Override
@@ -26,7 +26,7 @@ public final class PageFlag extends Flag<Integer> {
         try {
             parsed = Integer.parseInt(argument);
         } catch (NumberFormatException ignored) {
-            throw new ArgumentParseException("Integer argument unable to be parsed. Input: " + argument);
+            throw new ArgumentParseException("Integer argument unable to be parsed. Input: " + argument, true);
         }
         return parsed;
     }
