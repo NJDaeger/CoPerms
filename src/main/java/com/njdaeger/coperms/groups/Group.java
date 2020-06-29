@@ -1,9 +1,9 @@
 package com.njdaeger.coperms.groups;
 
-import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.configuration.GroupDataFile;
 import com.njdaeger.coperms.tree.PermissionTree;
+import com.njdaeger.pdk.config.ISection;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +22,6 @@ public final class Group extends AbstractGroup {
     private List<AbstractGroup> inheritors;
 
     private PermissionTree groupPermissionTree;
-    //private PermissionTree fullPermissionTree;
     private final ISection infoSection;
     private boolean inheritanceLoaded;
     private final boolean isDefault;
@@ -46,7 +45,6 @@ public final class Group extends AbstractGroup {
         this.name = name;
 
         this.groupPermissionTree = new PermissionTree(section.getStringList("permissions"));
-        //this.fullPermissionTree = new PermissionTree();
         this.canBuild = section.getBoolean("info.canBuild");
         this.prefix = section.getString("info.prefix");
         this.suffix = section.getString("info.suffix");
@@ -66,16 +64,6 @@ public final class Group extends AbstractGroup {
     public PermissionTree getPermissionTree() {
         return groupPermissionTree;
     }
-
-    /*@Override
-    public Set<String> getGroupPermissions() {
-        return groupPermissionTree.getPermissionNodes();
-    }
-
-    @Override
-    public PermissionTree getGroupPermissionTree() {
-        return groupPermissionTree;
-    }*/
 
     /**
      * Gets the group prefix
@@ -170,7 +158,6 @@ public final class Group extends AbstractGroup {
         if (state == 1) return true;
         else if (state == 0) return directlyInherits.parallelStream().anyMatch(group -> group.hasPermission(permission));
         return false;
-        //return fullPermissionTree.hasPermission(permission);
     }
 
     @Override
@@ -191,19 +178,7 @@ public final class Group extends AbstractGroup {
     @Override
     public boolean grantPermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = groupPermissionTree.grantPermission(permission);
-        /*fullPermissionTree.grantPermission(permission);
-        inheritors.forEach(g -> {
-            //If the permission is explicitly defined in the group, and that definition prohibits them from using said
-            //we do want to give them permission
-            //permission, then we do not want to grant that group permission to this newly coming permission. Otherwise,
-            if (g instanceof Group && !g.getGroupPermissionTree().isPermissionDefined(permission) || g.getGroupPermissionTree().hasPermission(permission)) {
-                g.getPermissionTree().grantPermission(permission);
-                g.getInheritors().forEach(gr -> gr.getPermissionTree().grantPermission(permission));
-
-            }
-        });*/
-        return ret;
+        return groupPermissionTree.grantPermission(permission);
     }
 
     @Override
@@ -212,36 +187,14 @@ public final class Group extends AbstractGroup {
         Set<String> unable = new HashSet<>();
         for (String permission : permissions) {
             if (!groupPermissionTree.grantPermission(permission)) unable.add(permission);
-            //else fullPermissionTree.grantPermission(permission);
         }
-        /*if (permissions.length == unable.size()) return unable;
-        inheritors.forEach(g -> {
-            for (String permission : permissions) {
-                if (g instanceof Group && !g.getGroupPermissionTree().isPermissionDefined(permission) || g.getGroupPermissionTree().hasPermission(permission)) {
-                    g.getPermissionTree().grantPermission(permission);
-                    g.getInheritors().forEach(gr -> gr.getPermissionTree().grantPermission(permission));
-                }
-            }
-        });*/
         return unable;
     }
 
     @Override
     public boolean revokePermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = groupPermissionTree.revokePermission(permission);
-        //fullPermissionTree.revokePermission(permission);
-        /*inheritors.forEach(g -> {
-            //The idea here is that since group permissions override all inherited permissions, if the group has explicit
-            //permission to do something, then they should not have the permission taken away from them. Otherwise, the
-            //permission will be taken from the fullPermissionTree, which is just a mashup of all the inherited permissions
-
-            if (g instanceof Group && !g.getGroupPermissionTree().hasPermission(permission)) {
-                g.getPermissionTree().revokePermission(permission);
-                g.getInheritors().forEach(gr -> gr.getPermissionTree().revokePermission(permission));
-            }
-        });*/
-        return ret;
+        return groupPermissionTree.revokePermission(permission);
     }
 
     @Override
@@ -250,34 +203,14 @@ public final class Group extends AbstractGroup {
         Set<String> unable = new HashSet<>();
         for (String permission : permissions) {
             if (!groupPermissionTree.revokePermission(permission)) unable.add(permission);
-            //else fullPermissionTree.revokePermission(permission);
         }
-        /*if (permissions.length == unable.size()) return unable;
-        inheritors.forEach(g -> {
-            for (String permission : permissions) {
-                if (g instanceof Group && !g.getGroupPermissionTree().hasPermission(permission)) {
-                    g.getPermissionTree().revokePermission(permission);
-                    g.getInheritors().forEach(gr -> gr.getPermissionTree().revokePermission(permission));
-                }
-            }
-        });*/
         return unable;
     }
 
     @Override
     public boolean removePermission(@NotNull String permission) {
         Validate.notNull(permission, "Permission cannot be null");
-        boolean ret = groupPermissionTree.removePermission(permission);
-        /*loadInheritance();
-        inheritors.forEach(g -> {
-            //Since we need to notify all the groups which inherit this group, instead of granting/revoking/removing the
-            //permission from the groups, we need to reload their inheritance to figure out if they had gotten the
-            //permission from somewhere else.
-
-            //Supergroups cant inherit anything
-            if (g instanceof Group) ((Group) g).loadInheritance();
-        });*/
-        return ret;
+        return groupPermissionTree.removePermission(permission);
     }
 
     @Override
@@ -286,10 +219,6 @@ public final class Group extends AbstractGroup {
         for (String permission : permissions) {
             if (!groupPermissionTree.removePermission(permission)) unable.add(permission);
         }
-        /*loadInheritance();
-        inheritors.forEach(g -> {
-            if (g instanceof Group) ((Group) g).loadInheritance();
-        });*/
         return unable;
     }
 
@@ -344,9 +273,6 @@ public final class Group extends AbstractGroup {
     public void loadInheritance() {
 
         this.inheritanceLoaded = true;
-
-        //fullPermissionTree.clear();
-        //inherited.clear();
         directlyInherits.clear();
 
         for (String key : section.getStringList("inherits")) {
@@ -372,9 +298,7 @@ public final class Group extends AbstractGroup {
 
         directlyInherits.forEach(g -> {
             if (g instanceof Group && !((Group) g).inheritanceLoaded) ((Group) g).loadInheritance();
-            //fullPermissionTree.importPermissions(g.getPermissionTree());
         });
-        //fullPermissionTree.importPermissions(groupPermissionTree);
     }
 
     //This is called only when the permissions of a group are changed.

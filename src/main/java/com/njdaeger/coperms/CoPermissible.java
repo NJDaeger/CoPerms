@@ -26,14 +26,18 @@ public class CoPermissible extends PermissibleBase {
 
     @Override
     public boolean hasPermission(String permission) {
-        if (isOp()) {
-            return true;
-        }
+        if (isOp()) return true;
         return user.hasPermission(permission);
     }
 
     @Override
     public boolean hasPermission(Permission permission) {
         return hasPermission(permission.getName());
+    }
+
+    @Override
+    public void setOp(boolean value) {
+        super.setOp(value);
+        user.updateCommands();
     }
 }

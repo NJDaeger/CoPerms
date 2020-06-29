@@ -238,6 +238,7 @@ public final class PermissionCommands {
 
         Text.TextSection text = Text.of("CoPerms ").setColor(AQUA).append("Permission Editor ------ Page: ").setColor(GRAY).append(page + "/" + pages).setColor(AQUA).append("\n");
         for (String permission : permissions.stream().skip((page-1)*10).limit(10).toArray(String[]::new)) {
+            if (permission.startsWith("-")) permission = permission.substring(1);
             switch (permissionTree.getGrantedState(permission)) {
                 case -1:
                     text.append("[-]").setColor(RED).setBold(true).hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Permission is revoked").setColor(GRAY))

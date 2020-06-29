@@ -1,10 +1,10 @@
 package com.njdaeger.coperms.data;
 
-import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.Injector;
 import com.njdaeger.coperms.groups.Group;
 import com.njdaeger.coperms.tree.PermissionTree;
+import com.njdaeger.pdk.config.ISection;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -185,7 +185,7 @@ public final class CoUser {
 
         this.group = world.getGroup(name);
 
-        updateCommands();
+        resolvePermissions();
         this.hasChanged = true;
         return true;
     }
@@ -261,7 +261,6 @@ public final class CoUser {
         Set<String> unable = new HashSet<>();
         for (String permission : permissions) {
             if (!userPermissionTree.grantPermission(permission)) unable.add(permission);
-            //else fullPermissionTree.grantPermission(permission);
         }
         if (unable.isEmpty()) {
             updateCommands();
@@ -361,7 +360,7 @@ public final class CoUser {
         addInfo("suffix", suffix);
         addInfo("prefix", prefix);
         this.userSection.setEntry("group", group.getName());
-        this.userSection.setEntry("permissions", userPermissionTree.getPermissionNodes());
+        this.userSection.setEntry("permissions", userPermissionTree.getPermissionNodes().toArray(new String[0]));
         this.hasChanged = false;
     }
 

@@ -1,11 +1,11 @@
 package com.njdaeger.coperms.configuration;
 
-import com.njdaeger.bcm.Configuration;
-import com.njdaeger.bcm.base.ConfigType;
-import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.data.CoUser;
 import com.njdaeger.coperms.data.CoWorld;
+import com.njdaeger.pdk.config.ConfigType;
+import com.njdaeger.pdk.config.Configuration;
+import com.njdaeger.pdk.config.ISection;
 import org.apache.commons.lang.Validate;
 import org.bukkit.World;
 import org.bukkit.entity.Player;

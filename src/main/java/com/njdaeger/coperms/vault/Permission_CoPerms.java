@@ -12,16 +12,12 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 
-import java.util.logging.Logger;
-
 public class Permission_CoPerms extends Permission {
 
     private static final String NAME = "CoPerms";
-    private final Logger logger;
     private CoPerms coperms;
 
     public Permission_CoPerms(Plugin plugin) {
-        this.logger = plugin.getLogger();
         Bukkit.getServer().getPluginManager().registerEvents(new PermissionServerListener(this), plugin);
     }
 
@@ -37,14 +33,12 @@ public class Permission_CoPerms extends Permission {
         public void onEnable(PluginEnableEvent e) {
             if (permission.coperms == null && e.getPlugin() instanceof CoPerms) {
                 permission.coperms = (CoPerms)e.getPlugin();
-                logger.info(String.format("[Permission] %s hooked.",  NAME));
             }
         }
 
         @EventHandler( priority = EventPriority.MONITOR )
         public void onDisable(PluginDisableEvent e) {
             if (permission.coperms != null && e.getPlugin() instanceof CoPerms) {
-                logger.info(String.format("[Permission] %s un-hooked.", NAME));
                 permission.coperms = null;
             }
         }

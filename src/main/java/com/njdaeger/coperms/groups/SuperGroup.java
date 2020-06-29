@@ -1,7 +1,7 @@
 package com.njdaeger.coperms.groups;
 
-import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.tree.PermissionTree;
+import com.njdaeger.pdk.config.ISection;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 

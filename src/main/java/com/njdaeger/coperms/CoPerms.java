@@ -1,6 +1,5 @@
 package com.njdaeger.coperms;
 
-import com.njdaeger.bcm.base.ISection;
 import com.njdaeger.coperms.commands.PermissionCommands;
 import com.njdaeger.coperms.commands.UserCommands;
 import com.njdaeger.coperms.configuration.CoPermsConfig;
@@ -13,6 +12,8 @@ import com.njdaeger.coperms.groups.Group;
 import com.njdaeger.coperms.groups.SuperGroup;
 import com.njdaeger.coperms.vault.Chat_CoPerms;
 import com.njdaeger.coperms.vault.Permission_CoPerms;
+import com.njdaeger.pdk.config.ISection;
+import net.milkbowl.vault.Vault;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
 import org.apache.commons.lang.Validate;
@@ -58,11 +59,11 @@ public final class CoPerms extends JavaPlugin implements CoPermsAPI {
         if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
             Permission_CoPerms perms = new Permission_CoPerms(this);
             Chat_CoPerms chat = new Chat_CoPerms(this, perms);
-            getServer().getServicesManager().register(Permission.class, perms, this, ServicePriority.Highest);
-            getServer().getServicesManager().register(Chat.class, chat, this, ServicePriority.Highest);
+            getServer().getServicesManager().register(Permission.class, perms, Vault.getPlugin(Vault.class), ServicePriority.Highest);
+            getServer().getServicesManager().register(Chat.class, chat, Vault.getPlugin(Vault.class), ServicePriority.Highest);
         }
 
-        EssentialsPermissionHandler.injectHandler();
+        //EssentialsPermissionHandler.injectHandler();
 
         //Setting some defaults before we start the loading of worlds and groups.
         this.mirrors = config.getSection("mirrors");
@@ -84,7 +85,10 @@ public final class CoPerms extends JavaPlugin implements CoPermsAPI {
             getSuperGroups().values().forEach(SuperGroup::save);
             totalSaved[0] += world.getUsers().values().stream().filter(CoUser::hasChanged).count();
             world.getUsers().values().stream().filter(CoUser::hasChanged).forEach(CoUser::save);
+            world.getGroupDataFile().save();
+            world.getUserDataFile().save();
         });
+        supers.save();
         getLogger().info("Saved " + totalSaved[0] + " users to their respective world user base.");
     }
 

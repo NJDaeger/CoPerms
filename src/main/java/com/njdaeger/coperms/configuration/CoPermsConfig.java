@@ -1,8 +1,8 @@
 package com.njdaeger.coperms.configuration;
 
 import com.njdaeger.coperms.CoPerms;
-import com.njdaeger.bcm.Configuration;
-import com.njdaeger.bcm.base.ConfigType;
+import com.njdaeger.pdk.config.ConfigType;
+import com.njdaeger.pdk.config.Configuration;
 import org.bukkit.Bukkit;
 
 import java.util.Arrays;
