@@ -1,11 +1,11 @@
 package com.njdaeger.coperms.data;
 
 import com.njdaeger.coperms.CoPerms;
-import com.njdaeger.coperms.Injector;
 import com.njdaeger.coperms.configuration.GroupDataFile;
 import com.njdaeger.coperms.configuration.UserDataFile;
 import com.njdaeger.coperms.groups.Group;
 import org.apache.commons.lang.Validate;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +72,8 @@ public final class CoWorld {
     }
 
     public CoUser getUser(@NotNull String name) {
-        return users.get(userData.getUserId(name));
+        Player player = Bukkit.getPlayerExact(name);
+        return users.get(player == null ? userData.getUserId(name) : player.getUniqueId());
     }
 
     public boolean hasUser(@NotNull UUID uuid) {
@@ -80,7 +81,8 @@ public final class CoWorld {
     }
 
     public boolean hasUser(@NotNull String name) {
-        return users.containsKey(userData.getUserId(name));
+        Player player = Bukkit.getPlayerExact(name);
+        return users.containsKey(player == null ? userData.getUserId(name) : player.getUniqueId());
     }
 
     public Map<UUID, CoUser> getUsers() {
