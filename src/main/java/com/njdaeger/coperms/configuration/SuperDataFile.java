@@ -21,6 +21,7 @@ public final class SuperDataFile extends Configuration {
             addEntry("super.default.permissions", Collections.singletonList("*"));
         }
         getSection("super").getKeys(false).forEach(key -> superGroups.put(key, new SuperGroup(key, getSection("super." + key))));
+        save();
     }
     
     /**

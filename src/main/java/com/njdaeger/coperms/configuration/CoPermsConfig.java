@@ -16,6 +16,8 @@ public final class CoPermsConfig extends Configuration {
         addEntry("operator-overrides", true);
         addEntry("mirrors." + Bukkit.getWorlds().get(0).getName(), Arrays.asList("users", "groups"));
         addEntry("mirrors.all-other-worlds", Arrays.asList("users", "groups"));
+
+        save();
     }
 
     /**

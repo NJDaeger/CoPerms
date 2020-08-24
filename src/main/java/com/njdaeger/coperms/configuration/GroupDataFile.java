@@ -49,7 +49,8 @@ public final class GroupDataFile extends Configuration {
         Arrays.sort(arr);
         
         this.defaultGroup = getGroup(arr[0]);
-        
+
+        save();
     }
     
     public void reloadGroups() {
