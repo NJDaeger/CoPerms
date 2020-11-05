@@ -2,7 +2,6 @@ package com.njdaeger.coperms.configuration;
 
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.data.CoUser;
-import com.njdaeger.coperms.data.CoWorld;
 import com.njdaeger.pdk.config.ConfigType;
 import com.njdaeger.pdk.config.Configuration;
 import com.njdaeger.pdk.config.ISection;
@@ -13,23 +12,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"unused"})
 public final class UserDataFile extends Configuration {
 
-    private final Set<UUID> users; //Contains all the users online or offline which are held in this user data file.
+    private final Map<UUID, CoUser> userMap;
+//    private final Set<UUID> users; //Contains all the users online or offline which are held in this user data file.
     private final CoPerms plugin;
     private final World world; //The original world this user file is derived from.
 
     public UserDataFile(CoPerms plugin, World world) {
         super(plugin, ConfigType.YML, "worlds" + File.separator + world.getName() + File.separator + "users");
 
-        this.users = hasSection("users") ? getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet()) : new HashSet<>();
+        this.userMap = new HashMap<>();
+        (hasSection("users") ? getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet()) : new HashSet<>()).forEach(uuid -> userMap.putIfAbsent((UUID) uuid, new CoUser(plugin, this, (UUID) uuid)));
+
+//        this.users = hasSection("users") ? getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet()) : new HashSet<>();
         this.plugin = plugin;
         this.world = world;
     }
@@ -41,7 +41,7 @@ public final class UserDataFile extends Configuration {
      */
     public void loadPlayer(@NotNull Player player) {
         Validate.notNull(player, "Player cannot be null");
-        users.add(player.getUniqueId());
+        userMap.put(player.getUniqueId(), new CoUser(plugin, this, player.getUniqueId()));
         String path = "users." + player.getUniqueId().toString();
         setEntry(path + ".username", player.getName());
         addEntry(path + ".group", plugin.getWorld(world).getDefaultGroup().getName());
@@ -50,12 +50,12 @@ public final class UserDataFile extends Configuration {
         addEntry(path + ".permissions", Collections.emptyList());
     }
 
-    public CoUser getUser(CoWorld world, UUID uuid) {
-        return world.getUser(uuid);
+    public CoUser getUser(UUID uuid) {
+        return userMap.get(uuid);
     }
 
-    public CoUser getUser(CoWorld world, String name) {
-        return world.getUser(name);
+    public CoUser getUser(String name) {
+        return userMap.values().stream().filter(user -> user.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
     /**
@@ -65,7 +65,7 @@ public final class UserDataFile extends Configuration {
      */
     public boolean hasUser(@Nullable UUID uuid) {
         if (uuid == null) return false;
-        return users.contains(uuid);
+        return userMap.containsKey(uuid);
     }
     
     /**
@@ -82,16 +82,28 @@ public final class UserDataFile extends Configuration {
      * Gets all the users that are in this data file. Online or not.
      * @return The users that are in this data file
      */
-    public Set<UUID> getUsers() {
-        return users;
+    public Set<UUID> getUserIds() {
+        return userMap.keySet();
     }
-    
+
+    /**
+     * Gets all the users that are in this data file. Online or not.
+     * @return The users that are in this data file
+     */
+    public Set<CoUser> getUsers() {
+        return new HashSet<>(userMap.values());
+    }
+
+    public Map<UUID, CoUser> getUserMap() {
+        return userMap;
+    }
+
     /**
      * Whether this user file has any users.
      * @return True if the user file has users specified, false otherwise.
      */
     public boolean hasUsers() {
-        return users.isEmpty();
+        return userMap.isEmpty();
     }
     
     /**

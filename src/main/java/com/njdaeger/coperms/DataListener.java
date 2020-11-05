@@ -32,10 +32,8 @@ public final class DataListener implements Listener {
         if (e.getFrom() != e.getPlayer().getWorld()) {
             CoWorld from = plugin.getWorld(e.getFrom());
             CoWorld to = plugin.getWorld(e.getPlayer().getWorld());
-            if (!to.hasUser(e.getPlayer().getUniqueId())) {
-                to.addPlayer(e.getPlayer());
-            }
             from.getUser(e.getPlayer().getUniqueId()).save();
+            to.addPlayer(e.getPlayer());
         }
     }
 }

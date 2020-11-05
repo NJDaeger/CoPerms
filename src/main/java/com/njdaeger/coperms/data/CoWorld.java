@@ -20,15 +20,15 @@ public final class CoWorld {
     private final World world;
     private final UserDataFile userData;
     private final GroupDataFile groupData;
-    private final Map<UUID, CoUser> users;
+//    private final Map<UUID, CoUser> users;
 
     public CoWorld(World world, UserDataFile userData, GroupDataFile groupData) {
         this.world = world;
-        this.users = new HashMap<>();
+//        this.users = new HashMap<>();
         this.userData = userData;
         this.groupData = groupData;
 
-        userData.getUsers().forEach(uuid -> users.putIfAbsent(uuid, new CoUser((CoPerms) userData.getPlugin(), this, uuid)));
+//        userData.getUsers().forEach(uuid -> users.putIfAbsent(uuid, new CoUser((CoPerms) userData.getPlugin(), uuid)));
     }
 
     /**
@@ -68,25 +68,23 @@ public final class CoWorld {
     }
 
     public CoUser getUser(@NotNull UUID uuid) {
-        return users.get(uuid);
+        return userData.getUser(uuid);
     }
 
     public CoUser getUser(@NotNull String name) {
-        Player player = Bukkit.getPlayerExact(name);
-        return users.get(player == null ? userData.getUserId(name) : player.getUniqueId());
+        return userData.getUser(name);
     }
 
     public boolean hasUser(@NotNull UUID uuid) {
-        return users.containsKey(uuid);
+        return userData.hasUser(uuid);
     }
 
     public boolean hasUser(@NotNull String name) {
-        Player player = Bukkit.getPlayerExact(name);
-        return users.containsKey(player == null ? userData.getUserId(name) : player.getUniqueId());
+        return userData.hasUser(name);
     }
 
     public Map<UUID, CoUser> getUsers() {
-        return users;
+        return userData.getUserMap();
     }
 
     /**
@@ -148,10 +146,11 @@ public final class CoWorld {
      */
     public void addPlayer(@NotNull Player player) {
         Validate.notNull(player, "Player cannot be null");
-        userData.loadPlayer(player);
-        users.putIfAbsent(player.getUniqueId(), new CoUser((CoPerms) userData.getPlugin(), this, player.getUniqueId(), true));
+        if (!hasUser(player.getUniqueId())) userData.loadPlayer(player);
         if (player.isOnline()) {
-            users.get(player.getUniqueId()).resolvePermissions();
+            CoUser user = userData.getUser(player.getUniqueId());
+            user.loadIntoWorld(this);
+            user.resolvePermissions();
         }
     }
 }

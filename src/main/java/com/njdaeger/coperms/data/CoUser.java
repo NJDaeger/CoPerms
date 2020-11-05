@@ -2,6 +2,7 @@ package com.njdaeger.coperms.data;
 
 import com.njdaeger.coperms.CoPerms;
 import com.njdaeger.coperms.Injector;
+import com.njdaeger.coperms.configuration.UserDataFile;
 import com.njdaeger.coperms.groups.Group;
 import com.njdaeger.coperms.tree.PermissionTree;
 import com.njdaeger.pdk.config.ISection;
@@ -25,36 +26,31 @@ public final class CoUser {
 
     private String name;
     private Group group;
+    private CoWorld world;
     private String prefix;
     private String suffix;
     private final UUID uuid;
     private ISection userInfo;
-    private final CoWorld world;
     private final ISection userSection;
     private final CoPerms plugin;
     private final PermissionTree userPermissionTree;
 
-    public CoUser(CoPerms plugin, CoWorld world, UUID userID, boolean hasChanged) {
-        this(plugin, world, userID);
+    public CoUser(CoPerms plugin, UserDataFile userData, UUID userID, boolean hasChanged) {
+        this(plugin, userData, userID);
         this.hasChanged = true;
     }
 
-    public CoUser(CoPerms plugin, CoWorld world, UUID userID) {
+    public CoUser(CoPerms plugin, UserDataFile userData, UUID userID) {
         this.userPermissionTree = new PermissionTree();
         this.plugin = plugin;
-        this.world = world;
         this.uuid = userID;
 
-        this.userSection = world.getUserDataFile().getSection("users." + uuid.toString());
+        this.userSection = userData.getSection("users." + uuid.toString());
         this.userInfo = userSection.getSection("info");
 
         //Checking for any custom permissions this user has in their user section in the datafile
         List<String> customPerms = userSection.getStringList("permissions");
         if (customPerms != null) this.userPermissionTree.importPermissions(customPerms);
-
-        //Trying to get the group the user is in on this world. If the group doesnt exist, it gets the default of the world
-        this.group = world.getGroup(userSection.getString("group"));
-        if (group == null) setGroup(world, world.getDefaultGroup().getName());
 
         //Gets the name of the user. If the username doesnt exist for some reason and the user is online, we get their name
         this.name = userSection.getString("username");
@@ -224,6 +220,13 @@ public final class CoUser {
      */
     public CoWorld getWorld() {
         return world;
+    }
+
+    public void loadIntoWorld(CoWorld world) {
+        this.world = world;
+        //Trying to get the group the user is in on this world. If the group doesnt exist, it gets the default of the world
+        this.group = world.getGroup(userSection.getString("group"));
+        if (group == null) setGroup(world, world.getDefaultGroup().getName());
     }
 
     /**
