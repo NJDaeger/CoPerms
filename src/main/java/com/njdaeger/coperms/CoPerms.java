@@ -16,9 +16,11 @@ import com.njdaeger.pdk.config.ISection;
 import net.milkbowl.vault.Vault;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.permission.Permission;
+import net.milkbowl.vault.permission.plugins.Permission_SuperPerms;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +59,12 @@ public final class CoPerms extends JavaPlugin implements CoPermsAPI {
         this.worlds = new HashMap<>();
 
         if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+
+            RegisteredServiceProvider<Permission> superperms = getServer().getServicesManager().getRegistration(Permission.class);
+            if (superperms != null) {
+                getServer().getServicesManager().unregister(superperms.getProvider());
+                getLogger().info("Disabled SuperPerms backup permissions.");
+            }
             Permission_CoPerms perms = new Permission_CoPerms(this);
             Chat_CoPerms chat = new Chat_CoPerms(this, perms);
             getServer().getServicesManager().register(Permission.class, perms, Vault.getPlugin(Vault.class), ServicePriority.Highest);

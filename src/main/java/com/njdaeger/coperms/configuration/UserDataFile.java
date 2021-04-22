@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 public final class UserDataFile extends Configuration {
 
     private final Map<UUID, CoUser> userMap;
-//    private final Set<UUID> users; //Contains all the users online or offline which are held in this user data file.
     private final CoPerms plugin;
     private final World world; //The original world this user file is derived from.
 
@@ -29,7 +28,6 @@ public final class UserDataFile extends Configuration {
         this.userMap = new HashMap<>();
         (hasSection("users") ? getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet()) : new HashSet<>()).forEach(uuid -> userMap.putIfAbsent((UUID) uuid, new CoUser(plugin, this, (UUID) uuid)));
 
-//        this.users = hasSection("users") ? getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet()) : new HashSet<>();
         this.plugin = plugin;
         this.world = world;
     }
@@ -41,13 +39,13 @@ public final class UserDataFile extends Configuration {
      */
     public void loadPlayer(@NotNull Player player) {
         Validate.notNull(player, "Player cannot be null");
-        userMap.put(player.getUniqueId(), new CoUser(plugin, this, player.getUniqueId()));
         String path = "users." + player.getUniqueId().toString();
         setEntry(path + ".username", player.getName());
         addEntry(path + ".group", plugin.getWorld(world).getDefaultGroup().getName());
         addEntry(path + ".info.prefix", null);
         addEntry(path + ".info.suffix", null);
         addEntry(path + ".permissions", Collections.emptyList());
+        userMap.put(player.getUniqueId(), new CoUser(plugin, this, player.getUniqueId()));
     }
 
     public CoUser getUser(UUID uuid) {

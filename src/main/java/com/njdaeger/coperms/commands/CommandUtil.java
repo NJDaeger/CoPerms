@@ -14,10 +14,22 @@ import java.util.stream.Collectors;
 public final class CommandUtil {
 
     public static List<String> playerCompletion(TabContext context) {
-        if (context.isPlayer()) return (context.hasFlag("w") ? (CoWorld)context.getFlag("w") : CoPerms.getInstance().getWorld(context.asPlayer().getWorld())).getUsers().values().stream().map(CoUser::getName).collect(Collectors.toList());
-        else {
-            if (context.hasFlag("w")) return ((CoWorld)context.getFlag("w")).getUsers().values().stream().map(CoUser::getName).collect(Collectors.toList());
-            else return CoPerms.getInstance().getWorlds().values().stream().flatMap(world -> world.getUsers().values().stream().map(CoUser::getName)).collect(Collectors.toList());
+
+        boolean allPlayers = context.hasFlag("a");
+
+        if (context.isPlayer()) {
+            CoWorld world = (context.hasFlag("w") ? (CoWorld)context.getFlag("w") : CoPerms.getInstance().getWorld(context.asPlayer().getWorld()));
+            if (allPlayers) return world.getUsers().values().stream().map(CoUser::getName).collect(Collectors.toList());
+            else return world.getUsers().values().stream().filter(CoUser::isOnline).map(CoUser::getName).collect(Collectors.toList());
+        } else {
+            if (context.hasFlag("w")) {
+                if (allPlayers) return ((CoWorld)context.getFlag("w")).getUsers().values().stream().map(CoUser::getName).collect(Collectors.toList());
+                else return ((CoWorld)context.getFlag("w")).getUsers().values().stream().filter(CoUser::isOnline).map(CoUser::getName).collect(Collectors.toList());
+            }
+            else {
+                if (allPlayers) return CoPerms.getInstance().getWorlds().values().stream().flatMap(world -> world.getUsers().values().stream().map(CoUser::getName)).collect(Collectors.toList());
+                else return CoPerms.getInstance().getWorlds().values().stream().flatMap(world -> world.getUsers().values().stream().filter(CoUser::isOnline).map(CoUser::getName)).collect(Collectors.toList());
+            }
         }
     }
 

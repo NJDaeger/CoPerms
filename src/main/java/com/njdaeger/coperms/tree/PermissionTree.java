@@ -27,17 +27,26 @@ public class PermissionTree {
         System.out.println(perms.hasPermission("essentials.essentials"));       //false
         System.out.println(perms.grantPermission("essentials.build.bedrock"));  //true
         System.out.println(perms.grantPermission("essentials.build.bedrock"));  //false
+        System.out.println("-----");
+        System.out.println(perms.grantPermission("test1"));                     //true
+        System.out.println(perms.grantPermission("test1"));                     //false
         System.out.println(perms.hasPermission("essentials.build.bedrock"));    //true
         System.out.println(perms.hasPermission("essentials"));                  //true
         System.out.println(perms.revokePermission("essentials"));               //true
         System.out.println(perms.hasPermission("essentials"));                  //false
         System.out.println(perms.revokePermission("essentials.build.*"));       //true
+        System.out.println(perms.revokePermission("essentials.build.*"));       //false
         System.out.println(perms.hasPermission("essentials.build.gravel"));     //false
         System.out.println(perms.hasPermission("essentials.build.bedrock"));    //true
         System.out.println(perms.hasPermission("essentials.build.granite.all"));//false
         System.out.println(perms.removePermission("essentials"));               //True
         System.out.println(perms.removePermission("essentials"));               //false
         System.out.println(perms.getPermissionNodes());
+
+        System.out.println(perms.grantPermission("test.test.test"));
+        System.out.println(perms.grantPermission("test.test.test"));
+
+
         perms.printTree();
         //System.out.println(perms.getPermissionNodes());
     }
@@ -227,13 +236,23 @@ public class PermissionTree {
         //Split the permission node into its parts
         String[] parts = permission.split("\\.");
 
+        boolean newSingleNode = false;
+
         //Check if the current root map contains any mapping for the first part of the node
         //If it doesnt, create a mapping for it. If the parts array is only one in length,
         //then the user will be granted permission to that root node
-        if (!nodes.containsKey(parts[0])) nodes.put(parts[0], new Node((byte) (parts.length == 1 ? 1 : 0)));
+        if (!nodes.containsKey(parts[0])) {
+            if (parts.length == 1) newSingleNode = true;
+            nodes.put(parts[0], new Node((byte) (parts.length == 1 ? 1 : 0)));
+        }
+
+        //If the parts array is only one long and if the node is new, we just return true by default.
+        if (newSingleNode) return true;
 
         //We automatically set the last node to the root node by default
         Node lastNode = nodes.get(parts[0]);
+
+        if (parts.length == 1 && lastNode.isGranted()) return false;
 
         for (int i = 1; i < parts.length; i++) {
 
@@ -252,7 +271,7 @@ public class PermissionTree {
             lastNode.granted = 1;
             return true;
         }
-        return false;
+        return true;
     }
 
     /**
@@ -266,13 +285,24 @@ public class PermissionTree {
         //Split the permission node into its parts
         String[] parts = permission.split("\\.");
 
+        boolean revokeSingleNewNode = false;
+
         //Check if the current root map contains any mapping for the first part of the node
         //If it doesnt, create a mapping for it. If the parts array is only one in length,
         //then the user will be granted permission to that root node
-        if (!nodes.containsKey(parts[0])) nodes.put(parts[0], new Node((byte) (parts.length == 1 ? -1 : 0)));
+        if (!nodes.containsKey(parts[0])) {
+            if (parts.length == 1) revokeSingleNewNode = true;
+            nodes.put(parts[0], new Node((byte) (parts.length == 1 ? -1 : 0)));
+        }
+
+        //If the parts array is only one long and if the node is new, we just return true by default.
+        if (revokeSingleNewNode) return true;
 
         //We automatically set the last node to the root node by default
         Node lastNode = nodes.get(parts[0]);
+
+        if (parts.length == 1 && lastNode.isNegated()) return false;
+
 
         for (int i = 1; i < parts.length; i++) {
 
@@ -290,7 +320,7 @@ public class PermissionTree {
             lastNode.granted = -1;
             return true;
         }
-        return false;
+        return true;
     }
 
     /**
@@ -307,13 +337,23 @@ public class PermissionTree {
         //Split the permission node into its parts
         String[] parts = permission.split("\\.");
 
+        boolean newRemovedPerm = false;
+
         //Check if the current root map contains any mapping for the first part of the node
         //If it doesnt, create a mapping for it. If the parts array is only one in length,
         //then the user will be granted permission to that root node
-        if (!nodes.containsKey(parts[0])) nodes.put(parts[0], new Node((byte) 0));
+        if (!nodes.containsKey(parts[0])) {
+            if (parts.length == 1) newRemovedPerm = true;
+            nodes.put(parts[0], new Node((byte) 0));
+        }
+
+        //If the parts array is only one long and if the node is new, we just return true by default.
+        if (newRemovedPerm) return true;
 
         //We automatically set the last node to the root node by default
         Node lastNode = nodes.get(parts[0]);
+
+        if (parts.length == 1 && lastNode.isInherited()) return false;
 
         for (int i = 1; i < parts.length; i++) {
 
@@ -331,7 +371,7 @@ public class PermissionTree {
             lastNode.granted = 0;
             return true;
         }
-        return false;
+        return true;
     }
 
     /**

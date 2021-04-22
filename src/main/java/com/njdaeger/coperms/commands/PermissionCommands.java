@@ -12,11 +12,9 @@ import com.njdaeger.coperms.groups.AbstractGroup;
 import com.njdaeger.coperms.tree.PermissionTree;
 import com.njdaeger.pdk.command.CommandBuilder;
 import com.njdaeger.pdk.command.CommandContext;
-import com.njdaeger.pdk.command.PDKCommand;
 import com.njdaeger.pdk.command.exception.PDKCommandException;
 import com.njdaeger.pdk.command.flag.OptionalFlag;
 import com.njdaeger.pdk.utils.Text;
-import org.bukkit.ChatColor;
 
 import java.util.Set;
 
@@ -30,43 +28,42 @@ public final class PermissionCommands {
     public PermissionCommands(CoPerms plugin) {
         this.plugin = plugin;
 
-        PDKCommand grantUserPerm = CommandBuilder.of("grantuperm", "guperm")
+        CommandBuilder.of("grantuperm", "guperm")
                 .executor(this::userPermissionChange)
                 .completer(c -> c.completionAt(0, CommandUtil::playerCompletion))
                 .description("Grants a permission to a specific user")
-                .usage("/grantuperm <user> <permissions...> [-w <world>]")
-                .flag(new WorldFlag())
+                .usage("/grantuperm <user> <permissions...> [-w <world>] [-s] [-a]")
                 .flag(new OptionalFlag("Silent the command output", "-s", "s"))
+                .flag(new OptionalFlag("All users online and offline", "-a", "a"))
+                .flag(new WorldFlag())
                 .min(2)
                 .permissions("coperms.permission.user.grant")
-                .build();
-        grantUserPerm.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand grantGroupPerm = CommandBuilder.of("grantgperm", "ggperm")
+        CommandBuilder.of("grantgperm", "ggperm")
                 .executor(this::groupPermissionChange)
                 .completer(c -> c.completionAt(0, CommandUtil::allGroupCompletion))
                 .description("Grants a permission to a specific group")
-                .usage("/grantgperm <group> <permissions...> [-w <world>]")
+                .usage("/grantgperm <group> <permissions...> [-w <world>] [-s]")
                 .flag(new WorldFlag())
                 .flag(new OptionalFlag("Silent the command output", "-s", "s"))
                 .min(2)
                 .permissions("coperms.permission.group.grant")
-                .build();
-        grantGroupPerm.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand revokeUserPerm = CommandBuilder.of("revokeuperm", "revuperm")
+        CommandBuilder.of("revokeuperm", "revuperm")
                 .executor(this::userPermissionChange)
                 .completer(c -> c.completionAt(0, CommandUtil::playerCompletion))
                 .description("Revokes a permission to a specific user")
-                .usage("/revokeuperm <user> <permissions...> [-w <world>]")
+                .usage("/revokeuperm <user> <permissions...> [-w <world>] [-s] [-a]")
                 .flag(new OptionalFlag("Silent the command output", "-s", "s"))
+                .flag(new OptionalFlag("All users online and offline", "-a", "a"))
                 .flag(new WorldFlag())
                 .min(2)
                 .permissions("coperms.permission.user.revoke")
-                .build();
-        revokeUserPerm.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand revokeGroupPerm = CommandBuilder.of("revokegperm", "revgperm")
+        CommandBuilder.of("revokegperm", "revgperm")
                 .executor(this::groupPermissionChange)
                 .completer(c -> c.completionAt(0, CommandUtil::allGroupCompletion))
                 .description("Revokes a permission to a specific group")
@@ -75,22 +72,21 @@ public final class PermissionCommands {
                 .flag(new OptionalFlag("Silent the command output", "-s", "s"))
                 .min(2)
                 .permissions("coperms.permission.group.revoke")
-                .build();
-        revokeGroupPerm.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand removeUserPerm = CommandBuilder.of("removeuperm", "remuperm")
+        CommandBuilder.of("removeuperm", "remuperm")
                 .executor(this::userPermissionChange)
                 .completer(c -> c.completionAt(0, CommandUtil::playerCompletion))
                 .description("Removes a permission to a specific user")
-                .usage("/removeuperm <user> <permissions...> [-w <world>]")
-                .flag(new WorldFlag())
+                .usage("/removeuperm <user> <permissions...> [-w <world>] [-s] [-a]")
                 .flag(new OptionalFlag("Silent the command output", "-s", "s"))
+                .flag(new OptionalFlag("All users online and offline", "-a", "a"))
+                .flag(new WorldFlag())
                 .min(2)
                 .permissions("coperms.permission.user.remove")
-                .build();
-        removeUserPerm.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand removeGroupPerm = CommandBuilder.of("removegperm", "remgperm")
+        CommandBuilder.of("removegperm", "remgperm")
                 .executor(this::groupPermissionChange)
                 .completer(c -> c.completionAt(0, CommandUtil::allGroupCompletion))
                 .description("Removes a permission to a specific group")
@@ -99,23 +95,22 @@ public final class PermissionCommands {
                 .flag(new OptionalFlag("Silent the command output", "-s", "s"))
                 .min(2)
                 .permissions("coperms.permission.group.remove")
-                .build();
-        removeGroupPerm.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand listUserPerms = CommandBuilder.of("listuperms", "edituperms", "euperms", "getuperms")
+        CommandBuilder.of("listuperms", "edituperms", "euperms", "getuperms")
                 .executor(this::listUserPermissions)
                 .completer(c -> c.completionAt(0, CommandUtil::playerCompletion))
                 .description("View and modify the permissions of a user")
-                .usage("/listuperms <user> [-p <page>] [-w <world>]")
+                .usage("/listuperms <user> [-p <page>] [-w <world>] [-a]")
+                .flag(new OptionalFlag("All users online and offline", "-a", "a"))
                 .flag(new WorldFlag())
                 .flag(new PageFlag())
                 .min(1)
                 .max(1)
                 .permissions("coperms.permission.user.list")
-                .build();
-        listUserPerms.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand listGroupPerms = CommandBuilder.of("listgperms", "editgperms", "egperms", "getgperms")
+        CommandBuilder.of("listgperms", "editgperms", "egperms", "getgperms")
                 .executor(this::listGroupPermissions)
                 .completer(c -> c.completionAt(0, CommandUtil::allGroupCompletion))
                 .description("View and modify the permissions of a group")
@@ -125,9 +120,58 @@ public final class PermissionCommands {
                 .min(1)
                 .max(1)
                 .permissions("coperms.permission.group.list")
-                .build();
-        listGroupPerms.register(plugin);
+                .build().register(plugin);
 
+        CommandBuilder.of("testgperm", "testgp", "tgp")
+                .executor(this::testGroupPermission)
+                .completer(c -> c.completionAt(0, CommandUtil::groupCompletion))
+                .description("Test a permission for a group.")
+                .usage("/testgperm <group> <permission> [-w <world>]")
+                .flag(new WorldFlag())
+                .min(2)
+                .max(2)
+                .permissions("coperms.permission.group.test")
+                .build().register(plugin);
+
+        CommandBuilder.of("testuperm", "testup", "tup")
+                .executor(this::testUserPermission)
+                .completer(c -> c.completionAt(0, CommandUtil::playerCompletion))
+                .description("/testuperm <user> <permission> [-w <world>] [-a]")
+                .flag(new OptionalFlag("All users online and offline", "-a", "a"))
+                .flag(new WorldFlag())
+                .min(2)
+                .max(2)
+                .permissions("coperms.permission.user.test")
+                .build().register(plugin);
+
+
+    }
+
+    // /testgperm <group> <permission>
+    private void testGroupPermission(CommandContext context) throws PDKCommandException {
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
+        if (world == null) throw new WorldNotExistException();
+
+        AbstractGroup group = world.getGroup(context.argAt(0));
+        if (group == null) group = plugin.getSuperGroup(context.argAt(0));
+        if (group == null) throw new GroupNotExistException();
+
+        String permission = context.argAt(1);
+
+        context.pluginMessage(GRAY + "Group " + DARK_AQUA + group.getName() + GRAY + " " + (group.hasPermission(permission) ? " has " : " does not have ") + "permission for " + DARK_AQUA + formatPermission(permission));
+    }
+
+    // /testuperm <user> <permission>
+    private void testUserPermission(CommandContext context) throws PDKCommandException {
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
+        if (world == null) throw new WorldNotExistException();
+
+        CoUser user = world.getUser(context.argAt(0));
+        if (user == null) throw new UserNotExistException();
+
+        String permission = context.argAt(1);
+
+        context.pluginMessage(GRAY + "User " + DARK_AQUA + user.getName() + GRAY + " " + (user.hasPermission(permission) ? " has " : " does not have ") + "permission for " + DARK_AQUA + formatPermission(permission));
     }
 
     private void listGroupPermissions(CommandContext context) throws PDKCommandException {

@@ -10,8 +10,8 @@ import com.njdaeger.coperms.exceptions.WorldNotExistException;
 import com.njdaeger.coperms.groups.Group;
 import com.njdaeger.pdk.command.CommandBuilder;
 import com.njdaeger.pdk.command.CommandContext;
-import com.njdaeger.pdk.command.PDKCommand;
 import com.njdaeger.pdk.command.exception.PDKCommandException;
+import com.njdaeger.pdk.command.flag.OptionalFlag;
 
 import static org.bukkit.ChatColor.*;
 
@@ -19,78 +19,78 @@ public final class UserCommands {
 
     public UserCommands(CoPerms plugin) {
 
-        PDKCommand promote = CommandBuilder.of("promote", "promo")
+        CommandBuilder.of("promote", "promo")
                 .executor(this::promote)
                 .completer((c) -> c.completionAt(0, CommandUtil::playerCompletion))
                 .flag(new WorldFlag())
+                .flag(new OptionalFlag("All users online and offline", "-a", "a"))
                 .description("Promotes someone to the next rank.")
-                .usage("/promote <user> [-w <world>]")
+                .usage("/promote <user> [-w <world>] [-a]")
                 .min(1)
                 .max(2)
                 .permissions("coperms.ranks.promote")
-                .build();
-        promote.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand setRank = CommandBuilder.of("setrank", "setr", "setgroup")
+        CommandBuilder.of("setrank", "setr", "setgroup")
                 .executor(this::setRank)
                 .completer((c) -> {
                     c.completionAt(0, CommandUtil::playerCompletion);
                     c.completionAt(1, CommandUtil::groupCompletion);
                 })
                 .flag(new WorldFlag())
+                .flag(new OptionalFlag("All users online and offline", "-a", "a"))
                 .description("Adds a user to a specified rank")
-                .usage("/setrank <user> <rank> [-w <world>]")
+                .usage("/setrank <user> <rank> [-w <world>] [-a]")
                 .min(2)
                 .max(3)
                 .permissions("coperms.ranks.setrank")
-                .build();
-        setRank.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand demote = CommandBuilder.of("demote", "demo")
+        CommandBuilder.of("demote", "demo")
                 .executor(this::demote)
                 .completer((c) -> c.completionAt(0, CommandUtil::playerCompletion))
                 .flag(new WorldFlag())
+                .flag(new OptionalFlag("All users online and offline", "-a", "a"))
                 .description("Demotes someone to the previous rank.")
-                .usage("/demote <user> [-w <world>]")
+                .usage("/demote <user> [-w <world>] [-a]")
                 .min(1)
                 .max(2)
                 .permissions("coperms.ranks.demote")
-                .build();
-        demote.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand setPrefix = CommandBuilder.of("setprefix", "prefix")
+        CommandBuilder.of("setprefix", "prefix")
                 .executor(this::setPrefix)
                 .completer((c) -> c.completionAt(0, CommandUtil::playerCompletion))
                 .description("Adds or removes a prefix from a user")
-                .usage("/prefix <user> [prefix] [-w <world>]")
+                .usage("/prefix <user> [prefix] [-w <world>] [-a]")
                 .flag(new WorldFlag())
+                .flag(new OptionalFlag("All users online and offline", "-a", "a"))
                 .min(1)
                 .permissions("coperms.variables.user.prefix")
-                .build();
-        setPrefix.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand setSuffix = CommandBuilder.of("setsuffix", "suffix")
+        CommandBuilder.of("setsuffix", "suffix")
                 .executor(this::setSuffix)
                 .completer((c) -> c.completionAt(0, CommandUtil::playerCompletion))
                 .description("Adds or removes a suffix from a user")
-                .usage("/suffix <user> [suffix] [-w <world>]")
+                .usage("/suffix <user> [suffix] [-w <world>] [-a]")
                 .flag(new WorldFlag())
+                .flag(new OptionalFlag("All users online and offline", "-a", "a"))
                 .min(1)
                 .permissions("coperms.variables.user.suffix")
-                .build();
-        setSuffix.register(plugin);
+                .build().register(plugin);
 
-        PDKCommand setGPrefix = CommandBuilder.of("setgprefix", "gprefix", "setgpre")
+        CommandBuilder.of("setgprefix", "gprefix", "setgpre")
                 .executor(this::setGroupPrefix)
                 .completer((c) -> c.completionAt(0, CommandUtil::groupCompletion))
                 .flag(new WorldFlag())
                 .description("Sets the prefix of a group.")
                 .usage("/setgprefix <group> [prefix] [-w <world>]")
                 .min(2)
-                .permissions("coperms.variables.group.prefix").build();
-        setGPrefix.register(plugin);
+                .permissions("coperms.variables.group.prefix")
+                .build().register(plugin);
 
-        PDKCommand setGSuffix = CommandBuilder.of("setgsuffix", "gsuffix", "setgsuf")
+        CommandBuilder.of("setgsuffix", "gsuffix", "setgsuf")
                 .executor(this::setGroupSuffix)
                 .completer((c) -> c.completionAt(0, CommandUtil::groupCompletion))
                 .flag(new WorldFlag())
@@ -98,8 +98,19 @@ public final class UserCommands {
                 .usage("/setgsuffix <group> [suffix] [-w <world>]")
                 .min(2)
                 .permissions("coperms.variables.group.suffix")
-                .build();
-        setGSuffix.register(plugin);
+                .build().register(plugin);
+
+        CommandBuilder.of("getrank", "rankof")
+                .executor(this::getRank)
+                .completer((c) -> c.completionAt(0, CommandUtil::playerCompletion))
+                .description("Find the rank of a person.")
+                .usage("/getrank <user> [-w <world>] [-a]")
+                .flag(new WorldFlag())
+                .flag(new OptionalFlag("All users online and offline", "-a", "a"))
+                .min(1)
+                .max(1)
+                .permissions("coperms.ranks.getrank")
+                .build().register(plugin);
     }
 
     //
@@ -160,6 +171,22 @@ public final class UserCommands {
         user.setGroup(world, group.getName());
         context.pluginMessage(AQUA + user.getName() + GRAY + " was added to group " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
         user.pluginMessage(GRAY + "You were added to group " + AQUA + group.getName() + GRAY + " in world " + AQUA + world.getName());
+    }
+
+    private void getRank(CommandContext context) throws PDKCommandException {
+
+        CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
+        if (world == null) throw new WorldNotExistException();
+
+        CoUser user = world.getUser(context.argAt(0));
+        if (user == null) throw new UserNotExistException();
+
+        String group;
+        if (user.isOnline()) group = user.getGroup().getName();
+        else group = user.getUserSection().getString("group");
+
+        context.pluginMessage(AQUA + user.getName() + GRAY + " is in group " + AQUA + group + GRAY + " in world " + AQUA + world.getName());
+
     }
 
     //
