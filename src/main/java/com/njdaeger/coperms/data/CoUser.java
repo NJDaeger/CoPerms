@@ -52,9 +52,14 @@ public final class CoUser {
         List<String> customPerms = userSection.getStringList("permissions");
         if (customPerms != null) this.userPermissionTree.importPermissions(customPerms);
 
-        //Gets the name of the user. If the username doesnt exist for some reason and the user is online, we get their name
+        //Gets the name of the user. Only update if the user is online.
         this.name = userSection.getString("username");
-        if (name == null && isOnline()) this.name = Bukkit.getPlayer(uuid).getName();
+        if (isOnline()) {
+            if (this.name == null || !this.name.equals(Bukkit.getPlayer(uuid).getName())) {
+                this.name = Bukkit.getPlayer(uuid).getName();
+                this.hasChanged = true;
+            }
+        }
 
         //Get the prefix and suffix. The info may be null.
         this.prefix = (String) getInfo("prefix");
