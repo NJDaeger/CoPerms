@@ -3,6 +3,7 @@ package com.njdaeger.coperms;
 import com.njdaeger.coperms.data.CoWorld;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -17,12 +18,12 @@ public final class DataListener implements Listener {
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent e) {
         plugin.getWorld(e.getPlayer().getWorld()).addPlayer(e.getPlayer());
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onLeave(PlayerQuitEvent e) {
         plugin.getUser(e.getPlayer().getWorld(), e.getPlayer().getUniqueId()).save();
     }

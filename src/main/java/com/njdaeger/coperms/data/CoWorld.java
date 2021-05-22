@@ -146,7 +146,7 @@ public final class CoWorld {
      */
     public void addPlayer(@NotNull Player player) {
         Validate.notNull(player, "Player cannot be null");
-        if (!hasUser(player.getUniqueId())) userData.loadPlayer(player);
+        userData.loadPlayer(player);
         if (player.isOnline()) {
             CoUser user = userData.getUser(player.getUniqueId());
             user.loadIntoWorld(this);
