@@ -26,7 +26,8 @@ public final class UserDataFile extends Configuration {
         super(plugin, ConfigType.YML, "worlds" + File.separator + world.getName() + File.separator + "users");
 
         this.userMap = new HashMap<>();
-        (hasSection("users") ? getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet()) : new HashSet<>()).forEach(uuid -> userMap.putIfAbsent((UUID) uuid, new CoUser(plugin, this, (UUID) uuid)));
+        (hasSection("users") ? getSection("users").getKeys(false).stream().map(UUID::fromString).collect(Collectors.toSet()) : new HashSet<>())
+                .forEach(uuid -> userMap.putIfAbsent((UUID) uuid, new CoUser(plugin, this, (UUID) uuid)));
 
         this.plugin = plugin;
         this.world = world;

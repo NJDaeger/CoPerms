@@ -28,6 +28,8 @@ public final class CoWorld {
         this.userData = userData;
         this.groupData = groupData;
 
+
+        userData.getUsers().forEach(user -> user.loadIntoWorld(this));
 //        userData.getUsers().forEach(uuid -> users.putIfAbsent(uuid, new CoUser((CoPerms) userData.getPlugin(), uuid)));
     }
 

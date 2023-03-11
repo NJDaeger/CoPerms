@@ -64,7 +64,6 @@ public final class CoUser {
         //Get the prefix and suffix. The info may be null.
         this.prefix = (String) getInfo("prefix");
         this.suffix = (String) getInfo("suffix");
-
     }
 
     public PermissionTree getPermissionTree() {
