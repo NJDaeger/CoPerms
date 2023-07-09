@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.njdaeger</groupId>
     <artifactId>CoPerms</artifactId>
-    <version>1.4.6</version>
+    <version>1.4.7</version>
 
     <repositories>
         <repository>
@@ -27,14 +27,14 @@
 
         <dependency>
             <groupId>com.njdaeger</groupId>
-            <artifactId>PluginDevelopmentKit</artifactId>
-            <version>0.0.5</version>
+            <artifactId>plugin-development-kit</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.17.1-R0.1-SNAPSHOT</version>
+            <version>1.20.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 

@@ -8,6 +8,10 @@ import java.util.Set;
 
 public class PermissionTree {
 
+    public static final int REVOKED = -1;
+    public static final int UNSET = 0;
+    public static final int GRANTED = 1;
+
     public static void main(String[] args) {
         Set<String> permissions = new HashSet<>();
         permissions.add("essentials.build.*");

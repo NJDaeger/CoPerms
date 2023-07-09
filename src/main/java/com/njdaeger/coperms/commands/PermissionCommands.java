@@ -14,7 +14,14 @@ import com.njdaeger.pdk.command.CommandBuilder;
 import com.njdaeger.pdk.command.CommandContext;
 import com.njdaeger.pdk.command.exception.PDKCommandException;
 import com.njdaeger.pdk.command.flag.OptionalFlag;
-import com.njdaeger.pdk.utils.Text;
+import com.njdaeger.pdk.utils.text.Text;
+import com.njdaeger.pdk.utils.text.click.ClickAction;
+import com.njdaeger.pdk.utils.text.click.ClickString;
+import com.njdaeger.pdk.utils.text.hover.HoverAction;
+import com.njdaeger.pdk.utils.text.pager.ChatPaginator;
+import com.njdaeger.pdk.utils.text.pager.ComponentPosition;
+import com.njdaeger.pdk.utils.text.pager.components.PageNavigationComponent;
+import com.njdaeger.pdk.utils.text.pager.components.ResultCountComponent;
 
 import java.util.Set;
 
@@ -24,9 +31,24 @@ import static org.bukkit.ChatColor.*;
 public final class PermissionCommands {
 
     private final CoPerms plugin;
+    private final ChatPaginator<String, PaginatorContext> paginator;
 
     public PermissionCommands(CoPerms plugin) {
         this.plugin = plugin;
+
+        this.paginator = ChatPaginator.builder(this::lineGenerator)
+                .addComponent((ctx, paginator, results, pg) -> {
+                    if (ctx.isGroup()) return Text.of("Permissions for group ").setColor(LIGHT_PURPLE).appendRoot(ctx.ctx().first()).setColor(DARK_AQUA).setUnderlined(true);
+                    else return Text.of("Permissions for user ").setColor(LIGHT_PURPLE).appendRoot(ctx.ctx().first()).setColor(DARK_AQUA).setUnderlined(true);
+                }, ComponentPosition.TOP_CENTER)
+                .addComponent(new ResultCountComponent<>(true), ComponentPosition.TOP_LEFT)
+                .addComponent(new PageNavigationComponent<>(
+                        (ctx, res, pg) -> "/list" + (ctx.isGroup() ? "g" : "u") + "perms " + ctx.ctx().first() + " -p " + 1,
+                        (ctx, res, pg) -> "/list" + (ctx.isGroup() ? "g" : "u") + "perms " + ctx.ctx().first() + " -p " + (pg - 1),
+                        (ctx, res, pg) -> "/list" + (ctx.isGroup() ? "g" : "u") + "perms " + ctx.ctx().first() + " -p " + (pg + 1),
+                        (ctx, res, pg) -> "/list" + (ctx.isGroup() ? "g" : "u") + "perms " + ctx.ctx().first() + " -p " + ((int) Math.ceil(res.size() / 8.0))
+                ), ComponentPosition.BOTTOM_CENTER)
+                .build();
 
         CommandBuilder.of("grantuperm", "guperm")
                 .executor(this::userPermissionChange)
@@ -147,6 +169,31 @@ public final class PermissionCommands {
 
     }
 
+    private Text.Section lineGenerator(String permission, PaginatorContext context) {
+        permission = permission.startsWith("-") ? permission.substring(1) : permission;
+        var granted = context.tree().getGrantedState(permission);
+
+        var base = Text.of("");
+        if (granted == PermissionTree.REVOKED) base.appendRoot("[-]").setBold(true).setColor(RED).setHoverEvent(HoverAction.SHOW_TEXT, Text.of("Permission is revoked").setColor(GRAY));
+        else base.appendRoot("[-]").setBold(true).setColor(GRAY)
+                .setHoverEvent(HoverAction.SHOW_TEXT, Text.of("Revoke permission").setColor(GRAY))
+                .setClickEvent(ClickAction.RUN_COMMAND, ClickString.of("/rev" + (context.isGroup() ? "g" : "u") + "perm " + context.ctx().first() + " " + permission + (context.world() != null ? " -w " + context.world().getName() : "")));
+
+
+        if (granted == PermissionTree.UNSET) base.appendRoot("[O]").setBold(true).setColor(DARK_GRAY).setHoverEvent(HoverAction.SHOW_TEXT, Text.of("Permission is inherited").setColor(GRAY));
+        else base.appendRoot("[O]").setBold(true).setColor(GRAY)
+                .setHoverEvent(HoverAction.SHOW_TEXT, Text.of("Grant permission").setColor(GRAY))
+                .setClickEvent(ClickAction.RUN_COMMAND, ClickString.of("/rem" + (context.isGroup() ? "g" : "u") + "perm " + context.ctx().first() + " " + permission + (context.world() != null ? " -w " + context.world().getName() : "")));
+
+        if (granted == PermissionTree.GRANTED) base.appendRoot("[+]").setBold(true).setColor(GREEN).setHoverEvent(HoverAction.SHOW_TEXT, Text.of("Permission is granted").setColor(GRAY));
+        else base.appendRoot("[+]").setBold(true).setColor(GRAY)
+                .setHoverEvent(HoverAction.SHOW_TEXT, Text.of("Permission is granted").setColor(GRAY))
+                .setClickEvent(ClickAction.RUN_COMMAND, ClickString.of("/grant" + (context.isGroup() ? "g" : "u") + "perm " + context.ctx().first() + " " + permission + (context.world() != null ? " -w " + context.world().getName() : "")));
+
+        base.appendRoot(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission));
+        return base;
+    }
+
     // /testgperm <group> <permission>
     private void testGroupPermission(CommandContext context) throws PDKCommandException {
         CoWorld world = context.hasFlag("w") ? context.getFlag("w") : CommandUtil.resolveWorld(context);
@@ -185,7 +232,8 @@ public final class PermissionCommands {
 
 
         int page = context.hasFlag("p") ? context.getFlag("p") : 1;
-        sendEditPermissionPage(context, group.getPermissionTree(), world, page, true);
+        var tree = group.getPermissionTree();
+        paginator.generatePage(new PaginatorContext(context, tree, world, true), tree.getPermissionNodes().stream().toList(), page).sendTo(context.getSender());
 
     }
 
@@ -199,8 +247,8 @@ public final class PermissionCommands {
 
 
         int page = context.hasFlag("p") ? context.getFlag("p") : 1;
-        sendEditPermissionPage(context, user.getPermissionTree(), world, page, false);
-
+        var tree = user.getPermissionTree();
+        paginator.generatePage(new PaginatorContext(context, tree, world, false), tree.getPermissionNodes().stream().toList(), page).sendTo(context.getSender());
     }
 
     private void userPermissionChange(CommandContext context) throws PDKCommandException {
@@ -274,65 +322,65 @@ public final class PermissionCommands {
         return perms;
     }
 
-    private void sendEditPermissionPage(CommandContext context, PermissionTree permissionTree, CoWorld world, int page, boolean group) throws PDKCommandException {
-        Set<String> permissions = permissionTree.getPermissionNodes();
-        int pages = (int) Math.ceil(permissions.size()/10.);
-
-        if (pages < page || page <= 0) context.error(RED + "There are no more pages to display.");
-
-        Text.TextSection text = Text.of("CoPerms ").setColor(AQUA).append("Permission Editor ------ Page: ").setColor(GRAY).append(page + "/" + pages).setColor(AQUA).append("\n");
-        for (String permission : permissions.stream().skip((page-1)*10).limit(10).toArray(String[]::new)) {
-            if (permission.startsWith("-")) permission = permission.substring(1);
-            switch (permissionTree.getGrantedState(permission)) {
-                case -1:
-                    text.append("[-]").setColor(RED).setBold(true).hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Permission is revoked").setColor(GRAY))
-                            .append("[o]").setColor(GRAY).setBold(true)
-                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Remove permission").setColor(GRAY))
-                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/remove" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
-                            .append("[+]").setColor(GRAY).setBold(true)
-                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Grant permission").setColor(GRAY))
-                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/grant" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
-                            .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
-                    break;
-                case 1:
-                    text.append("[-]").setColor(GRAY).setBold(true)
-                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Revoke permission").setColor(GRAY))
-                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/revoke" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
-                            .append("[o]").setColor(GRAY).setBold(true)
-                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Remove permission").setColor(GRAY))
-                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/remove" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
-                            .append("[+]").setColor(GREEN).setBold(true)
-                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Permission is granted").setColor(GRAY))
-                            .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
-                    break;
-                case 0:
-                    text.append("[-]").setColor(GRAY).setBold(true)
-                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Revoke permission").setColor(GRAY))
-                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/revoke" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
-                            .append("[o]").setColor(DARK_GRAY).setBold(true)
-                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Permission is removed (inherited)").setColor(GRAY))
-                            .append("[+]").setColor(GRAY).setBold(true)
-                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Grant permission").setColor(GRAY))
-                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/grant" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
-                            .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
-                    break;
-                default:
-                    text.append("[-][o][+]").setColor(GRAY).setBold(true).hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Unknown state").setColor(GRAY))
-                        .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
-            }
-        }
-        text.append(page <= 1 ? RED + "|X|--" : GREEN + "<<--")
-                .setBold(true)
-                .clickEvent(Text.ClickAction.RUN_COMMAND, "/list" + (group ? "g" : "u") + "perms " + context.argAt(0) + " -p " + (page-1) + " -w " + world.getName().replaceAll(" ", "_"))
-                .append(" =================== ")
-                .setColor(GRAY)
-                .append(page == pages ? RED + "--|X|" : GREEN + "-->>").setBold(true)
-                .clickEvent(Text.ClickAction.RUN_COMMAND, "/list" + (group ? "g" : "u") + "perms " + context.argAt(0) + " -p " + (page+1) + " -w " + world.getName().replaceAll(" ", "_"));
-
-        if (context.isPlayer()) {
-            text.sendTo(context.asPlayer());
-        } else context.send(text.getFormatted());
-    }
+//    private void sendEditPermissionPage(CommandContext context, PermissionTree permissionTree, CoWorld world, int page, boolean group) throws PDKCommandException {
+//        Set<String> permissions = permissionTree.getPermissionNodes();
+//        int pages = (int) Math.ceil(permissions.size()/10.);
+//
+//        if (pages < page || page <= 0) context.error(RED + "There are no more pages to display.");
+//
+//        Text.TextSection text = Text.of("CoPerms ").setColor(AQUA).append("Permission Editor ------ Page: ").setColor(GRAY).append(page + "/" + pages).setColor(AQUA).append("\n");
+//        for (String permission : permissions.stream().skip((page-1)*10).limit(10).toArray(String[]::new)) {
+//            if (permission.startsWith("-")) permission = permission.substring(1);
+//            switch (permissionTree.getGrantedState(permission)) {
+//                case -1:
+//                    text.append("[-]").setColor(RED).setBold(true).hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Permission is revoked").setColor(GRAY))
+//                            .append("[o]").setColor(GRAY).setBold(true)
+//                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Remove permission").setColor(GRAY))
+//                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/remove" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+//                            .append("[+]").setColor(GRAY).setBold(true)
+//                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Grant permission").setColor(GRAY))
+//                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/grant" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+//                            .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
+//                    break;
+//                case 1:
+//                    text.append("[-]").setColor(GRAY).setBold(true)
+//                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Revoke permission").setColor(GRAY))
+//                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/revoke" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+//                            .append("[o]").setColor(GRAY).setBold(true)
+//                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Remove permission").setColor(GRAY))
+//                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/remove" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+//                            .append("[+]").setColor(GREEN).setBold(true)
+//                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Permission is granted").setColor(GRAY))
+//                            .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
+//                    break;
+//                case 0:
+//                    text.append("[-]").setColor(GRAY).setBold(true)
+//                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Revoke permission").setColor(GRAY))
+//                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/revoke" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+//                            .append("[o]").setColor(DARK_GRAY).setBold(true)
+//                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Permission is removed (inherited)").setColor(GRAY))
+//                            .append("[+]").setColor(GRAY).setBold(true)
+//                            .hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Grant permission").setColor(GRAY))
+//                            .clickEvent(Text.ClickAction.RUN_COMMAND, "/grant" + (group ? "g" : "u") + "perm " + context.argAt(0) + " " + permission)
+//                            .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
+//                    break;
+//                default:
+//                    text.append("[-][o][+]").setColor(GRAY).setBold(true).hoverEvent(Text.HoverAction.SHOW_TEXT, Text.of("Unknown state").setColor(GRAY))
+//                        .append(" >  ").setColor(DARK_AQUA).setBold(true).append(formatPermission(permission)).append("\n");
+//            }
+//        }
+//        text.append(page <= 1 ? RED + "|X|--" : GREEN + "<<--")
+//                .setBold(true)
+//                .clickEvent(Text.ClickAction.RUN_COMMAND, "/list" + (group ? "g" : "u") + "perms " + context.argAt(0) + " -p " + (page-1) + " -w " + world.getName().replaceAll(" ", "_"))
+//                .append(" =================== ")
+//                .setColor(GRAY)
+//                .append(page == pages ? RED + "--|X|" : GREEN + "-->>").setBold(true)
+//                .clickEvent(Text.ClickAction.RUN_COMMAND, "/list" + (group ? "g" : "u") + "perms " + context.argAt(0) + " -p " + (page+1) + " -w " + world.getName().replaceAll(" ", "_"));
+//
+//        if (context.isPlayer()) {
+//            text.sendTo(context.asPlayer());
+//        } else context.send(text.getFormatted());
+//    }
 
     private String formatPermission(String permission) {
         return GRAY.toString() + (permission.startsWith("-") ? ITALIC : "") + (permission.endsWith(".*") ? UNDERLINE : "") + permission;
